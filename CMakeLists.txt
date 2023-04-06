@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.13)
+cmake_minimum_required (VERSION 3.15 FATAL_ERROR)
 include(CheckIncludeFiles)
 
 #  _____ ______ __  __   _____  _                    _          _____       _ _
@@ -54,6 +54,14 @@ set (CMAKE_POSITION_INDEPENDENT_CODE ON)
 project (IEMPluginSuite VERSION 1.14.1 LANGUAGES C CXX)
 
 set_property (GLOBAL PROPERTY USE_FOLDERS YES)
+
+if(MSVC)
+    message (STATUS "MSVC detected, setting runtime library to Multi-threaded (/MT)")
+    add_compile_options($<$<CONFIG:Release>:/MT> # Runtime library: Multi-threaded
+                        $<$<CONFIG:RelWithDebInfo>:/MT> # Runtime library: Multi-threaded                           
+                        $<$<CONFIG:Debug>:/MTd> # Runtime library: Multi-threaded Debug
+                        )
+endif()
 
 # set copy paths for built plug-ins
 if (IEM_POST_BUILD_INSTALL STREQUAL "NO")
