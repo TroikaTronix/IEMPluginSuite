@@ -34,7 +34,7 @@ template <class inputType, class outputType, bool combined = false>
 
 class AudioProcessorBase : public juce::AudioProcessor,
                            public OSCMessageInterceptor,
-                           public juce::VSTCallbackHandler,
+                           public juce::VST2ClientExtensions,
                            public IOHelper<inputType, outputType, combined>,
                            public juce::AudioProcessorValueTreeState::Listener
 {
