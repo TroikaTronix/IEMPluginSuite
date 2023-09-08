@@ -34,9 +34,9 @@ MultiEQAudioProcessor::MultiEQAudioProcessor() :
         BusesProperties()
     #if ! JucePlugin_IsMidiEffect
         #if ! JucePlugin_IsSynth
-            .withInput ("Input", juce::AudioChannelSet::discreteChannels (64), true)
+            .withInput ("Input", juce::AudioChannelSet::ambisonic (7), true)
         #endif
-            .withOutput ("Output", juce::AudioChannelSet::discreteChannels (64), true)
+            .withOutput ("Output", juce::AudioChannelSet::ambisonic (7), true)
     #endif
             ,
 #endif
