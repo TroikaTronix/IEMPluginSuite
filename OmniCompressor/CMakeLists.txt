@@ -7,7 +7,7 @@ juce_add_plugin (OmniCompressor
     COMPANY_NAME "IEM"
     PRODUCT_NAME "OmniCompressor"
     FORMATS ${IEM_FORMATS}
-    VERSION "1.4.5"
+    VERSION "1.4.6"
     LV2URI "http://plugins.iem.at/OmniCompressor")
 
 

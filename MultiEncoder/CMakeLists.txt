@@ -7,7 +7,7 @@ juce_add_plugin (MultiEncoder
     COMPANY_NAME "IEM"
     PRODUCT_NAME "MultiEncoder"
     FORMATS ${IEM_FORMATS}
-    VERSION "1.0.3"
+    VERSION "1.0.4"
     LV2URI "http://plugins.iem.at/MultiEncoder")
 
 juce_generate_juce_header(MultiEncoder)

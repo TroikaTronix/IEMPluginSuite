@@ -7,7 +7,7 @@ juce_add_plugin (AllRADecoder
     COMPANY_NAME "IEM"
     PRODUCT_NAME "AllRADecoder"
     FORMATS ${IEM_FORMATS}
-    VERSION "0.9.4"
+    VERSION "0.9.5"
     LV2URI "http://plugins.iem.at/AllRADecoder")
 
 
