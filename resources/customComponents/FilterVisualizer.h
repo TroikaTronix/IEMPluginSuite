@@ -63,8 +63,9 @@ public:
                       float dbMax,
                       float gridDiv,
                       bool gainHandleLin = false) :
-        overallGainInDb (0.0f), sampleRate (48000.0), s { fMin,  fMax,    dbMin,
-                                                          dbMax, gridDiv, gainHandleLin }
+        overallGainInDb (0.0f),
+        sampleRate (48000.0),
+        s { fMin, fMax, dbMin, dbMax, gridDiv, gainHandleLin }
     {
         init();
     }
