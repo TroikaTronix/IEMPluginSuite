@@ -44,7 +44,6 @@ option (IEM_BUILD_VST3 "Build VST3 version of the plug-ins." OFF)
 option (IEM_BUILD_LV2 "Build LV2 version of the plug-ins." OFF)
 option (IEM_BUILD_STANDALONE "Build standalones of the plug-ins." ON)
 option (IEM_STANDALONE_JACK_SUPPORT "Build standalones with JACK support." ON)
-option (IEM_CI_WINDOWS "Additional settings for building on IEM Windows CI" OFF)
 
 set (IEM_POST_BUILD_INSTALL "USER" CACHE STRING "Define if plug-ins are installed for USER, SYSTEM or if you want NO installation")
 set (prefix "/usr/local" CACHE STRING "Path prefix for custom installation")
