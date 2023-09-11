@@ -11,7 +11,7 @@ variables:
   #PROJECTS: AllRADecoder BinauralDecoder CoordinateConverter DirectionalCompressor DirectivityShaper DistanceCompensator DualDelay EnergyVisualizer FdnReverb MatrixMultiplier MultiBandCompressor MultiEncoder MultiEQ OmniCompressor ProbeDecoder RoomEncoder SceneRotator SimpleDecoder StereoEncoder ToolBox
   GIT_SUBMODULE_STRATEGY: recursive
   CONFIG: Release
-  JUCEVERSION: 7.0.5
+  JUCEVERSION: 7.0.7
 
 ###################################################
 # cleanup after the job (e.g. rename files for the artifacts...)
@@ -39,7 +39,7 @@ variables:
 
 .build:linux:
   stage: build
-  image: ubuntu:focal
+  image: ubuntu:jammy
   tags:
     - docker
   variables:
@@ -58,7 +58,7 @@ variables:
     - rm -rf build
     - mkdir build
     - cd build
-    - cmake .. -DCMAKE_BUILD_TYPE=Release -DIEM_BUILD_VST2=ON -DVST2SDKPATH=src/VST_SDK/VST2_SDK/ -DIEM_BUILD_LV2=ON -DIEM_BUILD_STANDALONE=ON
+    - cmake .. -DCMAKE_BUILD_TYPE=Release -DIEM_BUILD_VST3=ON -DIEM_BUILD_VST2=ON -DVST2SDKPATH=src/VST_SDK/VST2_SDK/ -DIEM_BUILD_LV2=ON -DIEM_BUILD_STANDALONE=ON
     - make -j $(nproc)
     - cd ..
 
@@ -85,7 +85,7 @@ variables:
     - rm -rf build
     - mkdir build
     - cd build
-    - cmake .. -DCMAKE_BUILD_TYPE=Release  -DIEM_BUILD_VST2=ON -DVST2SDKPATH=src/VST_SDK/VST2_SDK/ -DIEM_BUILD_LV2=ON -DIEM_BUILD_STANDALONE=ON
+    - cmake .. -DCMAKE_BUILD_TYPE=Release -DIEM_BUILD_VST3=ON -DIEM_BUILD_VST2=ON -DVST2SDKPATH=src/VST_SDK/VST2_SDK/ -DIEM_BUILD_LV2=ON -DIEM_BUILD_STANDALONE=ON
     - make -j $(sysctl -n hw.ncpu)
     - cd ..
 # collect binaries for artifacts
@@ -98,21 +98,35 @@ variables:
     - mkdir Standalone
     - cp -r build/*/*_artefacts/Release/Standalone/*.app Standalone/
 
+# FIXME: Fix toolchain for windows adn cmake
 .build:windows:
   stage: build
   tags:
     - windows
   variables:
-    IEMCI_CONFIGURATIONS: vs2017
+    IEMCI_CONFIGURATIONS: mingw64
   script:
-# run the actual build
+# TODO: Get FFTW
+# TODO: Get VST2 SDK
+    - cmake --version
     - mkdir build
     - cd build
-    - cmake ..
-    - cmake --build . --target ALL_BUILD --config Release
-    - test -n "${PROJECTS}" || PROJECTS=$(make showprojects)
-    - make system CONFIG=$CONFIG BITS=$BITS PROJUCER="/c/JUCE/Projucer.exe"
-    - make CONFIG=$CONFIG BITS=$BITS PROJUCER="/c/JUCE/Projucer.exe" PROJECTS="${PROJECTS}" remove_intermediates=yes
+    - cmake .. -DIEM_BUILD_VST3=ON -DIEM_BUILD_LV2=ON -DIEM_BUILD_STANDALONE=ON
+    - cmake --build . --config Release
+    - cd ..
+
+# Collect binaries
+    # - mkdir VST3
+    # - cp -r build/*/*_artefacts/Release/VST3/*.vst3 VST3/
+    - mkdir VST
+    - cp -r build/*/*_artefacts/Release/VST/*.dll VST/
+    - mkdir LV2
+    - cp -r build/*/*_artefacts/Release/LV2/*.lv2 LV2/
+    - mkdir Standalone
+    - cp -r build/*/*_artefacts/Release/Standalone/*.exe Standalone/
+    # - test -n "${PROJECTS}" || PROJECTS=$(make showprojects)
+    # - make system CONFIG=$CONFIG BITS=$BITS PROJUCER="/c/JUCE/Projucer.exe"
+    # - make CONFIG=$CONFIG BITS=$BITS PROJUCER="/c/JUCE/Projucer.exe" PROJECTS="${PROJECTS}" remove_intermediates=yes
 # collect binaries for artifacts
 #     - mkdir -p IEM/standalone
 #     - cp */Builds/*/*/*/VST/*.dll IEM/
@@ -193,7 +207,7 @@ osx:
 
 .windows:
   variables:
-    IEMCI_CONFIGURATIONS: vs2017
+    IEMCI_CONFIGURATIONS: mingw64
   extends:
     - .artifacts
     - .run_selected
