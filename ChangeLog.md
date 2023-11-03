@@ -3,6 +3,17 @@ For a list of all changes and bugfixes see the git log.
 
 Please note, that breaking changes are marked with `!!BREAKING CHANGE!!`. They might lead to an unexpected behavior and might not be compatible with your previous projects without making some adaptions. See the [Breaking changes article](https://plugins.iem.at/docs/breakingchanges/) for more information.
 
+## v1.14.1
+- general changes
+    - moved to JUCE 7.0.5
+    - Plug-ins work again on Windows Vista and 7
+-  plug-in specific changes
+    -  **AllRA**Decoder and **Simple**Decoder
+        - Wrap azimuth exceeding 180° and elevation exceeding 90° for correct im-/export of layouts
+        - Update IEM Cube decoder preset
+    -  **Granular**Encoder
+        - Add some color to the sliders
+
 ## v1.14.0
 - general changes
     - moved to JUCE 7.0.4
