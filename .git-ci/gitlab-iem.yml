@@ -9,9 +9,7 @@ stages:
 variables:
 ## leave this uncommented to build all projects (except _PluginTemplate)
   #PROJECTS: AllRADecoder BinauralDecoder CoordinateConverter DirectionalCompressor DirectivityShaper DistanceCompensator DualDelay EnergyVisualizer FdnReverb MatrixMultiplier MultiBandCompressor MultiEncoder MultiEQ OmniCompressor ProbeDecoder RoomEncoder SceneRotator SimpleDecoder StereoEncoder ToolBox
-  GIT_SUBMODULE_STRATEGY: recursive
   CONFIG: Release
-  JUCEVERSION: 7.0.7
 
 ###################################################
 # cleanup after the job (e.g. rename files for the artifacts...)
@@ -44,50 +42,56 @@ variables:
     - docker
   variables:
     DEBIAN_FRONTEND: noninteractive
-  script:
+  before_script:
 # install dependencies
     - apt-get update -y
     - apt-get dist-upgrade -y
-    - apt-get install -y --no-install-recommends xvfb xauth curl unzip build-essential ca-certificates wget cmake
+    - apt-get install -y --no-install-recommends xvfb xauth curl unzip build-essential ca-certificates wget cmake git
     - apt-get install -y --no-install-recommends libwebkit2gtk-4.0-dev libasound2-dev libfreetype6-dev libcurl4-gnutls-dev libgl1-mesa-dev libx11-dev libxext-dev libxinerama-dev libxrandr-dev libgtk-3-dev
     - apt-get install -y --no-install-recommends libjack-dev libfftw3-dev
     - cmake --version
 # get VST2SDK
     - .git-ci/getvst.sh
-# run the actual build
     - rm -rf build
-    - mkdir build
-    - cd build
-    - cmake .. -DCMAKE_BUILD_TYPE=Release -DIEM_BUILD_VST3=ON -DIEM_BUILD_VST2=ON -DVST2SDKPATH=src/VST_SDK/VST2_SDK/ -DIEM_BUILD_LV2=ON -DIEM_BUILD_STANDALONE=ON
-    - make -j $(nproc)
-    - cd ..
+  
+  script:
+    - cmake -B build -DIEM_BUILD_VST3=ON -DIEM_BUILD_VST2=ON -DVST2SDKPATH=src/VST_SDK/VST2_SDK/ -DIEM_BUILD_LV2=ON -DIEM_BUILD_STANDALONE=ON
+    - cmake --build build --config Release -- -j $(nproc)
 
 # collect binaries for artifacts
     # - mkdir VST3
-    # - cp -r build/*/*_artefacts/Release/VST3/*.vst3 VST3/
+    # - cp -r build/*/*_artefacts/VST3/*.vst3 VST3/
     - mkdir VST
-    - cp -r build/*/*_artefacts/Release/VST/*.so VST/
+    - cp -r build/*/*_artefacts/VST/*.so VST/
     - mkdir LV2
-    - cp -r build/*/*_artefacts/Release/LV2/*.lv2 LV2/
+    - cp -r build/*/*_artefacts/LV2/*.lv2 LV2/
     - mkdir Standalone
-    - find build/*/*_artefacts/Release/Standalone/ -maxdepth 1 -type f -executable -not -name "*.so" -exec cp {} Standalone/ ";"
+    - find build/*/*_artefacts/Standalone/ -maxdepth 1 -type f -executable -not -name "*.so" -exec cp {} Standalone/ ";"
 
 .build:osx:
   stage: build
   tags:
     - macos11.4
-  script:
+  variables:
+    JACK_VERSION: v1.9.22
+  before_script:
 # install dependencies
-    - HOMEBREW_NO_AUTO_UPDATE=1 brew install jack || true
+    # - HOMEBREW_NO_AUTO_UPDATE=1 brew install jack || true
+    - echo "Getting JACK-${JACK_VERSION}"
+    - curl --fail -L -o jack.tgz https://github.com/jackaudio/jack2-releases/releases/download/${JACK_VERSION}/jack2-macOS-universal-${JACK_VERSION}.tar.gz || true
+    - test ! -e jack.tgz || tar -xvf jack.tgz "jack*.pkg"
+    - for f in ./jack*.pkg; do test -e "${f}" || continue; sudo installer -pkg "${f}" -target /; done
+    - rm -f jack*.pkg jack.tgz
+    - jackd --version
 # get VST2SDK
     - .git-ci/getvst.sh
-# run the actual build
     - rm -rf build
-    - mkdir build
-    - cd build
-    - cmake .. -DCMAKE_BUILD_TYPE=Release -DIEM_BUILD_VST3=ON -DIEM_BUILD_VST2=ON -DVST2SDKPATH=src/VST_SDK/VST2_SDK/ -DIEM_BUILD_LV2=ON -DIEM_BUILD_STANDALONE=ON
-    - make -j $(sysctl -n hw.ncpu)
-    - cd ..
+
+  script:
+# using xcode as generator seems to produce smaller binaries
+    - cmake -B build -G Xcode -DIEM_BUILD_VST3=ON -DIEM_BUILD_VST2=ON -DVST2SDKPATH=src/VST_SDK/VST2_SDK/ -DIEM_BUILD_LV2=ON -DIEM_BUILD_STANDALONE=ON
+    - cmake --build build --config Release -- -quiet
+
 # collect binaries for artifacts
     # - mkdir VST3
     # - cp -r build/*/*_artefacts/Release/VST3/*.vst3 VST3/
@@ -144,13 +148,12 @@ clang-format:
   stage: pre-check
   image: alpine:latest
   variables:
-    GIT_SUBMODULE_STRATEGY: none
     FORMAT_SCRIPT: clang-format -i
   before_script:
     - apk add clang-extra-tools
   script:
     - apk add git
-    - find * \( -name "*.cpp" -or -name "*.h"  -or -name "*.c"  -or -name "*.cc" \) -not -path "JUCE/*" -exec ${FORMAT_SCRIPT} {} \;
+    - find * \( -name "*.cpp" -or -name "*.h"  -or -name "*.c"  -or -name "*.cc" \) -exec ${FORMAT_SCRIPT} {} \;
     - git status --porcelain
     - git diff --exit-code > format.log
     # cleanup, if 'git diff' did not complain
@@ -181,8 +184,6 @@ linefeed-format:
 sast:
   stage: pre-check
   allow_failure: true
-  variables:
-    GIT_SUBMODULE_STRATEGY: none
   before_script:
     # we really do not want to run sast on JUCE (not our business)
     - rm -rf JUCE $(git submodule status | awk '{print $2}')

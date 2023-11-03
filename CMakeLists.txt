@@ -55,20 +55,18 @@ project (IEMPluginSuite VERSION 1.14.2 LANGUAGES C CXX)
 
 set_property (GLOBAL PROPERTY USE_FOLDERS YES)
 
-if(MSVC)
-    message (STATUS "MSVC detected, setting runtime library to Multi-threaded (/MT)")
-    add_compile_options($<$<CONFIG:Release>:/MT> # Runtime library: Multi-threaded
-                        $<$<CONFIG:RelWithDebInfo>:/MT> # Runtime library: Multi-threaded                           
-                        $<$<CONFIG:Debug>:/MTd> # Runtime library: Multi-threaded Debug
-                        )
-endif()
-
 # set copy paths for built plug-ins
 if (IEM_POST_BUILD_INSTALL STREQUAL "NO")
     set_directory_properties (PROPERTIES JUCE_COPY_PLUGIN_AFTER_BUILD OFF)
 
 elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     set_directory_properties (PROPERTIES JUCE_COPY_PLUGIN_AFTER_BUILD ON)
+
+    if (${XCODE_VERSION} VERSION_GREATER "14.99.99")
+        message (STATUS "Detected Xcode 15 or above, setting additional linker flags -Wl,-weak_reference_mismatches,weak")
+        add_link_options (-Wl,-weak_reference_mismatches,weak)
+        add_compile_definitions (JUCE_SILENCE_XCODE_15_LINKER_WARNING=1)
+    endif() 
 
     if (IEM_POST_BUILD_INSTALL STREQUAL "SYSTEM")
         set (prefix "/Library/Audio/Plug-Ins")
@@ -82,6 +80,14 @@ elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
 
 elseif (CMAKE_SYSTEM_NAME STREQUAL "Windows")
     set_directory_properties (PROPERTIES JUCE_COPY_PLUGIN_AFTER_BUILD ON)
+
+    if(MSVC)
+        message (STATUS "MSVC detected, setting runtime library to Multi-threaded (/MT)")
+        add_compile_options($<$<CONFIG:Release>:/MT> # Runtime library: Multi-threaded
+                            $<$<CONFIG:RelWithDebInfo>:/MT> # Runtime library: Multi-threaded                           
+                            $<$<CONFIG:Debug>:/MTd> # Runtime library: Multi-threaded Debug
+                            )
+    endif()
 
     if ((IEM_POST_BUILD_INSTALL STREQUAL "USER") AND (prefix STREQUAL "/usr/local"))
         if (IEM_BUILD_VST3 OR IEM_BUILD_VST2)
@@ -127,9 +133,11 @@ endif()
 
 # add JUCE dependency
 if (IEM_USE_SYSTEM_JUCE)
-    find_package(JUCE CONFIG REQUIRED)
+    set (CMAKE_WARN_DEPRECATED TRUE)
+    message (DEPRECATION "Using a system JUCE installation may be deprecated in future releases. Please use the fetched version instead.")
+    find_package (JUCE CONFIG REQUIRED)
 else()
-    add_subdirectory (JUCE)
+    include (Dependencies.cmake)
 endif()
 
 # formats
