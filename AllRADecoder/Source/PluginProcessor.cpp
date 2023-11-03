@@ -1125,7 +1125,7 @@ void AllRADecoderAudioProcessor::saveConfigurationToFile (juce::File destination
         juce::var ("All-Round Ambisonic decoder (AllRAD) and loudspeaker layout"));
     char versionString[10];
     strcpy (versionString, "v");
-    strcat (versionString, JucePlugin_VersionString);
+    strncat (versionString, JucePlugin_VersionString, 12);
     jsonObj->setProperty (
         "Description",
         juce::var ("This configuration file was created with the IEM AllRADecoder "
