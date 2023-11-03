@@ -191,6 +191,8 @@ include:
 artifacts:
   reports:
     sast: gl-sast-report.json
+  paths:
+    - gl-sast-report.json
 
 linux:
   extends:
