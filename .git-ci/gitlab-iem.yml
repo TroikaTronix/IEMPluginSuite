@@ -186,15 +186,13 @@ sast:
   before_script:
     # we really do not want to run sast on JUCE (not our business)
     - rm -rf JUCE $(git submodule status | awk '{print $2}')
-  script:
-    - echo "Running SAST"
+  artifacts:
+    reports:
+      sast: gl-sast-report.json
+    paths:
+      - gl-sast-report.json
 include:
 - template: Security/SAST.gitlab-ci.yml
-artifacts:
-  reports:
-    sast: gl-sast-report.json
-  paths:
-    - gl-sast-report.json
 
 linux:
   extends:
