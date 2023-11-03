@@ -6,11 +6,6 @@ stages:
   - test
   - deploy
 
-variables:
-## leave this uncommented to build all projects (except _PluginTemplate)
-  #PROJECTS: AllRADecoder BinauralDecoder CoordinateConverter DirectionalCompressor DirectivityShaper DistanceCompensator DualDelay EnergyVisualizer FdnReverb MatrixMultiplier MultiBandCompressor MultiEncoder MultiEQ OmniCompressor ProbeDecoder RoomEncoder SceneRotator SimpleDecoder StereoEncoder ToolBox
-  CONFIG: Release
-
 ###################################################
 # cleanup after the job (e.g. rename files for the artifacts...)
 .after_script:
@@ -42,6 +37,7 @@ variables:
     - docker
   variables:
     DEBIAN_FRONTEND: noninteractive
+    MAX_JOBS: 8
   before_script:
 # install dependencies
     - apt-get update -y
@@ -53,10 +49,18 @@ variables:
 # get VST2SDK
     - .git-ci/getvst.sh
     - rm -rf build
+# Use all available cores, but not more than MAX_JOBS
+    - |
+      if (($(nproc) < ${MAX_JOBS})); then
+        export NUM_JOBS=$(nproc)
+      else
+        export NUM_JOBS=${MAX_JOBS}
+      fi
+    - echo "Using ${NUM_JOBS} jobs"
   
   script:
     - cmake -B build -DIEM_BUILD_VST3=ON -DIEM_BUILD_VST2=ON -DVST2SDKPATH=src/VST_SDK/VST2_SDK/ -DIEM_BUILD_LV2=ON -DIEM_BUILD_STANDALONE=ON
-    - cmake --build build --config Release -- -j $(nproc)
+    - cmake --build build --config Release -- -j ${NUM_JOBS}
 
 # collect binaries for artifacts
     # - mkdir VST3
@@ -68,12 +72,13 @@ variables:
     - mkdir Standalone
     - find build/*/*_artefacts/Standalone/ -maxdepth 1 -type f -executable -not -name "*.so" -exec cp {} Standalone/ ";"
 
-.build:osx:
+.build:macos:
   stage: build
   tags:
     - macos11.4
   variables:
     JACK_VERSION: v1.9.22
+    MAX_JOBS: 8
   before_script:
 # install dependencies
     # - HOMEBREW_NO_AUTO_UPDATE=1 brew install jack || true
@@ -86,11 +91,20 @@ variables:
 # get VST2SDK
     - .git-ci/getvst.sh
     - rm -rf build
+# Use all available cores, but not more than MAX_JOBS
+    - export NUM_CORES=$(sysctl -n hw.ncpu)
+    - |
+      if ((${NUM_CORES} < ${MAX_JOBS})); then
+        export NUM_JOBS=${NUM_CORES}
+      else
+        export NUM_JOBS=${MAX_JOBS}
+      fi
+    - echo "Using ${NUM_JOBS} jobs"
 
   script:
 # using xcode as generator seems to produce smaller binaries
     - cmake -B build -G Xcode -DIEM_BUILD_VST3=ON -DIEM_BUILD_VST2=ON -DVST2SDKPATH=src/VST_SDK/VST2_SDK/ -DIEM_BUILD_LV2=ON -DIEM_BUILD_STANDALONE=ON
-    - cmake --build build --config Release -- -quiet
+    - cmake --build build --config Release -- -quiet -jobs ${NUM_JOBS}
 
 # collect binaries for artifacts
     # - mkdir VST3
@@ -203,11 +217,11 @@ linux:
   artifacts:
     name: IEMPluginSuite_linux
 
-osx:
+macos:
   extends:
     - .artifacts
     - .run_selected
-    - .build:osx
+    - .build:macos
   artifacts:
     name: IEMPluginSuite_macOS
 
