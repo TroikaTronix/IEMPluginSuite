@@ -188,6 +188,9 @@ sast:
     - rm -rf JUCE $(git submodule status | awk '{print $2}')
 include:
 - template: Security/SAST.gitlab-ci.yml
+artifacts:
+  reports:
+    sast: gl-sast-report.json
 
 linux:
   extends:
