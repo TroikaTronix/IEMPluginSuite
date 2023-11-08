@@ -308,6 +308,8 @@ linux-pluginval:
     - docker@lucier
   dependencies:
     - linux
+  needs:
+    - linux
   variables:
     DEBIAN_FRONTEND: noninteractive
     PLUGINVAL_ARGS_GUI: ""
@@ -326,6 +328,8 @@ macos-pluginval:
   tags:
     - macos11.4
   dependencies:
+    - macos
+  needs:
     - macos
   variables:
     PLUGINVAL: pluginval.app/Contents/MacOS/pluginval
