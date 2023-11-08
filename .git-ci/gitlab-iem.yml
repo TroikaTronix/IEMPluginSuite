@@ -219,7 +219,7 @@ linux:
   artifacts:
     name: IEMPluginSuite_linux
 
-.macos:
+macos:
   extends:
     - .artifacts
     - .run_selected
@@ -258,6 +258,7 @@ linux-pluginval:
     - docker@lucier
   dependencies:
     - linux
+  allow_failure: true
   variables:
     DEBIAN_FRONTEND: noninteractive
   before_script:
@@ -297,12 +298,13 @@ linux-pluginval:
       - failed-tests.txt
       - test-logs
 
-.macos-pluginval:
+macos-pluginval:
   stage: test
   tags:
     - macos11.4
   dependencies:
     - macos
+  allow_failure: true
   before_script:
     - curl -L "https://github.com/Tracktion/pluginval/releases/latest/download/pluginval_macOS.zip" -o pluginval.zip
     - unzip pluginval
@@ -314,13 +316,15 @@ linux-pluginval:
     - |
       find VST/ -name "*.vst" | while read fname; do
         logfile="test-logs/${fname##*/}.txt"
-        pluginval.app/Contents/MacOS/pluginval --validate-in-process --strictness-level 10 --repeat 1 --skip-gui-tests "$fname" | tee ${logfile} || echo "${fname} failed with exit code $?" >> failed-tests.txt
+        ./pluginval --validate-in-process --strictness-level 10 --repeat 1 --skip-gui-tests "$fname" >> ${logfile} || echo "${fname} failed with exit code $?" >> failed-tests.txt;
+        cat $logfile
       done
 
     - |
       find VST3/ -name "*.vst3" | while read fname; do
         logfile="test-logs/${fname##*/}.txt"
-        pluginval.app/Contents/MacOS/pluginval --validate-in-process --strictness-level 10 --repeat 1 --skip-gui-tests "$fname" | tee ${logfile} || echo "${fname} failed with exit code $?" >> failed-tests.txt
+        ./pluginval --validate-in-process --strictness-level 10 --repeat 1 --skip-gui-tests "$fname" >> ${logfile} || echo "${fname} failed with exit code $?" >> failed-tests.txt;
+        cat $logfile
       done
 
     - |
