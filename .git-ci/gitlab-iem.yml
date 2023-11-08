@@ -251,94 +251,75 @@ macos:
   artifacts:
     name: IEMPluginSuite_w32
 
-linux-pluginval:
+
+# Plugin validator
+.pluginval:
   stage: test
   extends:
     - .run_selected
+  allow_failure: true
+  variables:
+    PLUGINVAL_ARGS: --validate-in-process --strictness-level 10 --repeat 1
+    PLUGINVAL_ARGS_GUI: --skip-gui-tests
+    PLUGINVAL: ./pluginval
+  artifacts:
+    when: on_failure
+    paths:
+      - failed-tests.txt
+      - test-logs
+  script:
+    - unzip pluginval.zip
+    - rm -f failed-tests.txt
+    - rm -rf test-logs
+    - mkdir test-logs
+
+    - |
+      find VST/ -name "*.so" -o -name "*.vst" | while read fname; do
+        logfile="test-logs/${fname##*/}.txt"
+        ${PLUGINVAL} ${PLUGINVAL_ARGS} ${PLUGINVAL_ARGS_GUI} "$fname" |& tee -a ${logfile} || echo "${fname} failed with exit code $?" >> failed-tests.txt;
+        cat $logfile
+      done
+
+    - |
+      find VST3/ -name "*.vst3" | while read fname; do
+        logfile="test-logs/${fname##*/}.txt"
+        ${PLUGINVAL} ${PLUGINVAL_ARGS} ${PLUGINVAL_ARGS_GUI} "$fname" |& tee -a ${logfile} || echo "${fname} failed with exit code $?" >> failed-tests.txt;
+        cat $logfile
+      done
+
+    - |
+      if test -f failed-tests.txt; then
+          echo "Some tests failed, check artifacts for details..."
+          exit 1
+      fi
+
+linux-pluginval:
+  stage: test
+  extends:
+    - .pluginval
   image: ubuntu:jammy
   tags:
     - docker@lucier
   dependencies:
     - linux
-  allow_failure: true
   variables:
     DEBIAN_FRONTEND: noninteractive
+    PLUGINVAL_ARGS_GUI: ""
+    PLUGINVAL: "xvfb-run ./pluginval"
   before_script:
     - apt-get update -y
     - apt-get dist-upgrade -y
     - apt-get install -y --no-install-recommends ca-certificates curl fftw3 libasound2 libfreetype6 unzip xauth xvfb
     - curl -L "https://github.com/Tracktion/pluginval/releases/latest/download/pluginval_Linux.zip" -o pluginval.zip
-    - unzip pluginval
-  script:
-    - rm -f failed-tests.txt
-    - rm -rf test-logs
-    - mkdir test-logs
-
-    - |
-      find VST/ -name "*.so" | while read fname; do
-        logfile="test-logs/${fname##*/}.txt"
-        ./pluginval --validate-in-process --strictness-level 10 --repeat 1 --skip-gui-tests "$fname" >> ${logfile} || echo "${fname} failed with exit code $?" >> failed-tests.txt;
-        cat $logfile
-      done
-
-    - |
-      find VST3/ -name "*.vst3" | while read fname; do
-        logfile="test-logs/${fname##*/}.txt"
-        ./pluginval --validate-in-process --strictness-level 10 --repeat 1 --skip-gui-tests "$fname" >> ${logfile} || echo "${fname} failed with exit code $?" >> failed-tests.txt;
-        cat $logfile
-      done
-
-    - |
-      if test -f failed-tests.txt; then
-          echo "Some tests failed, check artifacts for details..."
-          exit 1
-      fi
-
-  artifacts:
-    when: on_failure
-    paths:
-      - failed-tests.txt
-      - test-logs
 
 macos-pluginval:
-  stage: test
   extends:
-    - .run_selected
+    - .pluginval
   tags:
     - macos11.4
   dependencies:
     - macos
-  allow_failure: true
+  variables:
+    PLUGINVAL: pluginval.app/Contents/MacOS/pluginval
   before_script:
     - curl -L "https://github.com/Tracktion/pluginval/releases/latest/download/pluginval_macOS.zip" -o pluginval.zip
-    - unzip pluginval
-  script:
-    - rm -f failed-tests.txt
-    - rm -rf test-logs
-    - mkdir test-logs
-
-    - |
-      find VST/ -name "*.vst" | while read fname; do
-        logfile="test-logs/${fname##*/}.txt"
-        pluginval.app/Contents/MacOS/pluginval --validate-in-process --strictness-level 10 --repeat 1 --skip-gui-tests "$fname" >> ${logfile} || echo "${fname} failed with exit code $?" >> failed-tests.txt;
-        cat $logfile
-      done
-
-    - |
-      find VST3/ -name "*.vst3" | while read fname; do
-        logfile="test-logs/${fname##*/}.txt"
-        pluginval.app/Contents/MacOS/pluginval --validate-in-process --strictness-level 10 --repeat 1 --skip-gui-tests "$fname" >> ${logfile} || echo "${fname} failed with exit code $?" >> failed-tests.txt;
-        cat $logfile
-      done
-
-    - |
-      if test -f failed-tests.txt; then
-          echo "Some tests failed, check artifacts for details..."
-          exit 1
-      fi
-
-  artifacts:
-    when: on_failure
-    paths:
-      - failed-tests.txt
-      - test-logs
