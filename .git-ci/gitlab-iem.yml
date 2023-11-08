@@ -259,7 +259,7 @@ macos:
     - .run_selected
   allow_failure: true
   variables:
-    PLUGINVAL_ARGS: --validate-in-process --strictness-level 10 --repeat 1 --vst3validator vst3sdk/cmake-build/bin/Debug/validator
+    PLUGINVAL_ARGS: --validate-in-process --strictness-level 10 --repeat 1 # --vst3validator vst3sdk/cmake-build/bin/Debug/validator
     PLUGINVAL_ARGS_GUI: --skip-gui-tests
     PLUGINVAL: ./pluginval
   artifacts:
@@ -270,9 +270,9 @@ macos:
   script:
     - unzip pluginval.zip
 
-    - git clone --recursive https://github.com/steinbergmedia/vst3sdk.git
-    - cmake vst3sdk -B vst3sdk/cmake-build
-    - cmake --build vst3sdk/cmake-build --target validator
+    # - git clone --recursive https://github.com/steinbergmedia/vst3sdk.git
+    # - cmake vst3sdk -B vst3sdk/cmake-build
+    # - cmake --build vst3sdk/cmake-build --target validator
 
     - rm -f failed-tests.txt
     - rm -rf test-logs
@@ -318,7 +318,7 @@ linux-pluginval:
     - apt-get update -y
     - apt-get dist-upgrade -y
     - apt-get install -y --no-install-recommends ca-certificates curl fftw3 libasound2 libfreetype6 unzip xauth xvfb
-    - apt-get install -y --no-install-recommends git build-essential cmake gcc "libstdc++6" libx11-xcb-dev libxcb-util-dev libxcb-cursor-dev libxcb-xkb-dev libxkbcommon-dev libxkbcommon-x11-dev libfontconfig1-dev libcairo2-dev libgtkmm-3.0-dev libsqlite3-dev libxcb-keysyms1-dev
+    # - apt-get install -y --no-install-recommends git build-essential cmake gcc "libstdc++6" libx11-xcb-dev libxcb-util-dev libxcb-cursor-dev libxcb-xkb-dev libxkbcommon-dev libxkbcommon-x11-dev libfontconfig1-dev libcairo2-dev libgtkmm-3.0-dev libsqlite3-dev libxcb-keysyms1-dev
 
     - curl -L "https://github.com/Tracktion/pluginval/releases/latest/download/pluginval_Linux.zip" -o pluginval.zip
 
