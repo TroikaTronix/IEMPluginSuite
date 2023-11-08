@@ -35,7 +35,7 @@ stages:
   stage: build
   image: ubuntu:jammy
   tags:
-    - docker
+    - docker@lucier
   variables:
     DEBIAN_FRONTEND: noninteractive
     MAX_JOBS: 8
@@ -218,7 +218,7 @@ linux:
   artifacts:
     name: IEMPluginSuite_linux
 
-macos:
+.macos:
   extends:
     - .artifacts
     - .run_selected
@@ -250,11 +250,11 @@ macos:
   artifacts:
     name: IEMPluginSuite_w32
 
-pluginval_linux:
+linux-pluginval:
   stage: test
   image: ubuntu:jammy
   tags:
-    - docker
+    - docker@lucier
   dependencies:
     - linux
   variables:
@@ -294,7 +294,7 @@ pluginval_linux:
       - failed-tests.txt
       - test-logs
 
-pluginval_macos:
+.macos-pluginval:
   stage: test
   tags:
     - macos11.4
