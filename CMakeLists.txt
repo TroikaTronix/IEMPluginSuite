@@ -21,7 +21,7 @@ set (PLUGINS_TO_BUILD
         # DistanceCompensator
         # DualDelay
         # EnergyVisualizer
-        FdnReverb
+        # FdnReverb
         # GranularEncoder
         # MatrixMultiplier
         # MultiBandCompressor
@@ -33,7 +33,7 @@ set (PLUGINS_TO_BUILD
         # SceneRotator
         # SimpleDecoder
         # StereoEncoder
-        # ToolBox
+        ToolBox
     )
 
 # The following options let you select the plug-ins formats you want to build.
