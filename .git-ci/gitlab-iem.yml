@@ -19,7 +19,7 @@ stages:
     paths:
       - VST3
       - VST
-      - LV2
+      # - LV2
       - Standalone
       - ChangeLog.md
     expire_in: 1 week
@@ -29,6 +29,7 @@ stages:
     - master
     - develop
     - ci-test
+    - 188-ci-pluginval-testing
 
 .build:linux:
   stage: build
@@ -63,8 +64,8 @@ stages:
     - cmake --build build --config Release -- -j ${NUM_JOBS}
 
 # collect binaries for artifacts
-    # - mkdir VST3
-    # - cp -r build/*/*_artefacts/VST3/*.vst3 VST3/
+    - mkdir VST3
+    - cp -r build/*/*_artefacts/VST3/*.vst3 VST3/
     - mkdir VST
     - cp -r build/*/*_artefacts/VST/*.so VST/
     - mkdir LV2
@@ -107,8 +108,8 @@ stages:
     - cmake --build build --config Release -- -quiet -jobs ${NUM_JOBS}
 
 # collect binaries for artifacts
-    # - mkdir VST3
-    # - cp -r build/*/*_artefacts/Release/VST3/*.vst3 VST3/
+    - mkdir VST3
+    - cp -r build/*/*_artefacts/Release/VST3/*.vst3 VST3/
     - mkdir VST
     - cp -r build/*/*_artefacts/Release/VST/*.vst VST/
     - mkdir LV2
@@ -248,3 +249,82 @@ macos:
     BITS: 32
   artifacts:
     name: IEMPluginSuite_w32
+
+pluginval_linux:
+  stage: test
+  image: ubuntu:jammy
+  tags:
+    - docker
+  dependencies:
+    - linux
+  variables:
+    DEBIAN_FRONTEND: noninteractive
+  before_script:
+    - curl -L "https://github.com/Tracktion/pluginval/releases/latest/download/pluginval_Linux.zip" -o pluginval.zip
+    - unzip pluginval
+  script:
+    - rm -f failed-tests.txt
+    - rm -rf test-logs
+    - mkdir test-logs
+
+    - |
+      find VST/ -name "*.so" | while read fname; do
+          echo ${fname}
+          ./pluginval --validate-in-process --strictness-level 10 --repeat 1 --skip-gui-tests --output-dir "./test-logs" "$fname" || "${fname} failed with exit code $?" >> "failed-tests.txt"
+      done
+
+    - |
+      find VST3/ -name "*.vst3" | while read fname; do
+          echo ${fname}
+          ./pluginval --validate-in-process --strictness-level 10 --repeat 1 --skip-gui-tests --output-dir "./test-logs" "$fname" || "${fname} failed with exit code $?" >> "failed-tests.txt"
+      done
+
+    - |
+      if test -f failed-tests.txt; then
+          echo "Some tests failed, check artifacts for details..."
+          exit 1
+      fi
+
+  artifacts:
+    when: on_failure
+    paths:
+      - failed-tests.txt
+      - test-logs
+
+pluginval_macos:
+  stage: test
+  tags:
+    - macos11.4
+  dependencies:
+    - macos
+  before_script:
+    - curl -L "https://github.com/Tracktion/pluginval/releases/latest/download/pluginval_macOS.zip" -o pluginval.zip
+    - unzip pluginval
+  script:
+    - rm -f failed-tests.txt
+    - rm -rf test-logs
+    - mkdir test-logs
+
+    - |
+      find VST/ -name "*.vst" | while read fname; do
+          echo ${fname}
+          pluginval.app/Contents/MacOS/pluginval --validate-in-process --strictness-level 10 --repeat 1 --skip-gui-tests --output-dir "./test-logs" "$fname" || "${fname} failed with exit code $?" >> "failed-tests.txt"
+      done
+
+    - |
+      find VST3/ -name "*.vst3" | while read fname; do
+          echo ${fname}
+          pluginval.app/Contents/MacOS/pluginval --validate-in-process --strictness-level 10 --repeat 1 --skip-gui-tests --output-dir "./test-logs" "$fname" || "${fname} failed with exit code $?" >> "failed-tests.txt"
+      done
+
+    - |
+      if test -f failed-tests.txt; then
+          echo "Some tests failed, check artifacts for details..."
+          exit 1
+      fi
+
+  artifacts:
+    when: on_failure
+    paths:
+      - failed-tests.txt
+      - test-logs
