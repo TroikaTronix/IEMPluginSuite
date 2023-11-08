@@ -260,6 +260,9 @@ pluginval_linux:
   variables:
     DEBIAN_FRONTEND: noninteractive
   before_script:
+    - apt-get update -y
+    - apt-get dist-upgrade -y
+    - apt-get install -y --no-install-recommends ca-certificates curl libasound2 libfreetype6 unzip
     - curl -L "https://github.com/Tracktion/pluginval/releases/latest/download/pluginval_Linux.zip" -o pluginval.zip
     - unzip pluginval
   script:
@@ -269,14 +272,14 @@ pluginval_linux:
 
     - |
       find VST/ -name "*.so" | while read fname; do
-          echo ${fname}
-          ./pluginval --validate-in-process --strictness-level 10 --repeat 1 --skip-gui-tests --output-dir "./test-logs" "$fname" || "${fname} failed with exit code $?" >> "failed-tests.txt"
+        logfile="test-logs/${fname##*/}.txt"
+        ./pluginval --validate-in-process --strictness-level 10 --repeat 1 --skip-gui-tests "$fname" | tee ${logfile} || echo "${fname} failed with exit code $?" >> failed-tests.txt;
       done
 
     - |
       find VST3/ -name "*.vst3" | while read fname; do
-          echo ${fname}
-          ./pluginval --validate-in-process --strictness-level 10 --repeat 1 --skip-gui-tests --output-dir "./test-logs" "$fname" || "${fname} failed with exit code $?" >> "failed-tests.txt"
+        logfile="test-logs/${fname##*/}.txt"
+        ./pluginval --validate-in-process --strictness-level 10 --repeat 1 --skip-gui-tests "$fname" | tee ${logfile} || echo "${fname} failed with exit code $?" >> failed-tests.txt;
       done
 
     - |
@@ -307,14 +310,14 @@ pluginval_macos:
 
     - |
       find VST/ -name "*.vst" | while read fname; do
-          echo ${fname}
-          pluginval.app/Contents/MacOS/pluginval --validate-in-process --strictness-level 10 --repeat 1 --skip-gui-tests --output-dir "./test-logs" "$fname" || "${fname} failed with exit code $?" >> "failed-tests.txt"
+        logfile="test-logs/${fname##*/}.txt"
+        pluginval.app/Contents/MacOS/pluginval --validate-in-process --strictness-level 10 --repeat 1 --skip-gui-tests "$fname" | tee ${logfile} || echo "${fname} failed with exit code $?" >> failed-tests.txt
       done
 
     - |
       find VST3/ -name "*.vst3" | while read fname; do
-          echo ${fname}
-          pluginval.app/Contents/MacOS/pluginval --validate-in-process --strictness-level 10 --repeat 1 --skip-gui-tests --output-dir "./test-logs" "$fname" || "${fname} failed with exit code $?" >> "failed-tests.txt"
+        logfile="test-logs/${fname##*/}.txt"
+        pluginval.app/Contents/MacOS/pluginval --validate-in-process --strictness-level 10 --repeat 1 --skip-gui-tests "$fname" | tee ${logfile} || echo "${fname} failed with exit code $?" >> failed-tests.txt
       done
 
     - |
