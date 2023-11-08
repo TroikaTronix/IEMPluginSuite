@@ -320,14 +320,14 @@ macos-pluginval:
     - |
       find VST/ -name "*.vst" | while read fname; do
         logfile="test-logs/${fname##*/}.txt"
-        ./pluginval --validate-in-process --strictness-level 10 --repeat 1 --skip-gui-tests "$fname" >> ${logfile} || echo "${fname} failed with exit code $?" >> failed-tests.txt;
+        pluginval.app/Contents/MacOS/pluginval --validate-in-process --strictness-level 10 --repeat 1 --skip-gui-tests "$fname" >> ${logfile} || echo "${fname} failed with exit code $?" >> failed-tests.txt;
         cat $logfile
       done
 
     - |
       find VST3/ -name "*.vst3" | while read fname; do
         logfile="test-logs/${fname##*/}.txt"
-        ./pluginval --validate-in-process --strictness-level 10 --repeat 1 --skip-gui-tests "$fname" >> ${logfile} || echo "${fname} failed with exit code $?" >> failed-tests.txt;
+        pluginval.app/Contents/MacOS/pluginval --validate-in-process --strictness-level 10 --repeat 1 --skip-gui-tests "$fname" >> ${logfile} || echo "${fname} failed with exit code $?" >> failed-tests.txt;
         cat $logfile
       done
 
