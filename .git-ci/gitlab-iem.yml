@@ -313,7 +313,7 @@ linux-pluginval:
   variables:
     DEBIAN_FRONTEND: noninteractive
     PLUGINVAL_ARGS_GUI: ""
-    PLUGINVAL: "xvfb-run ./pluginval"
+    PLUGINVAL: "xvfb-run -s '-terminate' ./pluginval"
   before_script:
     - apt-get update -y
     - apt-get dist-upgrade -y
