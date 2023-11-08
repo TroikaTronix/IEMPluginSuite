@@ -253,6 +253,8 @@ macos:
 
 linux-pluginval:
   stage: test
+  extends:
+    - .run_selected
   image: ubuntu:jammy
   tags:
     - docker@lucier
@@ -300,6 +302,8 @@ linux-pluginval:
 
 macos-pluginval:
   stage: test
+  extends:
+    - .run_selected
   tags:
     - macos11.4
   dependencies:

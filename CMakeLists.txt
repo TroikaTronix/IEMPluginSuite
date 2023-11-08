@@ -13,15 +13,15 @@ include(CheckIncludeFiles)
 # The following list will hold all the plug-ins which will be built.
 # Simply comment them out if you want to build only a subset of the plug-ins.
 set (PLUGINS_TO_BUILD
-        AllRADecoder
-        BinauralDecoder
+        # AllRADecoder
+        # BinauralDecoder
         # CoordinateConverter
         # DirectionalCompressor
         # DirectivityShaper
         # DistanceCompensator
         # DualDelay
         # EnergyVisualizer
-        # FdnReverb
+        FdnReverb
         # GranularEncoder
         # MatrixMultiplier
         # MultiBandCompressor
