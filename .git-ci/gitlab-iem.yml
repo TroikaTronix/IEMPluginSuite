@@ -35,7 +35,7 @@ stages:
   stage: build
   image: ubuntu:jammy
   tags:
-    - docker@lucier
+    - docker
   variables:
     DEBIAN_FRONTEND: noninteractive
     MAX_JOBS: 8
@@ -259,7 +259,7 @@ macos:
     - .run_selected
   allow_failure: true
   variables:
-    PLUGINVAL_ARGS: --validate-in-process --strictness-level 10 --repeat 1 # --vst3validator vst3sdk/cmake-build/bin/Debug/validator
+    PLUGINVAL_ARGS: --validate-in-process --strictness-level 10 --repeat 3 # --vst3validator vst3sdk/cmake-build/bin/Debug/validator
     PLUGINVAL_ARGS_GUI: --skip-gui-tests
     PLUGINVAL: ./pluginval
   artifacts:
@@ -305,14 +305,14 @@ linux-pluginval:
     - .pluginval
   image: ubuntu:jammy
   tags:
-    - docker@lucier
+    - docker
   dependencies:
     - linux
   needs:
     - linux
   variables:
     DEBIAN_FRONTEND: noninteractive
-    PLUGINVAL_ARGS_GUI: ""
+    PLUGINVAL_ARGS_GUI: "--skip-gui-tests"
     PLUGINVAL: "./pluginval"
   before_script:
     - apt-get update -y
