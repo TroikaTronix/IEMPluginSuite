@@ -21,7 +21,7 @@ set (PLUGINS_TO_BUILD
         # DistanceCompensator
         # DualDelay
         # EnergyVisualizer
-        # FdnReverb
+        FdnReverb
         # GranularEncoder
         # MatrixMultiplier
         # MultiBandCompressor
