@@ -73,37 +73,6 @@ stages:
     - mkdir Standalone
     - find build/*/*_artefacts/Standalone/ -maxdepth 1 -type f -executable -not -name "*.so" -exec cp {} Standalone/ ";"
 
-    # TODO: This is only here for debugging the ci
-    - curl -L "https://github.com/Tracktion/pluginval/releases/latest/download/pluginval_Linux.zip" -o pluginval.zip
-    - unzip pluginval
-    - rm -f failed-tests.txt
-    - rm -rf test-logs
-    - mkdir test-logs
-
-    - |
-      find VST/ -name "*.so" | while read fname; do
-        logfile="test-logs/${fname##*/}.txt"
-        ./pluginval --validate-in-process --strictness-level 10 --repeat 1 --skip-gui-tests "$fname" | tee ${logfile} || echo "${fname} failed with exit code $?" >> failed-tests.txt;
-      done
-
-    - |
-      find VST3/ -name "*.vst3" | while read fname; do
-        logfile="test-logs/${fname##*/}.txt"
-        ./pluginval --validate-in-process --strictness-level 10 --repeat 1 --skip-gui-tests "$fname" | tee ${logfile} || echo "${fname} failed with exit code $?" >> failed-tests.txt;
-      done
-
-    - |
-      if test -f failed-tests.txt; then
-          echo "Some tests failed, check artifacts for details..."
-          exit 1
-      fi
-
-  artifacts:
-    when: on_failure
-    paths:
-      - failed-tests.txt
-      - test-logs
-
 .build:macos:
   stage: build
   tags:
@@ -294,7 +263,7 @@ linux-pluginval:
   before_script:
     - apt-get update -y
     - apt-get dist-upgrade -y
-    - apt-get install -y --no-install-recommends ca-certificates curl libasound2 libfreetype6 unzip
+    - apt-get install -y --no-install-recommends ca-certificates curl fftw3 libasound2 libfreetype6 unzip xauth xvfb
     - curl -L "https://github.com/Tracktion/pluginval/releases/latest/download/pluginval_Linux.zip" -o pluginval.zip
     - unzip pluginval
   script:
@@ -305,13 +274,15 @@ linux-pluginval:
     - |
       find VST/ -name "*.so" | while read fname; do
         logfile="test-logs/${fname##*/}.txt"
-        ./pluginval --validate-in-process --strictness-level 10 --repeat 1 --skip-gui-tests "$fname" | tee ${logfile} || echo "${fname} failed with exit code $?" >> failed-tests.txt;
+        ./pluginval --validate-in-process --strictness-level 10 --repeat 1 --skip-gui-tests "$fname" >> ${logfile} || echo "${fname} failed with exit code $?" >> failed-tests.txt;
+        cat $logfile
       done
 
     - |
       find VST3/ -name "*.vst3" | while read fname; do
         logfile="test-logs/${fname##*/}.txt"
-        ./pluginval --validate-in-process --strictness-level 10 --repeat 1 --skip-gui-tests "$fname" | tee ${logfile} || echo "${fname} failed with exit code $?" >> failed-tests.txt;
+        ./pluginval --validate-in-process --strictness-level 10 --repeat 1 --skip-gui-tests "$fname" >> ${logfile} || echo "${fname} failed with exit code $?" >> failed-tests.txt;
+        cat $logfile
       done
 
     - |
