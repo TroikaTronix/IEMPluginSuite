@@ -104,7 +104,7 @@ stages:
   script:
 # using xcode as generator seems to produce smaller binaries
     - cmake -B build -G Xcode -DIEM_BUILD_VST3=ON -DIEM_BUILD_VST2=ON -DVST2SDKPATH=src/VST_SDK/VST2_SDK/ -DIEM_BUILD_LV2=ON -DIEM_BUILD_STANDALONE=ON
-    - cmake --build build --config Release -- -quiet -jobs ${NUM_JOBS}
+    - cmake --build build --config Release -- -jobs ${NUM_JOBS}
 
 # collect binaries for artifacts
     - mkdir VST3
