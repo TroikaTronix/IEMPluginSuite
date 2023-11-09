@@ -29,7 +29,6 @@ stages:
     - master
     - develop
     - ci-test
-    - 188-ci-pluginval-testing
 
 .build:linux:
   stage: build
