@@ -42,6 +42,7 @@ option (IEM_USE_SYSTEM_JUCE "Use JUCE found via CMake rather than the bundled on
 option (IEM_BUILD_VST2 "Build VST2 version of the plug-ins." OFF)
 option (IEM_BUILD_VST3 "Build VST3 version of the plug-ins." OFF)
 option (IEM_BUILD_LV2 "Build LV2 version of the plug-ins." OFF)
+option (IEM_BUILD_AAX "Build AAX version of the plug-ins." OFF)
 option (IEM_BUILD_STANDALONE "Build standalones of the plug-ins." ON)
 option (IEM_STANDALONE_JACK_SUPPORT "Build standalones with JACK support." ON)
 
@@ -165,6 +166,20 @@ endif()
 if (IEM_BUILD_LV2)
     message ("-- IEM: Building LV2 versions")
     list (APPEND IEM_FORMATS LV2)
+endif()
+
+if (IEM_BUILD_AAX)
+    SET (AAXSDKPATH "/usr/include" CACHE STRING "Path to the AAX SDK")
+    # checking VST2 SDK
+    if (AAXSDKPATH STREQUAL "/usr/include")
+        CHECK_INCLUDE_FILES(Libs/AAXLibrary/source/AAX_CACFUnknown.cpp HAVE_AAX_HEADERS)
+        IF (NOT HAVE_AAX_HEADERS)
+            message (FATAL_ERROR "You have to specify the AAXSDKPATH variable with the path to the AAX SDK if you want to build AAX versions.")
+        endif()
+    endif()
+    juce_set_aax_sdk_path (${AAXSDKPATH})
+    list (APPEND IEM_FORMATS AAX)
+    message ("-- IEM: Building AAX versions")
 endif()
 
 if (IEM_BUILD_STANDALONE)
