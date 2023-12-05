@@ -46,6 +46,8 @@ option (IEM_BUILD_AAX "Build AAX version of the plug-ins." OFF)
 option (IEM_BUILD_STANDALONE "Build standalones of the plug-ins." ON)
 option (IEM_STANDALONE_JACK_SUPPORT "Build standalones with JACK support." ON)
 
+include (Versions.cmake)
+
 set (IEM_POST_BUILD_INSTALL "USER" CACHE STRING "Define if plug-ins are installed for USER, SYSTEM or if you want NO installation")
 set (prefix "/usr/local" CACHE STRING "Path prefix for custom installation")
 

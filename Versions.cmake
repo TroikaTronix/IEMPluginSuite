@@ -1,0 +1,5 @@
+set (AllRADecoder_VERISON 0.9.5)
+set (BinauralDecoder_VERSION 0.6.6)
+set (CoordinateConverter_VERSION 0.6.6)
+set (DirectionalCompressor_VERSION 1.3.6)
+set (DirectivityShaper_VERSION 1.3.6)

@@ -1,5 +1,3 @@
-set (AllRADecoder_VERISON 0.9.5)
-
 set (PLUGIN_TARGET "")
 
 if (IEM_FORMATS)
@@ -13,10 +11,10 @@ if (IEM_FORMATS)
         FORMATS ${IEM_FORMATS}
         VERSION ${AllRADecoder_VERISON}
         LV2URI "http://plugins.iem.at/AllRADecoder"
-        VST2_CATEGORY kPlugSurroundFx
+        VST2_CATEGORY kPlugSurroundFx kPlugCategSpacializer
         VST3_CATEGORIES Spatial Surround Up-Downmix)
 
-        target_compile_definitions (AllRADecoder PRIVATE
+    target_compile_definitions (AllRADecoder PRIVATE
             JUCE_DISPLAY_SPLASH_SCREEN=0)
 
     list (APPEND PLUGIN_TARGET AllRADecoder)
