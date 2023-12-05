@@ -1,65 +1,95 @@
+set (AllRADecoder_VERISON 0.9.5)
 
-juce_add_plugin (AllRADecoder
-    PLUGIN_MANUFACTURER_CODE IEMA
-    PLUGIN_CODE AlRa
-    ICON_BIG "../resources/Standalone/IEMPluginSuiteSmall.png"
-    ICON_SMALL "../resources/Standalone/IEMPluginSuiteSmall.png"
-    COMPANY_NAME "IEM"
-    PRODUCT_NAME "AllRADecoder"
-    FORMATS ${IEM_FORMATS}
-    VERSION "0.9.5"
-    LV2URI "http://plugins.iem.at/AllRADecoder")
+set (PLUGIN_TARGET "")
 
+if (IEM_FORMATS)
+    juce_add_plugin (AllRADecoder
+        PLUGIN_MANUFACTURER_CODE IEMA
+        PLUGIN_CODE AlRa
+        ICON_BIG "../resources/Standalone/IEMPluginSuiteSmall.png"
+        ICON_SMALL "../resources/Standalone/IEMPluginSuiteSmall.png"
+        COMPANY_NAME "IEM"
+        PRODUCT_NAME "AllRADecoder"
+        FORMATS ${IEM_FORMATS}
+        VERSION ${AllRADecoder_VERISON}
+        LV2URI "http://plugins.iem.at/AllRADecoder"
+        VST2_CATEGORY kPlugSurroundFx
+        VST3_CATEGORIES Spatial Surround Up-Downmix)
 
-juce_generate_juce_header (AllRADecoder)
+        target_compile_definitions (AllRADecoder PRIVATE
+            JUCE_DISPLAY_SPLASH_SCREEN=0)
 
-target_sources (AllRADecoder PRIVATE
-    Source/AmbisonicNoiseBurst.h
-    Source/EnergyDistributionVisualizer.h
-    Source/LoudspeakerTableComponent.h
-    Source/LoudspeakerVisualizer.h
-    Source/NoiseBurst.h
-    Source/PluginEditor.cpp
-    Source/PluginEditor.h
-    Source/PluginProcessor.cpp
-    Source/PluginProcessor.h
-    Source/RotateWindow.h
-    Source/tDesign5200.h
+    list (APPEND PLUGIN_TARGET AllRADecoder)
+endif()
+if (IEM_BUILD_AAX)
+    juce_add_plugin (AllRADecoderAAX
+        PLUGIN_MANUFACTURER_CODE IEMA
+        PLUGIN_CODE AlRa
+        ICON_BIG "../resources/Standalone/IEMPluginSuiteSmall.png"
+        ICON_SMALL "../resources/Standalone/IEMPluginSuiteSmall.png"
+        COMPANY_NAME "IEM"
+        PRODUCT_NAME "AllRADecoder"
+        FORMATS AAX
+        VERSION ${AllRADecoder_VERISON}
+        AAX_CATEGORY AAX_ePlugInCategory_SoundField)
 
-    ../resources/OSC/OSCInputStream.h
-    ../resources/OSC/OSCParameterInterface.cpp
-    ../resources/OSC/OSCParameterInterface.h
-    ../resources/OSC/OSCStatus.cpp
-    ../resources/OSC/OSCStatus.h
-    ../resources/OSC/OSCUtilities.h
+    target_compile_definitions (AllRADecoderAAX PRIVATE
+        JUCE_DISPLAY_SPLASH_SCREEN=1)
 
-    ../resources/NewtonApple/NewtonApple_hull3D.h
-    ../resources/NewtonApple/NewtonApple_hull3D.cpp
+    list (APPEND PLUGIN_TARGET AllRADecoderAAX)
+endif()
 
-    ../resources/efficientSHvanilla.cpp
-    )
+foreach (TARGET IN LISTS PLUGIN_TARGET)
+    juce_generate_juce_header (${TARGET})
 
-target_compile_definitions (AllRADecoder PRIVATE
-    JUCE_USE_CURL=0
-    JUCE_WEB_BROWSER=0
-    JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1
-    JUCE_USE_FLAC=0
-    JUCE_USE_OGGVORBIS=0
-    JUCE_USE_MP3AUDIOFORMAT=0
-    JUCE_USE_LAME_AUDIO_FORMAT=0
-    JUCE_USE_WINDOWS_MEDIA_FORMAT=0
-    JUCE_DISPLAY_SPLASH_SCREEN=0
-    JUCE_VST3_CAN_REPLACE_VST2=0)
+    target_sources (${TARGET} PRIVATE
+        Source/AmbisonicNoiseBurst.h
+        Source/EnergyDistributionVisualizer.h
+        Source/LoudspeakerTableComponent.h
+        Source/LoudspeakerVisualizer.h
+        Source/NoiseBurst.h
+        Source/PluginEditor.cpp
+        Source/PluginEditor.h
+        Source/PluginProcessor.cpp
+        Source/PluginProcessor.h
+        Source/RotateWindow.h
+        Source/tDesign5200.h
 
-target_include_directories (AllRADecoder PRIVATE Source)
+        ../resources/OSC/OSCInputStream.h
+        ../resources/OSC/OSCParameterInterface.cpp
+        ../resources/OSC/OSCParameterInterface.h
+        ../resources/OSC/OSCStatus.cpp
+        ../resources/OSC/OSCStatus.h
+        ../resources/OSC/OSCUtilities.h
 
-target_link_libraries (AllRADecoder PRIVATE
-    LAF_fonts
-    IEM_logo
-    juce::juce_audio_utils
-    juce::juce_audio_plugin_client
-    juce::juce_osc
-    juce::juce_dsp
-    juce::juce_opengl
-    juce::juce_recommended_config_flags
-    juce::juce_recommended_lto_flags)
+        ../resources/NewtonApple/NewtonApple_hull3D.h
+        ../resources/NewtonApple/NewtonApple_hull3D.cpp
+
+        ../resources/efficientSHvanilla.cpp
+        )
+
+    target_compile_definitions (${TARGET} PRIVATE
+        JUCE_USE_CURL=0
+        JUCE_WEB_BROWSER=0
+        JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1
+        JUCE_USE_FLAC=0
+        JUCE_USE_OGGVORBIS=0
+        JUCE_USE_MP3AUDIOFORMAT=0
+        JUCE_USE_LAME_AUDIO_FORMAT=0
+        JUCE_USE_WINDOWS_MEDIA_FORMAT=0
+        JUCE_VST3_CAN_REPLACE_VST2=0)
+
+    target_include_directories (${TARGET} PRIVATE Source)
+
+    target_link_libraries (${TARGET} PRIVATE
+        LAF_fonts
+        IEM_logo
+        juce::juce_audio_utils
+        juce::juce_audio_plugin_client
+        juce::juce_osc
+        juce::juce_dsp
+        juce::juce_opengl
+        juce::juce_recommended_config_flags
+        juce::juce_recommended_lto_flags)
+
+endforeach()

@@ -78,6 +78,8 @@ elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     set_directory_properties (PROPERTIES JUCE_VST_COPY_DIR "${prefix}/VST/IEM")
     set_directory_properties (PROPERTIES JUCE_VST3_COPY_DIR "${prefix}/VST3/IEM")
     set_directory_properties (PROPERTIES JUCE_LV2_COPY_DIR "${prefix}/LV2")
+    set_directory_properties (PROPERTIES JUCE_AAX_COPY_DIR "/Library/Application Support/Avid/Audio/Plug-Ins/IEM")
+    # TODO: I've found no references for a local AAX installation on macOS, so I need to check this
 
 elseif (CMAKE_SYSTEM_NAME STREQUAL "Windows")
     set_directory_properties (PROPERTIES JUCE_COPY_PLUGIN_AFTER_BUILD ON)
@@ -103,6 +105,7 @@ elseif (CMAKE_SYSTEM_NAME STREQUAL "Windows")
         set_directory_properties (PROPERTIES JUCE_VST_COPY_DIR "${prefix}/VST")
         set_directory_properties (PROPERTIES JUCE_VST3_COPY_DIR "${prefix}/VST3")
         set_directory_properties(PROPERTIES JUCE_LV2_COPY_DIR "${prefix}/LV2")
+        set_directory_properties(PROPERTIES JUCE_AAX_COPY_DIR "${prefix}/AAX")
 
     else()  # Defaulting to SYSTEM as this is the only valid path on Windows for VST and VST3
         set_directory_properties(PROPERTIES JUCE_LV2_COPY_DIR "$ENV{CommonProgramFiles}/LV2")
@@ -110,13 +113,13 @@ elseif (CMAKE_SYSTEM_NAME STREQUAL "Windows")
         if (CMAKE_SIZEOF_VOID_P EQUAL 8)
             set_directory_properties (PROPERTIES JUCE_VST_COPY_DIR "$ENV{ProgramW6432}/Steinberg/VSTplugins/IEM")
             set_directory_properties (PROPERTIES JUCE_VST3_COPY_DIR "$ENV{CommonProgramFiles}/VST3/IEM")
+            set_directory_properties (PROPERTIES JUCE_AAX_COPY_DIR "$ENV{CommonProgramFiles}/Avid/Audio/Plug-Ins/IEM")
         else()
             set_directory_properties (PROPERTIES JUCE_VST_COPY_DIR "$ENV{ProgramFiles(x86)}/Steinberg/Vstplugins/IEM")
             set_directory_properties (PROPERTIES JUCE_VST3_COPY_DIR "$ENV{CommonProgramFiles(x86)}/VST3/IEM")
         endif()
 
     endif()
-
 
 elseif ((CMAKE_SYSTEM_NAME STREQUAL "Linux") OR (CMAKE_SYSTEM_NAME MATCHES ".*BSD"))
     set_directory_properties (PROPERTIES JUCE_COPY_PLUGIN_AFTER_BUILD ON)
@@ -178,7 +181,6 @@ if (IEM_BUILD_AAX)
         endif()
     endif()
     juce_set_aax_sdk_path (${AAXSDKPATH})
-    list (APPEND IEM_FORMATS AAX)
     message ("-- IEM: Building AAX versions")
 endif()
 
