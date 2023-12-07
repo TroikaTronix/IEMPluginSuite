@@ -29,7 +29,6 @@ if (IEM_BUILD_AAX)
         PRODUCT_NAME "DirectivityShaper"
         FORMATS AAX
         VERSION ${DirectivityShaper_VERSION}
-        LV2URI "http://plugins.iem.at/DirectivityShaper"
         AAX_CATEGORY AAX_ePlugInCategory_SoundField)
 
     target_compile_definitions (DirectivityShaperAAX PRIVATE

@@ -54,7 +54,7 @@ set (prefix "/usr/local" CACHE STRING "Path prefix for custom installation")
 set (CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 # Actual project configuration
-project (IEMPluginSuite VERSION 1.14.2 LANGUAGES C CXX)
+project (IEMPluginSuite VERSION ${IEMPluginSuite_VERISON} LANGUAGES C CXX)
 
 set_property (GLOBAL PROPERTY USE_FOLDERS YES)
 
@@ -95,7 +95,7 @@ elseif (CMAKE_SYSTEM_NAME STREQUAL "Windows")
     endif()
 
     if ((IEM_POST_BUILD_INSTALL STREQUAL "USER") AND (prefix STREQUAL "/usr/local"))
-        if (IEM_BUILD_VST3 OR IEM_BUILD_VST2)
+        if (IEM_BUILD_VST3 OR IEM_BUILD_VST2 OR IEM_BUILD_AAX)
             message (WARNING "VST and VST3 plug-ins are installed for all users by default as there is no officially supported consistent directory for local installation. Using SYSTEM for those. You can provide a costum prefix to change this behaviour.")
             set (IEM_POST_BUILD_INSTALL "SYSTEM")
         endif()
@@ -225,8 +225,15 @@ if (BinauralDecoder IN_LIST PLUGINS_TO_BUILD AND NOT CMAKE_SYSTEM_NAME STREQUAL 
         set_target_properties ("fftw3f" PROPERTIES POSITION_INDEPENDET_CODE ON)
     endif()
 
-    target_compile_definitions ("BinauralDecoder" PUBLIC JUCE_DSP_USE_STATIC_FFTW=1)
-    target_link_libraries ("BinauralDecoder" PRIVATE fftw3f)
+    if (IEM_FORMATS)
+        target_compile_definitions ("BinauralDecoder" PUBLIC JUCE_DSP_USE_STATIC_FFTW=1)
+        target_link_libraries ("BinauralDecoder" PRIVATE fftw3f)
+    endif()
+
+    if (IEM_BUILD_AAX)
+        target_compile_definitions ("BinauralDecoderAAX" PUBLIC JUCE_DSP_USE_STATIC_FFTW=1)
+        target_link_libraries ("BinauralDecoderAAX" PRIVATE fftw3f)
+    endif()
 endif()
 
 

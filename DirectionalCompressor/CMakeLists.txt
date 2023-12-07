@@ -12,7 +12,7 @@ if (IEM_FORMATS)
         VERSION ${DirectionalCompressor_VERSION}
         LV2URI "http://plugins.iem.at/DirectionalCompressor"
         VST2_CATEGORY kPlugSurroundFx kPlugCategSpacializer kPlugCategEffect
-        VST3_CATEGORIES Spatial Surround Dynamics)
+        VST3_CATEGORIES Spatial Surround Dynamics Fx)
 
     target_compile_definitions (DirectionalCompressor PRIVATE
         JUCE_DISPLAY_SPLASH_SCREEN=0)
