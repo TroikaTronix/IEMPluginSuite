@@ -35,9 +35,10 @@
 
 #include "../../resources/ht-api-juce/supperware/HeadMatrix.h"
 #include "../../resources/ht-api-juce/supperware/Tracker.h"
-#include "../../resources/ht-api-juce/supperware/midi/midi.h"
 #include "../../resources/ht-api-juce/supperware/configpanel/configPanel.h"
 #include "../../resources/ht-api-juce/supperware/headpanel/headPanel.h"
+#include "../../resources/ht-api-juce/supperware/midi/midi.h"
+
 
 typedef ReverseSlider::SliderAttachment
     SliderAttachment; // all ReverseSliders will make use of the parameters' valueToText() function
@@ -63,7 +64,7 @@ public:
 
     void timerCallback() override;
     void comboBoxChanged (juce::ComboBox* comboBoxThatHasChanged) override;
-    void trackerChanged(const HeadMatrix& headMatrix);
+    void trackerChanged (const HeadMatrix& headMatrix);
 
     void refreshMidiDeviceList();
     void updateSelectedMidiScheme();

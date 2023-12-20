@@ -325,8 +325,6 @@ void SceneRotatorAudioProcessorEditor::resized()
     auto midiArea = area.removeFromRight (190);
     midiGroup.setBounds (midiArea);
     midiArea.removeFromTop (25);
-    // auto trackerArea = area.removeFromTop (20);
-    // auto cbColumn = area.removeFromLeft (180);
     auto midiDeviceRow = midiArea.removeFromTop (20);
     slMidiDevices.setBounds (midiDeviceRow.removeFromLeft (48));
     cbMidiDevices.setBounds (midiDeviceRow);
@@ -402,7 +400,7 @@ void SceneRotatorAudioProcessorEditor::comboBoxChanged (juce::ComboBox* comboBox
     }
 }
 
-void SceneRotatorAudioProcessorEditor::trackerChanged(const HeadMatrix& /*headMatrix*/)
+void SceneRotatorAudioProcessorEditor::trackerChanged (const HeadMatrix& /*headMatrix*/)
 {
     // headMatrix.transform and headMatrix.transformTranspose can be used here
     // to rotate an object.
