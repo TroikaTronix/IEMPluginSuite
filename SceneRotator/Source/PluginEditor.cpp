@@ -213,6 +213,9 @@ SceneRotatorAudioProcessorEditor::SceneRotatorAudioProcessorEditor (
     headPanel.setListener (this);
     addAndMakeVisible (headPanel);
 
+    if (cbMidiDevices.getText() != "Head Tracker" || cbMidiScheme.getSelectedId() != 4)
+        headPanel.setVisible (false);
+
     // start timer after everything is set up properly
     startTimer (20);
 }
@@ -379,6 +382,7 @@ void SceneRotatorAudioProcessorEditor::comboBoxChanged (juce::ComboBox* comboBox
     if (comboBoxThatHasChanged == &cbMidiDevices && ! refreshingMidiDevices.get())
     {
         auto id = cbMidiDevices.getSelectedId();
+        DBG ("Changed MIDI Device to ID " << id << " (" << cbMidiDevices.getText() << ")");
 
         if (id == -3) // refresh
             refreshMidiDeviceList();
@@ -395,9 +399,16 @@ void SceneRotatorAudioProcessorEditor::comboBoxChanged (juce::ComboBox* comboBox
     }
     else if (comboBoxThatHasChanged == &cbMidiScheme && ! updatingMidiScheme.get())
     {
+        DBG ("Changed MIDI Scheme to ID " << cbMidiScheme.getSelectedId() << " ("
+                                          << cbMidiScheme.getText() << ")");
         processor.setMidiScheme (
             SceneRotatorAudioProcessor::MidiScheme (cbMidiScheme.getSelectedId() - 1));
     }
+
+    if ((cbMidiDevices.getText() == "Head Tracker") && (cbMidiScheme.getSelectedId() == 5))
+        headPanel.setVisible (true);
+    else
+        headPanel.setVisible (false);
 }
 
 void SceneRotatorAudioProcessorEditor::trackerChanged (const HeadMatrix& /*headMatrix*/)
