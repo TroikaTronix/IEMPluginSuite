@@ -39,7 +39,6 @@
 #include "../../resources/ht-api-juce/supperware/headpanel/headPanel.h"
 #include "../../resources/ht-api-juce/supperware/midi/midi.h"
 
-
 typedef ReverseSlider::SliderAttachment
     SliderAttachment; // all ReverseSliders will make use of the parameters' valueToText() function
 typedef juce::AudioProcessorValueTreeState::ComboBoxAttachment ComboBoxAttachment;
