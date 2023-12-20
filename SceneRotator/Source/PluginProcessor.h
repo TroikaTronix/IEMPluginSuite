@@ -90,18 +90,21 @@ public:
         none = 0,
         mrHeadTrackerYprDir,
         mrHeadTrackerYprInv,
-        mrHeadTrackerQuaternions
+        mrHeadTrackerQuaternions,
+        supperwareQuaternions
     };
 
     const juce::StringArray midiSchemeNames { "none (link only)",
                                               "MrHT YPR Direct",
                                               "MrHT YPR Inverse",
-                                              "MrHT Quaternions" };
+                                              "MrHT Quaternions",
+                                              "Supperware Quaternions" };
 
-    const juce::Identifier midiSchemeIdentifieres[4] { "none",
+    const juce::Identifier midiSchemeIdentifieres[5] { "none",
                                                        "MrHT_YprDir",
                                                        "MrHT_YprInv",
-                                                       "MrHT_Quat" };
+                                                       "MrHT_Quat",
+                                                       "Sup_Quat" };
 
     juce::MidiDeviceInfo getCurrentMidiDeviceInfo();
     void openMidiInput (juce::MidiDeviceInfo midiDevice,

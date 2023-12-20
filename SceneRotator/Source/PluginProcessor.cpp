@@ -1058,6 +1058,9 @@ void SceneRotatorAudioProcessor::setMidiScheme (MidiScheme newMidiScheme)
         case MidiScheme::mrHeadTrackerQuaternions:
             break;
 
+        case MidiScheme::supperwareQuaternions:
+            break;
+
         default:
             DBG ("Not supported MidiScheme - I guess the casting from int failed hard!");
             jassertfalse;
