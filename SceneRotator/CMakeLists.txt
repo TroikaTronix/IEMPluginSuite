@@ -54,6 +54,18 @@ foreach (TARGET IN LISTS PLUGIN_TARGET)
         ../resources/OSC/OSCUtilities.h
 
         ../resources/efficientSHvanilla.cpp
+        
+        ../resources/ht-api-juce/supperware/HeadMatrix.h
+        ../resources/ht-api-juce/supperware/Tracker.h
+
+        ../resources/ht-api-juce/supperware/headpanel/headpanel-BinaryData.cpp
+        ../resources/ht-api-juce/supperware/headpanel/headpanel-BinaryData.h
+        ../resources/ht-api-juce/supperware/headpanel/headpanel-Component.h
+        ../resources/ht-api-juce/supperware/headpanel/headpanel-HeadButton.h
+        ../resources/ht-api-juce/supperware/headpanel/headpanel-Plotter.h
+        ../resources/ht-api-juce/supperware/headpanel/headpanel-PointList.h 
+        ../resources/ht-api-juce/supperware/headpanel/headpanel-Points.h
+        ../resources/ht-api-juce/supperware/headpanel/headPanel.h
         )
 
     target_compile_definitions(${TARGET} PRIVATE

@@ -35,7 +35,7 @@ SceneRotatorAudioProcessorEditor::SceneRotatorAudioProcessorEditor (
     // ============== BEGIN: essentials ======================
     // set GUI size and lookAndFeel
     //setSize(500, 300); // use this to create a fixed-size GUI
-    setResizeLimits (450, 320, 800, 500); // use this to create a resizable GUI
+    setResizeLimits (450, 370, 800, 500); // use this to create a resizable GUI
     setLookAndFeel (&globalLaF);
 
     // make title and footer visible, and set the PluginName
@@ -210,6 +210,9 @@ SceneRotatorAudioProcessorEditor::SceneRotatorAudioProcessorEditor (
     tooltipWin.setMillisecondsBeforeTipAppears (500);
     tooltipWin.setOpaque (false);
 
+    headPanel.setListener (this);
+    addAndMakeVisible (headPanel);
+
     // start timer after everything is set up properly
     startTimer (20);
 }
@@ -319,16 +322,24 @@ void SceneRotatorAudioProcessorEditor::resized()
 
     // ------------- MIDI Connection ------------------------
     area.removeFromTop (10);
-    midiGroup.setBounds (area);
-    area.removeFromTop (25);
-    auto row = area.removeFromTop (20);
-    auto leftSide = row.removeFromLeft (180);
-    slMidiDevices.setBounds (leftSide.removeFromLeft (40));
-    cbMidiDevices.setBounds (leftSide);
+    auto midiArea = area.removeFromRight (190);
+    midiGroup.setBounds (midiArea);
+    midiArea.removeFromTop (25);
+    // auto trackerArea = area.removeFromTop (20);
+    // auto cbColumn = area.removeFromLeft (180);
+    auto midiDeviceRow = midiArea.removeFromTop (20);
+    slMidiDevices.setBounds (midiDeviceRow.removeFromLeft (48));
+    cbMidiDevices.setBounds (midiDeviceRow);
 
-    row.removeFromLeft (10);
-    slMidiScheme.setBounds (row.removeFromLeft (48));
-    cbMidiScheme.setBounds (row.removeFromLeft (140));
+    midiArea.removeFromTop (10);
+    auto midiSchemeRow = midiArea.removeFromTop (20);
+    slMidiScheme.setBounds (midiSchemeRow.removeFromLeft (48));
+    cbMidiScheme.setBounds (midiSchemeRow);
+
+    int centerOffset = (yprArea.getWidth() - headPanel.getWidth()) / 2;
+    auto headPanelArea = area;
+    headPanelArea.removeFromLeft (centerOffset);
+    headPanel.setBounds (headPanelArea);
 }
 
 void SceneRotatorAudioProcessorEditor::timerCallback()
@@ -389,6 +400,12 @@ void SceneRotatorAudioProcessorEditor::comboBoxChanged (juce::ComboBox* comboBox
         processor.setMidiScheme (
             SceneRotatorAudioProcessor::MidiScheme (cbMidiScheme.getSelectedId() - 1));
     }
+}
+
+void SceneRotatorAudioProcessorEditor::trackerChanged(const HeadMatrix& /*headMatrix*/)
+{
+    // headMatrix.transform and headMatrix.transformTranspose can be used here
+    // to rotate an object.
 }
 
 void SceneRotatorAudioProcessorEditor::refreshMidiDeviceList()
