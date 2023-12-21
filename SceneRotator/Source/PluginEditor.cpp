@@ -30,12 +30,13 @@ SceneRotatorAudioProcessorEditor::SceneRotatorAudioProcessorEditor (
     juce::AudioProcessorEditor (&p),
     processor (p),
     valueTreeState (vts),
-    footer (p.getOSCParameterInterface())
+    footer (p.getOSCParameterInterface()),
+    supSettingsPanel (p.getTrackerDriver())
 {
     // ============== BEGIN: essentials ======================
     // set GUI size and lookAndFeel
     //setSize(500, 300); // use this to create a fixed-size GUI
-    setResizeLimits (450, 320, 800, 500); // use this to create a resizable GUI
+    setResizeLimits (450, 340, 800, 500); // use this to create a resizable GUI
     setLookAndFeel (&globalLaF);
 
     // make title and footer visible, and set the PluginName
@@ -210,6 +211,14 @@ SceneRotatorAudioProcessorEditor::SceneRotatorAudioProcessorEditor (
     tooltipWin.setMillisecondsBeforeTipAppears (500);
     tooltipWin.setOpaque (false);
 
+    addAndMakeVisible (btSupSettings);
+    btSupSettings.setButtonText ("Head Tracker Settings");
+    btSupSettings.setColour (juce::TextButton::buttonColourId, juce::Colours::cornflowerblue);
+    btSupSettings.addListener (this);
+
+    if (cbMidiScheme.getSelectedId() != 5 && cbMidiDevices.getText() != "Head Tracker")
+        btSupSettings.setVisible (false);
+
     // start timer after everything is set up properly
     startTimer (20);
 }
@@ -321,14 +330,18 @@ void SceneRotatorAudioProcessorEditor::resized()
     area.removeFromTop (10);
     midiGroup.setBounds (area);
     area.removeFromTop (25);
-    auto row = area.removeFromTop (20);
-    auto leftSide = row.removeFromLeft (180);
-    slMidiDevices.setBounds (leftSide.removeFromLeft (40));
-    cbMidiDevices.setBounds (leftSide);
+    auto leftSide = area.removeFromLeft (180);
+    auto deviceRow = leftSide.removeFromTop (20);
+    slMidiDevices.setBounds (deviceRow.removeFromLeft (48));
+    cbMidiDevices.setBounds (deviceRow);
 
-    row.removeFromLeft (10);
-    slMidiScheme.setBounds (row.removeFromLeft (48));
-    cbMidiScheme.setBounds (row.removeFromLeft (140));
+    leftSide.removeFromTop (10);
+    auto schemeRow = leftSide.removeFromTop (20);
+    slMidiScheme.setBounds (schemeRow.removeFromLeft (48));
+    cbMidiScheme.setBounds (schemeRow.removeFromLeft (140));
+
+    area.removeFromTop (area.getHeight() / 2 - 15);
+    btSupSettings.setBounds (area.removeFromRight (150).removeFromTop (30));
 }
 
 void SceneRotatorAudioProcessorEditor::timerCallback()
@@ -389,6 +402,14 @@ void SceneRotatorAudioProcessorEditor::comboBoxChanged (juce::ComboBox* comboBox
         processor.setMidiScheme (
             SceneRotatorAudioProcessor::MidiScheme (cbMidiScheme.getSelectedId() - 1));
     }
+
+    DBG ("MIDI Device: " << cbMidiDevices.getText());
+    DBG ("MIDI Scheme: " << cbMidiScheme.getSelectedId());
+
+    if (cbMidiScheme.getSelectedId() == 5 && cbMidiDevices.getText() == "Head Tracker")
+        btSupSettings.setVisible (true);
+    else
+        btSupSettings.setVisible (false);
 }
 
 void SceneRotatorAudioProcessorEditor::refreshMidiDeviceList()
@@ -428,4 +449,24 @@ void SceneRotatorAudioProcessorEditor::updateSelectedMidiScheme()
 {
     juce::ScopedValueSetter<juce::Atomic<bool>> refreshing (updatingMidiScheme, true, false);
     //cbMidiScheme.setSelectedId (select, juce::sendNotificationSync);
+}
+
+void SceneRotatorAudioProcessorEditor::buttonClicked (juce::Button* button)
+{
+    if (button == &btSupSettings)
+    {
+        juce::DialogWindow::LaunchOptions lo;
+        lo.content.set (&supSettingsPanel, false);
+        lo.dialogBackgroundColour = juce::Colour (globalLaF.ClBackground);
+        lo.dialogTitle = "Head Tracker Settings";
+        lo.escapeKeyTriggersCloseButton = true;
+        lo.resizable = false;
+        lo.useNativeTitleBar = true;
+        lo.componentToCentreAround = this;
+        lo.launchAsync();
+    }
+}
+
+void SceneRotatorAudioProcessorEditor::buttonStateChanged (juce::Button* button)
+{
 }

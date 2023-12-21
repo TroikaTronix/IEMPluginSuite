@@ -33,6 +33,11 @@
 #include "../../resources/customComponents/ReverseSlider.h"
 #include "../../resources/customComponents/SimpleLabel.h"
 
+#include "../../resources/ht-api-juce/supperware/Tracker.h"
+#include "../../resources/ht-api-juce/supperware/midi/midi.h"
+
+#include "../../resources/ht-api-juce/supperware/configpanel/configpanel.h"
+
 typedef ReverseSlider::SliderAttachment
     SliderAttachment; // all ReverseSliders will make use of the parameters' valueToText() function
 typedef juce::AudioProcessorValueTreeState::ComboBoxAttachment ComboBoxAttachment;
@@ -43,7 +48,8 @@ typedef juce::AudioProcessorValueTreeState::ButtonAttachment ButtonAttachment;
 */
 class SceneRotatorAudioProcessorEditor : public juce::AudioProcessorEditor,
                                          private juce::Timer,
-                                         private juce::ComboBox::Listener
+                                         private juce::ComboBox::Listener,
+                                         private juce::Button::Listener
 {
 public:
     SceneRotatorAudioProcessorEditor (SceneRotatorAudioProcessor&,
@@ -56,6 +62,8 @@ public:
 
     void timerCallback() override;
     void comboBoxChanged (juce::ComboBox* comboBoxThatHasChanged) override;
+    void buttonClicked (juce::Button* button) override;
+    void buttonStateChanged (juce::Button* button) override;
 
     void refreshMidiDeviceList();
     void updateSelectedMidiScheme();
@@ -108,6 +116,9 @@ private:
 
     juce::Atomic<bool> refreshingMidiDevices = false;
     juce::Atomic<bool> updatingMidiScheme = false;
+
+    ConfigPanel::SettingsPanel supSettingsPanel;
+    juce::TextButton btSupSettings;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SceneRotatorAudioProcessorEditor)
 };
