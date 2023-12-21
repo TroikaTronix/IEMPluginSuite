@@ -29,9 +29,7 @@
 #include "../../resources/Quaternion.h"
 #include "../../resources/ReferenceCountedMatrix.h"
 
-#include "../../resources/ht-api-juce/supperware/HeadMatrix.h"
 #include "../../resources/ht-api-juce/supperware/Tracker.h"
-
 #include "../../resources/ht-api-juce/supperware/midi/midi.h"
 
 #define ProcessorClass SceneRotatorAudioProcessor
