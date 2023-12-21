@@ -54,9 +54,6 @@ foreach (TARGET IN LISTS PLUGIN_TARGET)
         ../resources/OSC/OSCUtilities.h
 
         ../resources/efficientSHvanilla.cpp
-
-        ../resources/ht-api-juce/supperware/headpanel/headpanel-BinaryData.cpp
-        ../resources/ht-api-juce/supperware/headpanel/headpanel-BinaryData.h
         )
 
     target_compile_definitions(${TARGET} PRIVATE
