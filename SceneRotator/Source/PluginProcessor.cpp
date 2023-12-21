@@ -101,6 +101,9 @@ SceneRotatorAudioProcessor::SceneRotatorAudioProcessor() :
         elemCopy->clear();
     }
 
+    trackerDriver.addListener (this);
+    trackerDriver.setAutoDisconnect (false);
+
     startTimer (500);
 }
 
@@ -988,6 +991,39 @@ void SceneRotatorAudioProcessor::openMidiInput (juce::MidiDeviceInfo midiDevice,
 
     const int index = devices.indexOf (midiDevice);
     //const auto deviceIdentifier 0;
+
+    if (devices[index].name == "Head Tracker")
+    {
+        if ((supMidiState == Midi::State::Connected) || (supMidiState == Midi::State::Bootloader))
+        {
+            DBG ("Supperware Head Tracker is already connected, tracker isn't turned on");
+            return;
+        }
+        else if (supMidiState == Midi::State::Available)
+        {
+            trackerDriver.connect();
+            currentMidiDeviceInfo = midiDevice;
+            DBG ("Supperware HT connected");
+
+            if (currentMidiScheme == MidiScheme::supperwareYpr)
+            {
+                trackerDriver.turnOn (true, false);
+                trackerDriver.zero();
+            }
+
+            return;
+        }
+        else
+        {
+            DBG ("Supperware HT selected, but MIDI state unavailable");
+            currentMidiDeviceInfo =
+                midiDevice; // Still updating midiDevice so that is can be reconnected when available
+            return;
+        }
+    }
+    else if (supMidiState == Midi::State::Connected)
+        closeMidiInput();
+
     if (index != -1)
     {
         midiInput = juce::MidiInput::openDevice (devices[index].identifier, this);
@@ -1020,7 +1056,15 @@ void SceneRotatorAudioProcessor::openMidiInput (juce::MidiDeviceInfo midiDevice,
 void SceneRotatorAudioProcessor::closeMidiInput()
 {
     const juce::ScopedLock scopedLock (changingMidiDevice);
-    if (midiInput != nullptr)
+
+    if (currentMidiDeviceInfo.name == "Head Tracker")
+    {
+        if (currentMidiScheme == MidiScheme::supperwareYpr)
+            trackerDriver.turnOff();
+        trackerDriver.disconnect();
+        DBG ("Closing Supperware Head Tracker");
+    }
+    else if (midiInput != nullptr)
     {
         midiInput->stop();
         midiInput.reset();
@@ -1035,8 +1079,21 @@ void SceneRotatorAudioProcessor::closeMidiInput()
     return;
 }
 
+void SceneRotatorAudioProcessor::trackerMidiConnectionChanged (Midi::State newState)
+{
+    if (newState != supMidiState)
+    {
+        DBG ("Supperware HT MIDI state changed to " << static_cast<int> (newState));
+        supMidiState = newState;
+    }
+}
+
 void SceneRotatorAudioProcessor::setMidiScheme (MidiScheme newMidiScheme)
 {
+    if ((currentMidiScheme == MidiScheme::supperwareYpr)
+        && (supMidiState == Midi::State::Connected))
+        trackerDriver.turnOff();
+
     currentMidiScheme = newMidiScheme;
     DBG ("Scheme set to " << midiSchemeNames[static_cast<int> (newMidiScheme)]);
 
@@ -1058,8 +1115,17 @@ void SceneRotatorAudioProcessor::setMidiScheme (MidiScheme newMidiScheme)
         case MidiScheme::mrHeadTrackerQuaternions:
             break;
 
-        case MidiScheme::supperwareQuaternions:
+        case MidiScheme::supperwareYpr:
+        {
+            parameters.getParameter ("rotationSequence")
+                ->setValueNotifyingHost (1.0f); // roll->pitch->yaw
+            if (supMidiState == Midi::State::Connected)
+            {
+                trackerDriver.turnOn (true, false);
+                trackerDriver.zero();
+            }
             break;
+        }
 
         default:
             DBG ("Not supported MidiScheme - I guess the casting from int failed hard!");
@@ -1068,6 +1134,24 @@ void SceneRotatorAudioProcessor::setMidiScheme (MidiScheme newMidiScheme)
     }
 
     schemeHasChanged = true;
+}
+
+// Supperware uses a different basis for quaternions --> pitch and roll are swapped, therefore using ypr mode
+void SceneRotatorAudioProcessor::trackerOrientation (float yawRadian,
+                                                     float pitchRadian,
+                                                     float rollRadian)
+{
+    updatingParams = true; // We always get ypr at one --> no need to update quaternions three times
+    parameters.getParameter ("yaw")->setValueNotifyingHost (
+        parameters.getParameterRange ("yaw").convertTo0to1 (
+            -yawRadian / juce::MathConstants<float>::pi * 180.0f));
+    parameters.getParameter ("pitch")->setValueNotifyingHost (
+        parameters.getParameterRange ("pitch").convertTo0to1 (
+            pitchRadian / juce::MathConstants<float>::pi * 180.0f));
+    updatingParams = false;
+    parameters.getParameter ("roll")->setValueNotifyingHost (
+        parameters.getParameterRange ("roll").convertTo0to1 (
+            -rollRadian / juce::MathConstants<float>::pi * 180.0f));
 }
 
 //==============================================================================
