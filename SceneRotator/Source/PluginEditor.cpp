@@ -35,7 +35,7 @@ SceneRotatorAudioProcessorEditor::SceneRotatorAudioProcessorEditor (
     // ============== BEGIN: essentials ======================
     // set GUI size and lookAndFeel
     //setSize(500, 300); // use this to create a fixed-size GUI
-    setResizeLimits (450, 340, 800, 500); // use this to create a resizable GUI
+    setResizeLimits (450, 320, 800, 500); // use this to create a resizable GUI
     setLookAndFeel (&globalLaF);
 
     // make title and footer visible, and set the PluginName
@@ -210,10 +210,6 @@ SceneRotatorAudioProcessorEditor::SceneRotatorAudioProcessorEditor (
     tooltipWin.setMillisecondsBeforeTipAppears (500);
     tooltipWin.setOpaque (false);
 
-    if (cbMidiScheme.getSelectedId() != 5 && cbMidiDevices.getText() != "Head Tracker")
-    {
-    }
-
     // start timer after everything is set up properly
     startTimer (20);
 }
@@ -325,15 +321,14 @@ void SceneRotatorAudioProcessorEditor::resized()
     area.removeFromTop (10);
     midiGroup.setBounds (area);
     area.removeFromTop (25);
-    auto leftSide = area.removeFromLeft (180);
-    auto deviceRow = leftSide.removeFromTop (20);
-    slMidiDevices.setBounds (deviceRow.removeFromLeft (48));
-    cbMidiDevices.setBounds (deviceRow);
+    auto row = area.removeFromTop (20);
+    auto leftSide = row.removeFromLeft (180);
+    slMidiDevices.setBounds (leftSide.removeFromLeft (40));
+    cbMidiDevices.setBounds (leftSide);
 
-    leftSide.removeFromTop (10);
-    auto schemeRow = leftSide.removeFromTop (20);
-    slMidiScheme.setBounds (schemeRow.removeFromLeft (48));
-    cbMidiScheme.setBounds (schemeRow.removeFromLeft (140));
+    row.removeFromLeft (10);
+    slMidiScheme.setBounds (row.removeFromLeft (48));
+    cbMidiScheme.setBounds (row.removeFromLeft (140));
 }
 
 void SceneRotatorAudioProcessorEditor::timerCallback()
@@ -394,9 +389,6 @@ void SceneRotatorAudioProcessorEditor::comboBoxChanged (juce::ComboBox* comboBox
         processor.setMidiScheme (
             SceneRotatorAudioProcessor::MidiScheme (cbMidiScheme.getSelectedId() - 1));
     }
-
-    DBG ("MIDI Device: " << cbMidiDevices.getText());
-    DBG ("MIDI Scheme: " << cbMidiScheme.getSelectedId());
 }
 
 void SceneRotatorAudioProcessorEditor::refreshMidiDeviceList()
@@ -436,12 +428,4 @@ void SceneRotatorAudioProcessorEditor::updateSelectedMidiScheme()
 {
     juce::ScopedValueSetter<juce::Atomic<bool>> refreshing (updatingMidiScheme, true, false);
     //cbMidiScheme.setSelectedId (select, juce::sendNotificationSync);
-}
-
-void SceneRotatorAudioProcessorEditor::buttonClicked (juce::Button* button)
-{
-}
-
-void SceneRotatorAudioProcessorEditor::buttonStateChanged (juce::Button* button)
-{
 }

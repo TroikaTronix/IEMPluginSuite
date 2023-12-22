@@ -43,8 +43,7 @@ typedef juce::AudioProcessorValueTreeState::ButtonAttachment ButtonAttachment;
 */
 class SceneRotatorAudioProcessorEditor : public juce::AudioProcessorEditor,
                                          private juce::Timer,
-                                         private juce::ComboBox::Listener,
-                                         private juce::Button::Listener
+                                         private juce::ComboBox::Listener
 {
 public:
     SceneRotatorAudioProcessorEditor (SceneRotatorAudioProcessor&,
@@ -57,8 +56,6 @@ public:
 
     void timerCallback() override;
     void comboBoxChanged (juce::ComboBox* comboBoxThatHasChanged) override;
-    void buttonClicked (juce::Button* button) override;
-    void buttonStateChanged (juce::Button* button) override;
 
     void refreshMidiDeviceList();
     void updateSelectedMidiScheme();
