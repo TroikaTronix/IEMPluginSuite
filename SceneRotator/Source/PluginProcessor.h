@@ -124,7 +124,6 @@ public:
     //======= Supperware ===========================================================
     void trackerMidiConnectionChanged (Midi::State newState) override;
     void trackerOrientationQ (float inp_qw, float inp_qx, float inp_qy, float inp_qz) override;
-    Midi::TrackerDriver& getTrackerDriver() { return trackerDriver; };
 
     //==============================================================================
     // Flags for editor

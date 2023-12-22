@@ -30,8 +30,7 @@ SceneRotatorAudioProcessorEditor::SceneRotatorAudioProcessorEditor (
     juce::AudioProcessorEditor (&p),
     processor (p),
     valueTreeState (vts),
-    footer (p.getOSCParameterInterface()),
-    supSettingsPanel (p.getTrackerDriver())
+    footer (p.getOSCParameterInterface())
 {
     // ============== BEGIN: essentials ======================
     // set GUI size and lookAndFeel
@@ -211,13 +210,9 @@ SceneRotatorAudioProcessorEditor::SceneRotatorAudioProcessorEditor (
     tooltipWin.setMillisecondsBeforeTipAppears (500);
     tooltipWin.setOpaque (false);
 
-    addAndMakeVisible (btSupSettings);
-    btSupSettings.setButtonText ("Head Tracker Settings");
-    btSupSettings.setColour (juce::TextButton::buttonColourId, juce::Colours::cornflowerblue);
-    btSupSettings.addListener (this);
-
     if (cbMidiScheme.getSelectedId() != 5 && cbMidiDevices.getText() != "Head Tracker")
-        btSupSettings.setVisible (false);
+    {
+    }
 
     // start timer after everything is set up properly
     startTimer (20);
@@ -339,9 +334,6 @@ void SceneRotatorAudioProcessorEditor::resized()
     auto schemeRow = leftSide.removeFromTop (20);
     slMidiScheme.setBounds (schemeRow.removeFromLeft (48));
     cbMidiScheme.setBounds (schemeRow.removeFromLeft (140));
-
-    area.removeFromTop (area.getHeight() / 2 - 15);
-    btSupSettings.setBounds (area.removeFromRight (150).removeFromTop (30));
 }
 
 void SceneRotatorAudioProcessorEditor::timerCallback()
@@ -405,11 +397,6 @@ void SceneRotatorAudioProcessorEditor::comboBoxChanged (juce::ComboBox* comboBox
 
     DBG ("MIDI Device: " << cbMidiDevices.getText());
     DBG ("MIDI Scheme: " << cbMidiScheme.getSelectedId());
-
-    if (cbMidiScheme.getSelectedId() == 5 && cbMidiDevices.getText() == "Head Tracker")
-        btSupSettings.setVisible (true);
-    else
-        btSupSettings.setVisible (false);
 }
 
 void SceneRotatorAudioProcessorEditor::refreshMidiDeviceList()
@@ -453,18 +440,6 @@ void SceneRotatorAudioProcessorEditor::updateSelectedMidiScheme()
 
 void SceneRotatorAudioProcessorEditor::buttonClicked (juce::Button* button)
 {
-    if (button == &btSupSettings)
-    {
-        juce::DialogWindow::LaunchOptions lo;
-        lo.content.set (&supSettingsPanel, false);
-        lo.dialogBackgroundColour = juce::Colour (globalLaF.ClBackground);
-        lo.dialogTitle = "Head Tracker Settings";
-        lo.escapeKeyTriggersCloseButton = true;
-        lo.resizable = false;
-        lo.useNativeTitleBar = true;
-        lo.componentToCentreAround = this;
-        lo.launchAsync();
-    }
 }
 
 void SceneRotatorAudioProcessorEditor::buttonStateChanged (juce::Button* button)

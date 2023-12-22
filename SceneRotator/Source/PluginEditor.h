@@ -33,11 +33,6 @@
 #include "../../resources/customComponents/ReverseSlider.h"
 #include "../../resources/customComponents/SimpleLabel.h"
 
-#include "../../resources/ht-api-juce/supperware/Tracker.h"
-#include "../../resources/ht-api-juce/supperware/midi/midi.h"
-
-#include "../../resources/ht-api-juce/supperware/configpanel/configpanel.h"
-
 typedef ReverseSlider::SliderAttachment
     SliderAttachment; // all ReverseSliders will make use of the parameters' valueToText() function
 typedef juce::AudioProcessorValueTreeState::ComboBoxAttachment ComboBoxAttachment;
@@ -116,9 +111,6 @@ private:
 
     juce::Atomic<bool> refreshingMidiDevices = false;
     juce::Atomic<bool> updatingMidiScheme = false;
-
-    ConfigPanel::SettingsPanel supSettingsPanel;
-    juce::TextButton btSupSettings;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SceneRotatorAudioProcessorEditor)
 };
