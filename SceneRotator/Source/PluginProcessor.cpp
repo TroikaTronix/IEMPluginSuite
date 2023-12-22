@@ -1005,9 +1005,9 @@ void SceneRotatorAudioProcessor::openMidiInput (juce::MidiDeviceInfo midiDevice,
             currentMidiDeviceInfo = midiDevice;
             DBG ("Supperware HT connected");
 
-            if (currentMidiScheme == MidiScheme::supperwareYpr)
+            if (currentMidiScheme == MidiScheme::supperwareQuaternions)
             {
-                trackerDriver.turnOn (true, false);
+                trackerDriver.turnOn (true, true);
                 trackerDriver.zero();
             }
 
@@ -1059,7 +1059,7 @@ void SceneRotatorAudioProcessor::closeMidiInput()
 
     if (currentMidiDeviceInfo.name == "Head Tracker")
     {
-        if (currentMidiScheme == MidiScheme::supperwareYpr)
+        if (currentMidiScheme == MidiScheme::supperwareQuaternions)
             trackerDriver.turnOff();
         trackerDriver.disconnect();
         DBG ("Closing Supperware Head Tracker");
@@ -1090,7 +1090,7 @@ void SceneRotatorAudioProcessor::trackerMidiConnectionChanged (Midi::State newSt
 
 void SceneRotatorAudioProcessor::setMidiScheme (MidiScheme newMidiScheme)
 {
-    if ((currentMidiScheme == MidiScheme::supperwareYpr)
+    if ((currentMidiScheme == MidiScheme::supperwareQuaternions)
         && (supMidiState == Midi::State::Connected))
         trackerDriver.turnOff();
 
@@ -1115,13 +1115,13 @@ void SceneRotatorAudioProcessor::setMidiScheme (MidiScheme newMidiScheme)
         case MidiScheme::mrHeadTrackerQuaternions:
             break;
 
-        case MidiScheme::supperwareYpr:
+        case MidiScheme::supperwareQuaternions:
         {
             parameters.getParameter ("rotationSequence")
                 ->setValueNotifyingHost (1.0f); // roll->pitch->yaw
             if (supMidiState == Midi::State::Connected)
             {
-                trackerDriver.turnOn (true, false);
+                trackerDriver.turnOn (true, true);
                 trackerDriver.zero();
             }
             break;
@@ -1136,22 +1136,23 @@ void SceneRotatorAudioProcessor::setMidiScheme (MidiScheme newMidiScheme)
     schemeHasChanged = true;
 }
 
-// Supperware uses a different basis for quaternions --> pitch and roll are swapped, therefore using ypr mode
-void SceneRotatorAudioProcessor::trackerOrientation (float yawRadian,
-                                                     float pitchRadian,
-                                                     float rollRadian)
+void SceneRotatorAudioProcessor::trackerOrientationQ (float inp_qw,
+                                                      float inp_qx,
+                                                      float inp_qy,
+                                                      float inp_qz)
 {
-    updatingParams = true; // We always get ypr at one --> no need to update quaternions three times
-    parameters.getParameter ("yaw")->setValueNotifyingHost (
-        parameters.getParameterRange ("yaw").convertTo0to1 (
-            -yawRadian / juce::MathConstants<float>::pi * 180.0f));
-    parameters.getParameter ("pitch")->setValueNotifyingHost (
-        parameters.getParameterRange ("pitch").convertTo0to1 (
-            pitchRadian / juce::MathConstants<float>::pi * 180.0f));
+    // The supperware head tracker sends quaternions with different reference system --> x and y are swapped
+    updatingParams =
+        true; // We always get all quaternions at once --> no need to update eulers everý time
+    parameters.getParameter ("qw")->setValueNotifyingHost (
+        parameters.getParameterRange ("qw").convertTo0to1 (inp_qw));
+    parameters.getParameter ("qx")->setValueNotifyingHost (
+        parameters.getParameterRange ("qx").convertTo0to1 (-inp_qy));
+    parameters.getParameter ("qy")->setValueNotifyingHost (
+        parameters.getParameterRange ("qy").convertTo0to1 (inp_qx));
     updatingParams = false;
-    parameters.getParameter ("roll")->setValueNotifyingHost (
-        parameters.getParameterRange ("roll").convertTo0to1 (
-            -rollRadian / juce::MathConstants<float>::pi * 180.0f));
+    parameters.getParameter ("qz")->setValueNotifyingHost (
+        parameters.getParameterRange ("qz").convertTo0to1 (-inp_qz));
 }
 
 //==============================================================================

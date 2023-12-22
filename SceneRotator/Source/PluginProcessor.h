@@ -95,20 +95,20 @@ public:
         mrHeadTrackerYprDir,
         mrHeadTrackerYprInv,
         mrHeadTrackerQuaternions,
-        supperwareYpr
+        supperwareQuaternions
     };
 
     const juce::StringArray midiSchemeNames { "none (link only)",
                                               "MrHT YPR Direct",
                                               "MrHT YPR Inverse",
                                               "MrHT Quaternions",
-                                              "Supperware YPR" };
+                                              "Supperware Quaternions" };
 
     const juce::Identifier midiSchemeIdentifieres[5] { "none",
                                                        "MrHT_YprDir",
                                                        "MrHT_YprInv",
                                                        "MrHT_Quat",
-                                                       "Sup_Ypr" };
+                                                       "Sup_Quat" };
 
     juce::MidiDeviceInfo getCurrentMidiDeviceInfo();
     void openMidiInput (juce::MidiDeviceInfo midiDevice,
@@ -123,7 +123,7 @@ public:
 
     //======= Supperware ===========================================================
     void trackerMidiConnectionChanged (Midi::State newState) override;
-    void trackerOrientation (float yawRadian, float pitchRadian, float rollRadian) override;
+    void trackerOrientationQ (float inp_qw, float inp_qx, float inp_qy, float inp_qz) override;
     Midi::TrackerDriver& getTrackerDriver() { return trackerDriver; };
 
     //==============================================================================
