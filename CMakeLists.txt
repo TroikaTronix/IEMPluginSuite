@@ -143,7 +143,7 @@ if (IEM_USE_SYSTEM_JUCE)
     message (DEPRECATION "Using a system JUCE installation may be deprecated in future releases. Please use the fetched version instead.")
     find_package (JUCE CONFIG REQUIRED)
 else()
-    include (Dependencies.cmake)
+    add_subdirectory (JUCE)
 endif()
 
 # formats
