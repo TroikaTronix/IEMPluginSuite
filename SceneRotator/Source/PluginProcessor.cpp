@@ -945,7 +945,8 @@ std::vector<std::unique_ptr<juce::RangedAudioParameter>>
 void SceneRotatorAudioProcessor::timerCallback()
 {
     // retrying to connect to a desired device which might not be physically connected
-    if (currentMidiDeviceInfo.identifier != "" && midiInput == nullptr)
+    if (currentMidiDeviceInfo.identifier != ""
+        && (midiInput == nullptr && supMidiState != Midi::State::Connected))
         openMidiInput (currentMidiDeviceInfo);
 }
 
@@ -994,12 +995,7 @@ void SceneRotatorAudioProcessor::openMidiInput (juce::MidiDeviceInfo midiDevice,
 
     if (devices[index].name == "Head Tracker")
     {
-        if ((supMidiState == Midi::State::Connected) || (supMidiState == Midi::State::Bootloader))
-        {
-            DBG ("Supperware Head Tracker is already connected, tracker isn't turned on");
-            return;
-        }
-        else if (supMidiState == Midi::State::Available)
+        if (supMidiState == Midi::State::Available)
         {
             trackerDriver.connect();
             currentMidiDeviceInfo = midiDevice;
@@ -1009,6 +1005,7 @@ void SceneRotatorAudioProcessor::openMidiInput (juce::MidiDeviceInfo midiDevice,
             {
                 trackerDriver.turnOn (true, true);
                 trackerDriver.zero();
+                DBG ("Supperware HT turned on");
             }
 
             return;
@@ -1021,7 +1018,8 @@ void SceneRotatorAudioProcessor::openMidiInput (juce::MidiDeviceInfo midiDevice,
             return;
         }
     }
-    else if (supMidiState == Midi::State::Connected)
+    else if (supMidiState
+             == Midi::State::Connected) // If HT connected but not selected as HT device
         closeMidiInput();
 
     if (index != -1)
@@ -1060,7 +1058,11 @@ void SceneRotatorAudioProcessor::closeMidiInput()
     if (currentMidiDeviceInfo.name == "Head Tracker")
     {
         if (currentMidiScheme == MidiScheme::supperwareQuaternions)
+        {
             trackerDriver.turnOff();
+            DBG ("Supperware HT turned off");
+        }
+
         trackerDriver.disconnect();
         DBG ("Closing Supperware Head Tracker");
     }
@@ -1092,7 +1094,10 @@ void SceneRotatorAudioProcessor::setMidiScheme (MidiScheme newMidiScheme)
 {
     if ((currentMidiScheme == MidiScheme::supperwareQuaternions)
         && (supMidiState == Midi::State::Connected))
+    {
         trackerDriver.turnOff();
+        DBG ("Supperware HT turned off");
+    }
 
     currentMidiScheme = newMidiScheme;
     DBG ("Scheme set to " << midiSchemeNames[static_cast<int> (newMidiScheme)]);
@@ -1117,13 +1122,17 @@ void SceneRotatorAudioProcessor::setMidiScheme (MidiScheme newMidiScheme)
 
         case MidiScheme::supperwareQuaternions:
         {
-            parameters.getParameter ("rotationSequence")
-                ->setValueNotifyingHost (1.0f); // roll->pitch->yaw
             if (supMidiState == Midi::State::Connected)
             {
                 trackerDriver.turnOn (true, true);
                 trackerDriver.zero();
+                DBG ("Supperware HT turned on");
             }
+            else
+            {
+                DBG ("Supperware HT not connected");
+            }
+
             break;
         }
 
@@ -1143,7 +1152,7 @@ void SceneRotatorAudioProcessor::trackerOrientationQ (float inp_qw,
 {
     // The supperware head tracker sends quaternions with different reference system --> x and y are swapped
     updatingParams =
-        true; // We always get all quaternions at once --> no need to update eulers everý time
+        true; // We always get all quaternions at once --> no need to update eulers four times
     parameters.getParameter ("qw")->setValueNotifyingHost (
         parameters.getParameterRange ("qw").convertTo0to1 (inp_qw));
     parameters.getParameter ("qx")->setValueNotifyingHost (

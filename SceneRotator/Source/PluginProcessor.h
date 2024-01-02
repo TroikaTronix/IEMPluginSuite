@@ -102,7 +102,7 @@ public:
                                               "MrHT YPR Direct",
                                               "MrHT YPR Inverse",
                                               "MrHT Quaternions",
-                                              "Supperware Quaternions" };
+                                              "Supperware" };
 
     const juce::Identifier midiSchemeIdentifieres[5] { "none",
                                                        "MrHT_YprDir",
