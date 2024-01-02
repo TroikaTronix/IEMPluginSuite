@@ -6,6 +6,9 @@ stages:
   - test
   - deploy
 
+variables:
+  GIT_SUBMODULE_STRATEGY: recursive
+
 ###################################################
 # cleanup after the job (e.g. rename files for the artifacts...)
 .after_script:
@@ -163,6 +166,7 @@ clang-format:
   stage: pre-check
   image: alpine:latest
   variables:
+    GIT_SUBMODULE_STRATEGY: none
     FORMAT_SCRIPT: clang-format -i
   before_script:
     - apk add clang-extra-tools
@@ -199,6 +203,8 @@ linefeed-format:
 sast:
   stage: pre-check
   allow_failure: true
+  variables:
+    GIT_SUBMODULE_STRATEGY: none
   before_script:
     # we really do not want to run sast on JUCE (not our business)
     - rm -rf JUCE $(git submodule status | awk '{print $2}')
