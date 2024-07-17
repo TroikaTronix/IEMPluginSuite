@@ -65,12 +65,6 @@ if (IEM_POST_BUILD_INSTALL STREQUAL "NO")
 elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     set_directory_properties (PROPERTIES JUCE_COPY_PLUGIN_AFTER_BUILD ON)
 
-    if (${XCODE_VERSION} VERSION_GREATER "14.99.99")
-        message (STATUS "Detected Xcode 15 or above, setting additional linker flags -Wl,-weak_reference_mismatches,weak")
-        add_link_options (-Wl,-weak_reference_mismatches,weak)
-        add_compile_definitions (JUCE_SILENCE_XCODE_15_LINKER_WARNING=1)
-    endif() 
-
     if (IEM_POST_BUILD_INSTALL STREQUAL "SYSTEM")
         set (prefix "/Library/Audio/Plug-Ins")
     else()  # Defaulting to USER
