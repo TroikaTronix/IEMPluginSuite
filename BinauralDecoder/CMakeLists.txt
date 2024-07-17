@@ -12,29 +12,10 @@ if (IEM_FORMATS)
         VERSION ${BinauralDecoder_VERSION}
         LV2URI "http://plugins.iem.at/BinauralDecoder"
         VST2_CATEGORY kPlugSurroundFx kPlugCategSpacializer
-        VST3_CATEGORIES Spatial Surround Up-Downmix)
-
-    target_compile_definitions (BinauralDecoder PRIVATE
-        JUCE_DISPLAY_SPLASH_SCREEN=0)
+        VST3_CATEGORIES Spatial Surround Up-Downmix
+        AAX_CATEGORY AAX_ePlugInCategory_SoundField)
 
     list (APPEND PLUGIN_TARGET BinauralDecoder)
-endif()
-if (IEM_BUILD_AAX)
-    juce_add_plugin (BinauralDecoderAAX
-    PLUGIN_MANUFACTURER_CODE IEMA
-    PLUGIN_CODE BiDe
-    ICON_BIG "../resources/Standalone/IEMPluginSuiteSmall.png"
-    ICON_SMALL "../resources/Standalone/IEMPluginSuiteSmall.png"
-    COMPANY_NAME "IEM"
-    PRODUCT_NAME "BinauralDecoder"
-    FORMATS AAX
-    VERSION ${BinauralDecoder_VERSION}
-    AAX_CATEGORY AAX_ePlugInCategory_SoundField)
-
-    target_compile_definitions (BinauralDecoderAAX PRIVATE
-        JUCE_DISPLAY_SPLASH_SCREEN=1)
-
-    list (APPEND PLUGIN_TARGET BinauralDecoderAAX)
 endif()
 
 juce_add_binary_data (BinauralDecoderEQs

@@ -12,31 +12,11 @@ if (IEM_FORMATS)
         VERSION ${ProbeDecoder_VERSION}
         LV2URI "http://plugins.iem.at/ProbeDecoder"
         VST2_CATEGORY kPlugSurroundFx kPlugCategSpacializer
-        VST3_CATEGORIES Spatial Surround Up-Downmix)
-
-    target_compile_definitions (ProbeDecoder PRIVATE
-        JUCE_DISPLAY_SPLASH_SCREEN=0)
+        VST3_CATEGORIES Spatial Surround Up-Downmix
+        AAX_CATEGORY AAX_ePlugInCategory_SoundField)
 
     list (APPEND PLUGIN_TARGET ProbeDecoder)
 endif()
-if (IEM_BUILD_AAX)
-    juce_add_plugin (ProbeDecoderAAX
-        PLUGIN_MANUFACTURER_CODE IEMA
-        PLUGIN_CODE PrDe
-        ICON_BIG "../resources/Standalone/IEMPluginSuiteSmall.png"
-        ICON_SMALL "../resources/Standalone/IEMPluginSuiteSmall.png"
-        COMPANY_NAME "IEM"
-        PRODUCT_NAME "ProbeDecoder"
-        FORMATS AAX
-        VERSION ${ProbeDecoder_VERSION}
-        AAX_CATEGORY AAX_ePlugInCategory_SoundField)
-
-    target_compile_definitions (ProbeDecoderAAX PRIVATE
-        JUCE_DISPLAY_SPLASH_SCREEN=1)
-
-    list (APPEND PLUGIN_TARGET ProbeDecoderAAX)
-endif()
-
 
 foreach (TARGET IN LISTS PLUGIN_TARGET)
     juce_generate_juce_header(${TARGET})

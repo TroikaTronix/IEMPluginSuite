@@ -12,29 +12,10 @@ if (IEM_FORMATS)
         VERSION ${DualDelay_VERSION}
         LV2URI "http://plugins.iem.at/DualDelay"
         VST2_CATEGORY kPlugSurroundFx kPlugCategSpacializer kPlugCategEffect
-        VST3_CATEGORIES Spatial Surround Delay Fx)
-
-    target_compile_definitions (DualDelay PRIVATE
-        JUCE_DISPLAY_SPLASH_SCREEN=0)
+        VST3_CATEGORIES Spatial Surround Delay Fx
+        AAX_CATEGORY "AAX_ePlugInCategory_SoundField | AAX_ePlugInCategory_Delay")
 
     list (APPEND PLUGIN_TARGET DualDelay)
-endif()
-if (IEM_BUILD_AAX)
-    juce_add_plugin (DualDelayAAX
-        PLUGIN_MANUFACTURER_CODE IEMA
-        PLUGIN_CODE DuDe
-        ICON_BIG "../resources/Standalone/IEMPluginSuiteSmall.png"
-        ICON_SMALL "../resources/Standalone/IEMPluginSuiteSmall.png"
-        COMPANY_NAME "IEM"
-        PRODUCT_NAME "DualDelay"
-        FORMATS AAX
-        VERSION ${DualDelay_VERSION}
-        AAX_CATEGORY AAX_ePlugInCategory_SoundField)
-
-    target_compile_definitions (DualDelayAAX PRIVATE
-    JUCE_DISPLAY_SPLASH_SCREEN=1)
-
-    list (APPEND PLUGIN_TARGET DualDelayAAX)
 endif()
 
 foreach (TARGET IN LISTS PLUGIN_TARGET)

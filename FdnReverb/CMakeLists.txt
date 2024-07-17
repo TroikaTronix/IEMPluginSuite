@@ -12,29 +12,10 @@ if (IEM_FORMATS)
         VERSION ${FdnReverb_VERSION}
         LV2URI "http://plugins.iem.at/FdnReverb"
         VST2_CATEGORY kPlugSurroundFx kPlugCategSpacializer kPlugCategRoomFx
-        VST3_CATEGORIES Spatial Surround Reverb Fx)
-
-    target_compile_definitions (FdnReverb PRIVATE
-        JUCE_DISPLAY_SPLASH_SCREEN=0)
+        VST3_CATEGORIES Spatial Surround Reverb Fx
+        AAX_CATEGORY "AAX_ePlugInCategory_SoundField | AAX_ePlugInCategory_Reverb")
 
     list (APPEND PLUGIN_TARGET FdnReverb)
-endif()
-if (IEM_BUILD_AAX)
-    juce_add_plugin (FdnReverbAAX
-        PLUGIN_MANUFACTURER_CODE IEMA
-        PLUGIN_CODE FdRe
-        ICON_BIG "../resources/Standalone/IEMPluginSuiteSmall.png"
-        ICON_SMALL "../resources/Standalone/IEMPluginSuiteSmall.png"
-        COMPANY_NAME "IEM"
-        PRODUCT_NAME "FdnReverb"
-        FORMATS AAX
-        VERSION ${FdnReverb_VERSION}
-        AAX_CATEGORY AAX_ePlugInCategory_SoundField)
-
-    target_compile_definitions (FdnReverbAAX PRIVATE
-        JUCE_DISPLAY_SPLASH_SCREEN=1)
-
-    list (APPEND PLUGIN_TARGET FdnReverbAAX)
 endif()
 
 foreach (TARGET IN LISTS PLUGIN_TARGET)

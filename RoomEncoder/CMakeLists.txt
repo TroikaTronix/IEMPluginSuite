@@ -12,30 +12,10 @@ if (IEM_FORMATS)
         VERSION ${RoomEncoder_VERSION}
         LV2URI "http://plugins.iem.at/RoomEncoder"
         VST2_CATEGORY kPlugSurroundFx kPlugCategSpacializer kPlugCategRoomFx
-        VST3_CATEGORIES Spatial Surround Up-Downmix Reverb)
-
-    target_compile_definitions (RoomEncoder PRIVATE
-        JUCE_DISPLAY_SPLASH_SCREEN=0)
+        VST3_CATEGORIES Spatial Surround Up-Downmix Reverb
+        AAX_CATEGORY "AAX_ePlugInCategory_SoundField | AAX_ePlugInCategory_Reverb")
 
     list (APPEND PLUGIN_TARGET RoomEncoder)
-endif()
-if (IEM_BUILD_AAX)
-    juce_add_plugin (RoomEncoderAAX
-        PLUGIN_MANUFACTURER_CODE IEMA
-        PLUGIN_CODE RoEn
-        ICON_BIG "../resources/Standalone/IEMPluginSuiteSmall.png"
-        ICON_SMALL "../resources/Standalone/IEMPluginSuiteSmall.png"
-        COMPANY_NAME "IEM"
-        PRODUCT_NAME "RoomEncoder"
-        FORMATS AAX
-        VERSION ${RoomEncoder_VERSION}
-        LV2URI "http://plugins.iem.at/RoomEncoder"
-        AAX_CATEGORY AAX_ePlugInCategory_SoundField)
-
-    target_compile_definitions (RoomEncoderAAX PRIVATE
-        JUCE_DISPLAY_SPLASH_SCREEN=1)
-
-    list (APPEND PLUGIN_TARGET RoomEncoderAAX)
 endif()
 
 foreach (TARGET IN LISTS PLUGIN_TARGET)

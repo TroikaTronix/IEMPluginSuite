@@ -65,12 +65,6 @@ if (IEM_POST_BUILD_INSTALL STREQUAL "NO")
 elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     set_directory_properties (PROPERTIES JUCE_COPY_PLUGIN_AFTER_BUILD ON)
 
-    if (${XCODE_VERSION} VERSION_GREATER "14.99.99")
-        message (STATUS "Detected Xcode 15 or above, setting additional linker flags -Wl,-weak_reference_mismatches,weak")
-        add_link_options (-Wl,-weak_reference_mismatches,weak)
-        add_compile_definitions (JUCE_SILENCE_XCODE_15_LINKER_WARNING=1)
-    endif() 
-
     if (IEM_POST_BUILD_INSTALL STREQUAL "SYSTEM")
         set (prefix "/Library/Audio/Plug-Ins")
     else()  # Defaulting to USER
@@ -96,7 +90,7 @@ elseif (CMAKE_SYSTEM_NAME STREQUAL "Windows")
 
     if ((IEM_POST_BUILD_INSTALL STREQUAL "USER") AND (prefix STREQUAL "/usr/local"))
         if (IEM_BUILD_VST3 OR IEM_BUILD_VST2 OR IEM_BUILD_AAX)
-            message (WARNING "VST and VST3 plug-ins are installed for all users by default as there is no officially supported consistent directory for local installation. Using SYSTEM for those. You can provide a costum prefix to change this behaviour.")
+            message (WARNING "VST, VST3 and AAX plug-ins are installed for all users by default as there is no officially supported consistent directory for local installation. Using SYSTEM for those. You can provide a costum prefix to change this behaviour.")
             set (IEM_POST_BUILD_INSTALL "SYSTEM")
         endif()
 
@@ -174,16 +168,8 @@ if (IEM_BUILD_LV2)
 endif()
 
 if (IEM_BUILD_AAX)
-    SET (AAXSDKPATH "/usr/include" CACHE STRING "Path to the AAX SDK")
-    # checking VST2 SDK
-    if (AAXSDKPATH STREQUAL "/usr/include")
-        CHECK_INCLUDE_FILES(Libs/AAXLibrary/source/AAX_CACFUnknown.cpp HAVE_AAX_HEADERS)
-        IF (NOT HAVE_AAX_HEADERS)
-            message (FATAL_ERROR "You have to specify the AAXSDKPATH variable with the path to the AAX SDK if you want to build AAX versions.")
-        endif()
-    endif()
-    juce_set_aax_sdk_path (${AAXSDKPATH})
     message ("-- IEM: Building AAX versions")
+    list (APPEND IEM_FORMATS AAX)
 endif()
 
 if (IEM_BUILD_STANDALONE)
@@ -228,11 +214,6 @@ if (BinauralDecoder IN_LIST PLUGINS_TO_BUILD AND NOT CMAKE_SYSTEM_NAME STREQUAL 
     if (IEM_FORMATS)
         target_compile_definitions ("BinauralDecoder" PUBLIC JUCE_DSP_USE_STATIC_FFTW=1)
         target_link_libraries ("BinauralDecoder" PRIVATE fftw3f)
-    endif()
-
-    if (IEM_BUILD_AAX)
-        target_compile_definitions ("BinauralDecoderAAX" PUBLIC JUCE_DSP_USE_STATIC_FFTW=1)
-        target_link_libraries ("BinauralDecoderAAX" PRIVATE fftw3f)
     endif()
 endif()
 

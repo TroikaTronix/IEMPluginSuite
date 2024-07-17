@@ -12,29 +12,10 @@ if (IEM_FORMATS)
         VERSION ${StereoEncoder_VERSION}
         LV2URI "http://plugins.iem.at/StereoEncoder"
         VST2_CATEGORY kPlugSurroundFx kPlugCategSpacializer
-        VST3_CATEGORIES Spatial Surround Up-Downmix)
-
-    target_compile_definitions (StereoEncoder PRIVATE
-        JUCE_DISPLAY_SPLASH_SCREEN=0)
-
-    list (APPEND PLUGIN_TARGET StereoEncoder)
-endif()
-if (IEM_BUILD_AAX)
-    juce_add_plugin (StereoEncoderAAX
-        PLUGIN_MANUFACTURER_CODE IEMA
-        PLUGIN_CODE StEn
-        ICON_BIG "../resources/Standalone/IEMPluginSuiteSmall.png"
-        ICON_SMALL "../resources/Standalone/IEMPluginSuiteSmall.png"
-        COMPANY_NAME "IEM"
-        PRODUCT_NAME "StereoEncoder"
-        FORMATS AAX
-        VERSION ${StereoEncoder_VERSION}
+        VST3_CATEGORIES Spatial Surround Up-Downmix
         AAX_CATEGORY AAX_ePlugInCategory_SoundField)
 
-    target_compile_definitions (StereoEncoderAAX PRIVATE
-        JUCE_DISPLAY_SPLASH_SCREEN=1)
-
-    list (APPEND PLUGIN_TARGET StereoEncoderAAX)
+    list (APPEND PLUGIN_TARGET StereoEncoder)
 endif()
 
 foreach (TARGET IN LISTS PLUGIN_TARGET)

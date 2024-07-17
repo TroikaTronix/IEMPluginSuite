@@ -12,29 +12,10 @@ if (IEM_FORMATS)
         VERSION ${DirectionalCompressor_VERSION}
         LV2URI "http://plugins.iem.at/DirectionalCompressor"
         VST2_CATEGORY kPlugSurroundFx kPlugCategSpacializer kPlugCategEffect
-        VST3_CATEGORIES Spatial Surround Dynamics Fx)
-
-    target_compile_definitions (DirectionalCompressor PRIVATE
-        JUCE_DISPLAY_SPLASH_SCREEN=0)
+        VST3_CATEGORIES Spatial Surround Dynamics Fx
+        AAX_CATEGORY "AAX_ePlugInCategory_SoundField | AAX_ePlugInCategory_Dynamics")
 
     list (APPEND PLUGIN_TARGET DirectionalCompressor)
-endif()
-if (IEM_BUILD_AAX)
-    juce_add_plugin (DirectionalCompressorAAX
-        PLUGIN_MANUFACTURER_CODE IEMA
-        PLUGIN_CODE DiCo
-        ICON_BIG "../resources/Standalone/IEMPluginSuiteSmall.png"
-        ICON_SMALL "../resources/Standalone/IEMPluginSuiteSmall.png"
-        COMPANY_NAME "IEM"
-        PRODUCT_NAME "DirectionalCompressor"
-        FORMATS AAX
-        VERSION ${DirectionalCompressor_VERSION}
-        AAX_CATEGORY AAX_ePlugInCategory_SoundField)  # TODO: Check if mutiple categories are possible
-
-    target_compile_definitions (DirectionalCompressorAAX PRIVATE
-    JUCE_DISPLAY_SPLASH_SCREEN=1)
-
-    list (APPEND PLUGIN_TARGET DirectionalCompressorAAX)
 endif()
 
 foreach (TARGET IN LISTS PLUGIN_TARGET)

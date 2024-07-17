@@ -12,29 +12,10 @@ if (IEM_FORMATS)
         VERSION ${AllRADecoder_VERISON}
         LV2URI "http://plugins.iem.at/AllRADecoder"
         VST2_CATEGORY kPlugSurroundFx kPlugCategSpacializer
-        VST3_CATEGORIES Spatial Surround Up-Downmix)
-
-    target_compile_definitions (AllRADecoder PRIVATE
-            JUCE_DISPLAY_SPLASH_SCREEN=0)
-
-    list (APPEND PLUGIN_TARGET AllRADecoder)
-endif()
-if (IEM_BUILD_AAX)
-    juce_add_plugin (AllRADecoderAAX
-        PLUGIN_MANUFACTURER_CODE IEMA
-        PLUGIN_CODE AlRa
-        ICON_BIG "../resources/Standalone/IEMPluginSuiteSmall.png"
-        ICON_SMALL "../resources/Standalone/IEMPluginSuiteSmall.png"
-        COMPANY_NAME "IEM"
-        PRODUCT_NAME "AllRADecoder"
-        FORMATS AAX
-        VERSION ${AllRADecoder_VERISON}
+        VST3_CATEGORIES Spatial Surround Up-Downmix
         AAX_CATEGORY AAX_ePlugInCategory_SoundField)
 
-    target_compile_definitions (AllRADecoderAAX PRIVATE
-        JUCE_DISPLAY_SPLASH_SCREEN=1)
-
-    list (APPEND PLUGIN_TARGET AllRADecoderAAX)
+    list (APPEND PLUGIN_TARGET AllRADecoder)
 endif()
 
 foreach (TARGET IN LISTS PLUGIN_TARGET)

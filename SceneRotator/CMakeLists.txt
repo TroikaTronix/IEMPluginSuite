@@ -12,29 +12,10 @@ if (IEM_FORMATS)
         VERSION ${SceneRotator_VERSION}
         LV2URI "http://plugins.iem.at/SceneRotator"
         VST2_CATEGORY kPlugSurroundFx kPlugCategSpacializer
-        VST3_CATEGORIES Spatial Surround)
-
-    target_compile_definitions (SceneRotator PRIVATE
-        JUCE_DISPLAY_SPLASH_SCREEN=0)
-
-    list (APPEND PLUGIN_TARGET SceneRotator)
-endif()
-if (IEM_BUILD_AAX)
-    juce_add_plugin (SceneRotatorAAX
-        PLUGIN_MANUFACTURER_CODE IEMA
-        PLUGIN_CODE ScRo
-        ICON_BIG "../resources/Standalone/IEMPluginSuiteSmall.png"
-        ICON_SMALL "../resources/Standalone/IEMPluginSuiteSmall.png"
-        COMPANY_NAME "IEM"
-        PRODUCT_NAME "SceneRotator"
-        FORMATS AAX
-        VERSION ${SceneRotator_VERSION}
+        VST3_CATEGORIES Spatial Surround
         AAX_CATEGORY AAX_ePlugInCategory_SoundField)
 
-    target_compile_definitions (SceneRotatorAAX PRIVATE
-        JUCE_DISPLAY_SPLASH_SCREEN=1)
-
-    list (APPEND PLUGIN_TARGET SceneRotatorAAX)
+    list (APPEND PLUGIN_TARGET SceneRotator)
 endif()
 
 foreach (TARGET IN LISTS PLUGIN_TARGET)
