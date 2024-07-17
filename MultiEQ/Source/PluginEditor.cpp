@@ -65,8 +65,27 @@ MultiEQAudioProcessorEditor::MultiEQAudioProcessorEditor (MultiEQAudioProcessor&
         gainEnabled[f] = true;
         qEnabled[f] = true;
     }
-    gainEnabled[0] = false;
-    gainEnabled[numFilterBands - 1] = false;
+
+    // Select state of gain and Q slider for first and last band
+    auto filterTypeFirst = valueTreeState.getRawParameterValue ("filterType0");
+    auto filterTypeLast =
+        valueTreeState.getRawParameterValue ("filterType" + juce::String (numFilterBands - 1));
+
+    if (*filterTypeFirst < 2.5f)
+    {
+        gainEnabled[0] = false;
+
+        if (*filterTypeFirst < 0.5f || *filterTypeFirst > 1.5f)
+            qEnabled[0] = false;
+    }
+
+    if (*filterTypeLast < 2.5f)
+    {
+        gainEnabled[numFilterBands - 1] = false;
+
+        if (*filterTypeLast < 0.5f || *filterTypeLast > 1.5f)
+            qEnabled[numFilterBands - 1] = false;
+    }
 
     addAndMakeVisible (fv);
     for (int f = 0; f < numFilterBands; ++f)
