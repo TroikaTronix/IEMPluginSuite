@@ -206,6 +206,7 @@ MultiEncoderAudioProcessorEditor::MultiEncoderAudioProcessorEditor (
     lbMasterRoll.setText ("Roll");
 
     setResizeLimits (590, 505, 800, 1200);
+    setResizable (true, true);
     startTimer (40);
 }
 
@@ -393,11 +394,12 @@ void MultiEncoderAudioProcessorEditor::resized()
 
 void MultiEncoderAudioProcessorEditor::importLayout()
 {
-    juce::FileChooser myChooser ("Load configuration...",
-                                 processor.getLastDir().exists() ? processor.getLastDir()
-                                                                 : juce::File::getSpecialLocation (
-                                                                     juce::File::userHomeDirectory),
-                                 "*.json");
+    juce::FileChooser myChooser (
+        "Load configuration...",
+        processor.getLastDir().exists()
+            ? processor.getLastDir()
+            : juce::File::getSpecialLocation (juce::File::userHomeDirectory),
+        "*.json");
     if (myChooser.browseForFileToOpen())
     {
         juce::File configFile (myChooser.getResult());

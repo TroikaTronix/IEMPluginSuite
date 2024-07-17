@@ -38,6 +38,7 @@ FdnReverbAudioProcessorEditor::FdnReverbAudioProcessorEditor (
     // editor's size to whatever you need it to be.
 
     setResizeLimits (600, 480, 1000, 950);
+    setResizable (true, true);
     setLookAndFeel (&globalLaF);
 
     freezeMode.addListener (this);

@@ -35,6 +35,7 @@ MultiBandCompressorAudioProcessorEditor::MultiBandCompressorAudioProcessorEditor
     // ============== BEGIN: essentials ======================
     // set GUI size and lookAndFeel
     setResizeLimits (980, 980 * 0.6, 1600, 1600 * 0.6); // use this to create a resizable GUI
+    setResizable (true, true);
     setLookAndFeel (&globalLaF);
 
     // make title and footer visible, and set the PluginName
