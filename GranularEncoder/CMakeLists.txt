@@ -12,29 +12,10 @@ if (IEM_FORMATS)
         VERSION ${GranularEncoder_VERSION}
         LV2URI "http://plugins.iem.at/GranularEncoder"
         VST2_CATEGORY kPlugSurroundFx kPlugCategSpacializer kPlugCategEffect kPlugCategRoomFx kPlugCategSynth
-        VST3_CATEGORIES Spatial Surround Up-Downmix Synth)
-
-    target_compile_definitions (GranularEncoder PRIVATE
-        JUCE_DISPLAY_SPLASH_SCREEN=0)
-
-    list (APPEND PLUGIN_TARGET GranularEncoder)
-endif()
-if(IEM_BUILD_AAX)
-    juce_add_plugin (GranularEncoderAAX
-        PLUGIN_MANUFACTURER_CODE IEMA
-        PLUGIN_CODE GrEn
-        ICON_BIG "../resources/Standalone/IEMPluginSuiteSmall.png"
-        ICON_SMALL "../resources/Standalone/IEMPluginSuiteSmall.png"
-        COMPANY_NAME "IEM"
-        PRODUCT_NAME "GranularEncoder"
-        FORMATS AAX
-        VERSION ${GranularEncoder_VERSION}
+        VST3_CATEGORIES Spatial Surround Up-Downmix Synth
         AAX_CATEGORY AAX_ePlugInCategory_SoundField)
 
-    target_compile_definitions (GranularEncoderAAX PRIVATE
-        JUCE_DISPLAY_SPLASH_SCREEN=1)
-
-    list (APPEND PLUGIN_TARGET GranularEncoderAAX)
+    list (APPEND PLUGIN_TARGET GranularEncoder)
 endif()
 
 foreach (TARGET IN LISTS PLUGIN_TARGET)

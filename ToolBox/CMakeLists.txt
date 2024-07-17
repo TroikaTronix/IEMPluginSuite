@@ -12,29 +12,10 @@ if (IEM_FORMATS)
         VERSION ${ToolBox_VERSION}
         LV2URI "http://plugins.iem.at/ToolBox"
         VST2_CATEGORY kPlugSurroundFx kPlugCategSpacializer
-        VST3_CATEGORIES Spatial Surround Tools)
-
-    target_compile_definitions (ToolBox PRIVATE
-        JUCE_DISPLAY_SPLASH_SCREEN=0)
-
-    list (APPEND PLUGIN_TARGET ToolBox)
-endif()
-if (IEM_BUILD_AAX)
-    juce_add_plugin (ToolBoxAAX
-        PLUGIN_MANUFACTURER_CODE IEMA
-        PLUGIN_CODE ToBo
-        ICON_BIG "../resources/Standalone/IEMPluginSuiteSmall.png"
-        ICON_SMALL "../resources/Standalone/IEMPluginSuiteSmall.png"
-        COMPANY_NAME "IEM"
-        PRODUCT_NAME "ToolBox"
-        FORMATS AAX
-        VERSION ${ToolBox_VERSION}
+        VST3_CATEGORIES Spatial Surround Tools
         AAX_CATEGORY AAX_ePlugInCategory_SoundField)
 
-    target_compile_definitions (ToolBoxAAX PRIVATE
-        JUCE_DISPLAY_SPLASH_SCREEN=1)
-
-    list (APPEND PLUGIN_TARGET ToolBoxAAX)
+    list (APPEND PLUGIN_TARGET ToolBox)
 endif()
 
 foreach (TARGET IN LISTS PLUGIN_TARGET)

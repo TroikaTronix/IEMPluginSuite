@@ -12,7 +12,8 @@ if (IEM_FORMATS)
         VERSION ${OmniCompressor_VERSION}
         LV2URI "http://plugins.iem.at/OmniCompressor"
         VST2_CATEGORY kPlugSurroundFx kPlugCategSpacializer kPlugCategEffect
-        VST3_CATEGORIES Spatial Surround Fx Dynamics)
+        VST3_CATEGORIES Spatial Surround Fx Dynamics
+        AAX_CATEGORY "AAX_ePlugInCategory_SoundField | AAX_ePlugInCategory_Dynamics")
 
     target_compile_definitions (OmniCompressor PRIVATE
         JUCE_DISPLAY_SPLASH_SCREEN=0)

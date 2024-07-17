@@ -12,29 +12,10 @@ if (IEM_FORMATS)
         VERSION ${CoordinateConverter_VERSION}
         LV2URI "http://plugins.iem.at/CoordinateConverter"
         VST2_CATEGORY kPlugSurroundFx
-        VST3_CATEGORIES Spatial Surround Tools)
-
-    target_compile_definitions (CoordinateConverter PRIVATE
-            JUCE_DISPLAY_SPLASH_SCREEN=0)
+        VST3_CATEGORIES Spatial Surround Tools
+        AAX_CATEGORY AAX_ePlugInCategory_SoundField)
 
     list (APPEND PLUGIN_TARGET CoordinateConverter)
-endif()
-if (IEM_BUILD_AAX)
-        juce_add_plugin (CoordinateConverterAAX
-            PLUGIN_MANUFACTURER_CODE IEMA
-            PLUGIN_CODE CoCo
-            ICON_BIG "../resources/Standalone/IEMPluginSuiteSmall.png"
-            ICON_SMALL "../resources/Standalone/IEMPluginSuiteSmall.png"
-            COMPANY_NAME "IEM"
-            PRODUCT_NAME "CoordinateConverter"
-            FORMATS AAX
-            VERSION ${CoordinateConverter_VERSION}
-            AAX_CATEGORY AAX_ePlugInCategory_SoundField)
-
-    target_compile_definitions (CoordinateConverterAAX PRIVATE
-        JUCE_DISPLAY_SPLASH_SCREEN=0)
-
-    list (APPEND PLUGIN_TARGET CoordinateConverterAAX)
 endif()
 
 foreach (TARGET IN LISTS PLUGIN_TARGET)

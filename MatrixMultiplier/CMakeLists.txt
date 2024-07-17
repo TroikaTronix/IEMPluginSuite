@@ -12,29 +12,10 @@ if (IEM_FORMATS)
         VERSION ${MatrixMultiplier_VERSION}
         LV2URI "http://plugins.iem.at/MatrixMultiplier"
         VST2_CATEGORY kPlugCategUnknown
-        VST3_CATEGORIES Tools)
-
-    target_compile_definitions (MatrixMultiplier PRIVATE
-        JUCE_DISPLAY_SPLASH_SCREEN=0)
+        VST3_CATEGORIES Tools
+        AAX_CATEGORY AAX_ePlugInCategory_SoundField)
 
     list (APPEND PLUGIN_TARGET MatrixMultiplier)
-endif()
-if (IEM_BUILD_AAX)
-    juce_add_plugin (MatrixMultiplierAAX
-        PLUGIN_MANUFACTURER_CODE IEMA
-        PLUGIN_CODE MaMu
-        ICON_BIG "../resources/Standalone/IEMPluginSuiteSmall.png"
-        ICON_SMALL "../resources/Standalone/IEMPluginSuiteSmall.png"
-        COMPANY_NAME "IEM"
-        PRODUCT_NAME "MatrixMultiplier"
-        FORMATS AAX
-        VERSION ${MatrixMultiplier_VERSION}
-        AAX_CATEGORY AAX_ePlugInCategory_None)
-
-    target_compile_definitions (MatrixMultiplierAAX PRIVATE
-        JUCE_DISPLAY_SPLASH_SCREEN=1)
-
-    list (APPEND PLUGIN_TARGET MatrixMultiplierAAX)
 endif()
 
 foreach (TARGET IN LISTS PLUGIN_TARGET)

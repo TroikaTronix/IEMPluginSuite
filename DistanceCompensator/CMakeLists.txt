@@ -13,29 +13,10 @@ if (IEM_FORMATS)
         VERSION ${DistanceCompensator_VERSION}
         LV2URI "http://plugins.iem.at/DistanceCompensator"
         VST2_CATEGORY kPlugSurroundFx kPlugCategSpacializer
-        VST3_CATEGORIES Spatial Surround Delay Tools)
-
-    target_compile_definitions (DistanceCompensator PRIVATE
-        JUCE_DISPLAY_SPLASH_SCREEN=0)
+        VST3_CATEGORIES Spatial Surround Delay Tools
+        AAX_CATEGORY AAX_ePlugInCategory_SoundField)
 
     list (APPEND PLUGIN_TARGET DistanceCompensator)
-endif()
-if (IEM_BUILD_AAX)
-    juce_add_plugin (DistanceCompensatorAAX
-            PLUGIN_MANUFACTURER_CODE IEMA
-            PLUGIN_CODE DisC
-            ICON_BIG "../resources/Standalone/IEMPluginSuiteSmall.png"
-            ICON_SMALL "../resources/Standalone/IEMPluginSuiteSmall.png"
-            COMPANY_NAME "IEM"
-            PRODUCT_NAME "DistanceCompensator"
-            FORMATS AAX
-            VERSION ${DistanceCompensator_VERSION}
-            AAX_CATEGORY AAX_ePlugInCategory_SoundField)
-
-    target_compile_definitions (DistanceCompensatorAAX PRIVATE
-        JUCE_DISPLAY_SPLASH_SCREEN=1)
-
-    list (APPEND PLUGIN_TARGET DistanceCompensatorAAX)
 endif()
 
 foreach (TARGET IN LISTS PLUGIN_TARGET)

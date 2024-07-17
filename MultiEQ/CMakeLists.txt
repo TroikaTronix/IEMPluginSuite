@@ -12,29 +12,10 @@ if (IEM_FORMATS)
         VERSION ${MultiEQ_VERSION}
         LV2URI "http://plugins.iem.at/MultiEQ"
         VST2_CATEGORY kPlugSurroundFx kPlugCategSpacializer kPlugCategEffect
-        VST3_CATEGORIES Spatial Surround Fx EQ Filter)
-
-    target_compile_definitions (MultiEQ PRIVATE
-        JUCE_DISPLAY_SPLASH_SCREEN=0)
+        VST3_CATEGORIES Spatial Surround Fx EQ Filter
+        AAX_CATEGORY "AAX_ePlugInCategory_SoundField | AAX_ePlugInCategory_EQ")
 
     list (APPEND PLUGIN_TARGET MultiEQ)
-endif()
-if (IEM_BUILD_AAX)
-    juce_add_plugin (MultiEQAAX
-        PLUGIN_MANUFACTURER_CODE IEMA
-        PLUGIN_CODE MuEQ
-        ICON_BIG "../resources/Standalone/IEMPluginSuiteSmall.png"
-        ICON_SMALL "../resources/Standalone/IEMPluginSuiteSmall.png"
-        COMPANY_NAME "IEM"
-        PRODUCT_NAME "MultiEQ"
-        FORMATS AAX
-        VERSION ${MultiEQ_VERSION}
-        AAX_CATEGORY AAX_ePlugInCategory_SoundField)
-
-    target_compile_definitions (MultiEQAAX PRIVATE
-        JUCE_DISPLAY_SPLASH_SCREEN=1)
-
-    list (APPEND PLUGIN_TARGET MultiEQAAX)
 endif()
 
 foreach (TARGET IN LISTS PLUGIN_TARGET)

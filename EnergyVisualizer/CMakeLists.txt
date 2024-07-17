@@ -12,29 +12,10 @@ juce_add_plugin (EnergyVisualizer
     VERSION ${EnergyVisualizer_VERSION}
     LV2URI "http://plugins.iem.at/EnergyVisualizer"
     VST2_CATEGORY kPlugSurroundFx kPlugCategSpacializer kPlugCategAnalysis
-    VST3_CATEGORIES Spatial Surround Analyzer Tools)
-
-    target_compile_definitions (EnergyVisualizer PRIVATE
-        JUCE_DISPLAY_SPLASH_SCREEN=0)
+    VST3_CATEGORIES Spatial Surround Analyzer Tools
+    AAX_CATEGORY AAX_ePlugInCategory_SoundField)
 
     list (APPEND PLUGIN_TARGET EnergyVisualizer)
-endif()
-if (IEM_BUILD_AAX)
-    juce_add_plugin (EnergyVisualizerAAX
-        PLUGIN_MANUFACTURER_CODE IEMA
-        PLUGIN_CODE EnVi
-        ICON_BIG "../resources/Standalone/IEMPluginSuiteSmall.png"
-        ICON_SMALL "../resources/Standalone/IEMPluginSuiteSmall.png"
-        COMPANY_NAME "IEM"
-        PRODUCT_NAME "EnergyVisualizer"
-        FORMATS AAX
-        VERSION ${EnergyVisualizer_VERSION}
-        AAX_CATEGORY AAX_ePlugInCategory_SoundField)
-
-    target_compile_definitions (EnergyVisualizerAAX PRIVATE
-        JUCE_DISPLAY_SPLASH_SCREEN=1)
-
-    list (APPEND PLUGIN_TARGET EnergyVisualizerAAX)
 endif()
 
 foreach (TARGET IN LISTS PLUGIN_TARGET)

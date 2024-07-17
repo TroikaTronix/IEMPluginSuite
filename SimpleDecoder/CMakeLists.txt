@@ -12,29 +12,10 @@ if (IEM_FORMATS)
         VERSION ${SimpleDecoder_VERSION}
         LV2URI "http://plugins.iem.at/SimpleDecoder"
         VST2_CATEGORY kPlugSurroundFx kPlugCategSpacializer
-        VST3_CATEGORIES Spatial Surround Up-Downmix)
-    
-    target_compile_definitions (SimpleDecoder PRIVATE
-        JUCE_DISPLAY_SPLASH_SCREEN=0)
+        VST3_CATEGORIES Spatial Surround Up-Downmix
+        AAX_CATEGORY AAX_ePlugInCategory_SoundField)
 
     list (APPEND PLUGIN_TARGET SimpleDecoder)
-endif()
-if (IEM_BUILD_AAX)
-    juce_add_plugin (SimpleDecoderAAX
-        PLUGIN_MANUFACTURER_CODE IEMA
-        PLUGIN_CODE SiDe
-        ICON_BIG "../resources/Standalone/IEMPluginSuiteSmall.png"
-        ICON_SMALL "../resources/Standalone/IEMPluginSuiteSmall.png"
-        COMPANY_NAME "IEM"
-        PRODUCT_NAME "SimpleDecoder"
-        FORMATS AAX
-        VERSION ${SimpleDecoder_VERSION}
-        AAX_CATEGORY AAX_ePlugInCategory_SoundField)
-    
-    target_compile_definitions (SimpleDecoderAAX PRIVATE
-        JUCE_DISPLAY_SPLASH_SCREEN=1)
-
-    list (APPEND PLUGIN_TARGET SimpleDecoderAAX)
 endif()
 
 juce_add_binary_data (SimpleDecoderPresets
