@@ -48,9 +48,19 @@ SceneRotatorAudioProcessor::SceneRotatorAudioProcessor() :
         BusesProperties()
     #if ! JucePlugin_IsMidiEffect
         #if ! JucePlugin_IsSynth
-            .withInput ("Input", juce::AudioChannelSet::ambisonic (7), true)
+            .withInput ("Input",
+                        ((juce::PluginHostType::getPluginLoadedAs()
+                          == juce::AudioProcessor::wrapperType_VST3)
+                             ? juce::AudioChannelSet::ambisonic (1)
+                             : juce::AudioChannelSet::ambisonic (7)),
+                        true)
         #endif
-            .withOutput ("Output", juce::AudioChannelSet::ambisonic (7), true)
+            .withOutput ("Output",
+                         ((juce::PluginHostType::getPluginLoadedAs()
+                           == juce::AudioProcessor::wrapperType_VST3)
+                              ? juce::AudioChannelSet::ambisonic (1)
+                              : juce::AudioChannelSet::ambisonic (7)),
+                         true)
     #endif
             ,
 #endif
