@@ -46,6 +46,7 @@ CoordinateConverterAudioProcessorEditor::CoordinateConverterAudioProcessorEditor
     // set GUI size and lookAndFeel
     //setSize(500, 300); // use this to create a fixed-size GUI
     setResizeLimits (470, 590, 800, 650); // use this to create a resizable GUI
+    setResizable (true, true);
     setLookAndFeel (&globalLaF);
 
     // make title and footer visible, and set the PluginName

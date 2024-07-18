@@ -35,6 +35,7 @@ MatrixMultiplierAudioProcessorEditor::MatrixMultiplierAudioProcessorEditor (
     // ============== BEGIN: essentials ======================
     // set GUI size and lookAndFeel
     setResizeLimits (500, 200, 800, 500); // use this to create a resizable GUI
+    setResizable (true, true);
     setLookAndFeel (&globalLaF);
 
     // make title and footer visible, and set the PluginName
@@ -143,11 +144,12 @@ void MatrixMultiplierAudioProcessorEditor::buttonStateChanged (juce::Button* but
 
 void MatrixMultiplierAudioProcessorEditor::loadConfigurationFile()
 {
-    juce::FileChooser myChooser ("Please select the configuration you want to load...",
-                                 processor.getLastDir().exists() ? processor.getLastDir()
-                                                                 : juce::File::getSpecialLocation (
-                                                                     juce::File::userHomeDirectory),
-                                 "*.json");
+    juce::FileChooser myChooser (
+        "Please select the configuration you want to load...",
+        processor.getLastDir().exists()
+            ? processor.getLastDir()
+            : juce::File::getSpecialLocation (juce::File::userHomeDirectory),
+        "*.json");
     if (myChooser.browseForFileToOpen())
     {
         juce::File configurationFile (myChooser.getResult());

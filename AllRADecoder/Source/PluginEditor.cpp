@@ -42,6 +42,7 @@ AllRADecoderAudioProcessorEditor::AllRADecoderAudioProcessorEditor (
     // set GUI size and lookAndFeel
     //setSize(500, 300); // use this to create a fixed-size GUI
     setResizeLimits (1000, 600, 1200, 900); // use this to create a resizable GUI
+    setResizable (true, true);
     setLookAndFeel (&globalLaF);
 
     // make title and footer visible, and set the PluginName
