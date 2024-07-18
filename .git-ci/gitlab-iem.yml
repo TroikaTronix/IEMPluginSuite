@@ -162,21 +162,18 @@ variables:
 # expand the templates to real jobs
 
 # check for coding-style compliance
-clang-format:
+.format-check:
   stage: pre-check
-  image: xianpengshen/clang-tools:18
   variables:
     GIT_SUBMODULE_STRATEGY: none
-    FORMAT_SCRIPT: clang-format -i
-  before_script:
+    FORMAT_SCRIPT: true
+  script:
     # Debian
     - apt-get update || true
-    - clang-format --version || apt-get install -y --no-install-recommends clang-format || true
-    # alpine
-    - clang-format --version || apk add clang-extra-tools || true
-  script:
     - git --version || apt-get install -y --no-install-recommends git || true
+    # alpine
     - git --version || apk add git || true
+    # the actual check
     - export EXCLUDED_SUBMODULES=$(git submodule status | awk '{printf "-not -path \"%s/*\" ", $2} END {print ""}')
     - echo "find * \( -name \"*.cpp\" -or -name \"*.h\"  -or -name \"*.c\"  -or -name \"*.cc\" \) ${EXCLUDED_SUBMODULES} -exec ${FORMAT_SCRIPT} {} \;" | sh
     - git status --porcelain
@@ -193,12 +190,24 @@ clang-format:
     paths:
       - format.log
 
+clang-format:
+  extends: .format-check
+  image: xianpengshen/clang-tools:18
+  variables:
+    FORMAT_SCRIPT: clang-format -i
+  before_script:
+    # Debian
+    - apt-get update || true
+    - clang-format --version || apt-get install -y --no-install-recommends clang-format || true
+    # alpine
+    - clang-format --version || apk add clang-extra-tools || true
+
 # check for consistent line-endings
 # git handles native line-endings nicely,
 # iff the files are committed from the proper systems
 # (CRLF-files from Windows; LF-files from un*x)
 linefeed-format:
-  extends: clang-format
+  extends: .format-check
   image: alpine:latest
   variables:
     FORMAT_SCRIPT: dos2unix -q
