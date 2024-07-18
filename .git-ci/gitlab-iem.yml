@@ -164,14 +164,19 @@ variables:
 # check for coding-style compliance
 clang-format:
   stage: pre-check
-  image: alpine:latest
+  image: xianpengshen/clang-tools:18
   variables:
     GIT_SUBMODULE_STRATEGY: none
     FORMAT_SCRIPT: clang-format -i
   before_script:
-    - apk add clang-extra-tools
+    # Debian
+    - apt-get update || true
+    - clang-format --version || apt-get install -y --no-install-recommends clang-format || true
+    # alpine
+    - clang-format --version || apk add clang-extra-tools || true
   script:
-    - apk add git
+    - git --version || apt-get install -y --no-install-recommends git || true
+    - git --version || apk add git || true
     - export EXCLUDED_SUBMODULES=$(git submodule status | awk '{printf "-not -path \"%s/*\" ", $2} END {print ""}')
     - echo "find * \( -name \"*.cpp\" -or -name \"*.h\"  -or -name \"*.c\"  -or -name \"*.cc\" \) ${EXCLUDED_SUBMODULES} -exec ${FORMAT_SCRIPT} {} \;" | sh
     - git status --porcelain
@@ -194,6 +199,7 @@ clang-format:
 # (CRLF-files from Windows; LF-files from un*x)
 linefeed-format:
   extends: clang-format
+  image: alpine:latest
   variables:
     FORMAT_SCRIPT: dos2unix -q
   before_script:
