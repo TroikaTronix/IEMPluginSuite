@@ -23,6 +23,8 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
+#include <Presets.h>
+
 //==============================================================================
 MultiEncoderAudioProcessor::MultiEncoderAudioProcessor() :
     AudioProcessorBase (
@@ -123,7 +125,7 @@ MultiEncoderAudioProcessor::~MultiEncoderAudioProcessor()
 
 int MultiEncoderAudioProcessor::getNumPrograms()
 {
-    return 1; // NB: some hosts don't cope very well if you tell them there are 0 programs,
+    return 2; // NB: some hosts don't cope very well if you tell them there are 0 programs,
     // so this should be at least 1, even if you're not really implementing programs.
 }
 
@@ -134,11 +136,35 @@ int MultiEncoderAudioProcessor::getCurrentProgram()
 
 void MultiEncoderAudioProcessor::setCurrentProgram (int index)
 {
+    juce::String preset;
+    switch (index)
+    {
+        case 0:
+            return;
+        case 1:
+            preset = juce::String (Presets::t_design_10_json, Presets::t_design_10_jsonSize);
+            break;
+
+        default:
+            preset = "";
+            break;
+    }
+
+    loadConfigFromString (preset);
 }
 
 const juce::String MultiEncoderAudioProcessor::getProgramName (int index)
 {
-    return juce::String();
+    switch (index)
+    {
+        case 0:
+            return "---";
+        case 1:
+            return "t-design (degree 10)";
+
+        default:
+            return {};
+    }
 }
 
 void MultiEncoderAudioProcessor::changeProgramName (int index, const juce::String& newName)
@@ -611,12 +637,32 @@ std::vector<std::unique_ptr<juce::RangedAudioParameter>>
 
 //==============================================================================
 
-juce::Result MultiEncoderAudioProcessor::loadConfiguration (const juce::File& configFile)
+juce::Result MultiEncoderAudioProcessor::loadConfiguration (const juce::File& presetFile)
 {
+    if (! presetFile.exists())
+    {
+        return juce::Result::fail ("File does not exist!");
+    }
+
+    const juce::String jsonString = presetFile.loadFileAsString();
+
+    return loadConfigFromString (jsonString);
+}
+
+juce::Result MultiEncoderAudioProcessor::loadConfigFromString (juce::String configString)
+{
+    if (configString.isEmpty())
+        return juce::Result::fail ("Empty configuration string!");
+
+    juce::var parsedJson;
+    juce::Result result = juce::JSON::parse (configString, parsedJson);
+
+    if (result.failed())
+        return result;
+
     juce::ValueTree newSources ("NewSources");
 
-    juce::Result result =
-        ConfigurationHelper::parseFileForLoudspeakerLayout (configFile, newSources, nullptr);
+    result = ConfigurationHelper::parseVarForLoudspeakerLayout (parsedJson, newSources, nullptr);
 
     if (result.wasOk())
     {
