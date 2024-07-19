@@ -20,8 +20,8 @@ variables:
 .artifacts:
   artifacts:
     paths:
-      - VST3
-      # - VST
+      # - VST3
+      - VST
       # - LV2
       - Standalone
       - ChangeLog.md
