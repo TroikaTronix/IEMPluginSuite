@@ -202,6 +202,10 @@ void SimpleDecoderAudioProcessor::setCurrentProgram (int index)
             preset = juce::String (Presets::_22_2_NHK_json, Presets::_22_2_NHK_jsonSize);
             break;
 
+        case 11:
+            preset = juce::String (Presets::t_design_10_json, Presets::t_design_10_jsonSize);
+            break;
+
         default:
             preset = "";
             break;
@@ -236,6 +240,8 @@ const juce::String SimpleDecoderAudioProcessor::getProgramName (int index)
             return "8ch Cube";
         case 10:
             return "22.2 NHK";
+        case 11:
+            return "t-design (degree 10)";
 
         default:
             return {};
