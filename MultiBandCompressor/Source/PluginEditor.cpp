@@ -226,6 +226,11 @@ MultiBandCompressorAudioProcessorEditor::MultiBandCompressorAudioProcessorEditor
     tbOverallMagnitude.setColour (juce::ToggleButton::tickColourId, juce::Colours::white);
     tbOverallMagnitude.setButtonText ("show total magnitude");
     tbOverallMagnitude.setName ("overallMagnitude");
+    overallMagnitudeDisplayAttachment =
+        std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment> (
+            valueTreeState,
+            "displayOverallMagnitude",
+            tbOverallMagnitude);
     tbOverallMagnitude.setClickingTogglesState (true);
     tbOverallMagnitude.addListener (this);
     addAndMakeVisible (&tbOverallMagnitude);

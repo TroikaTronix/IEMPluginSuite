@@ -311,6 +311,11 @@ std::vector<std::unique_ptr<juce::RangedAudioParameter>>
         params.push_back (std::move (boolParam));
     }
 
+    auto boolParam = std::make_unique<juce::AudioParameterBool> ("displayOverallMagnitude",
+                                                                 "Display overall magnitude",
+                                                                 false);
+    params.push_back (std::move (boolParam));
+
     return params;
 }
 
