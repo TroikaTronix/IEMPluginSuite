@@ -18,6 +18,12 @@ if (IEM_FORMATS)
     list (APPEND PLUGIN_TARGET MultiEncoder)
 endif()
 
+juce_add_binary_data (MultiEncoderPresets
+    HEADER_NAME "Presets.h"
+    NAMESPACE Presets
+    SOURCES
+    Source/Presets/t_design_10.json)
+
 foreach (TARGET IN LISTS PLUGIN_TARGET)
     juce_generate_juce_header(${TARGET})
 
@@ -53,6 +59,7 @@ foreach (TARGET IN LISTS PLUGIN_TARGET)
     target_link_libraries(${TARGET} PRIVATE
         LAF_fonts
         IEM_logo
+        MultiEncoderPresets
         juce::juce_audio_utils
         juce::juce_audio_plugin_client
         juce::juce_osc

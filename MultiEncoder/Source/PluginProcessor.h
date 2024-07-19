@@ -78,6 +78,7 @@ public:
 
     //==============================================================================
     juce::Result loadConfiguration (const juce::File& configFile);
+    juce::Result loadConfigFromString (juce::String configString);
     void setLastDir (juce::File newLastDir);
     juce::File getLastDir() { return lastDir; };
 
