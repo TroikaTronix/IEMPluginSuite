@@ -2,8 +2,8 @@
   "Name": "All-Round Ambisonic decoder (AllRAD) and loudspeaker layout",
   "Description": "This configuration file was created with the IEM AllRADecoder v0.9.4 plug-in. 13 Feb 2023 11:50:24am",
   "Decoder": {
-    "Name": "Decoder",
-    "Description": "A 7th order Ambisonics decoder using the AllRAD approach.",
+    "Name": "IEM Cube",
+    "Description": "A 7th order Ambisonics decoder for the IEM CUBE.",
     "ExpectedInputNormalization": "n3d",
     "Weights": "maxrE",
     "WeightsAlreadyApplied": false,
