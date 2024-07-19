@@ -37,6 +37,7 @@ SimpleDecoderAudioProcessorEditor::SimpleDecoderAudioProcessorEditor (
     // ============== BEGIN: essentials ======================
     // set GUI size and lookAndFeel
     setResizeLimits (670, 300, 1000, 700); // use this to create a resizable GUI
+    setResizable (true, true);
     setLookAndFeel (&globalLaF);
 
     // make title and footer visible, and set the PluginName
@@ -370,11 +371,12 @@ void SimpleDecoderAudioProcessorEditor::timerCallback()
 
 void SimpleDecoderAudioProcessorEditor::loadPresetFile()
 {
-    juce::FileChooser myChooser ("Please select the preset you want to load...",
-                                 processor.getLastDir().exists() ? processor.getLastDir()
-                                                                 : juce::File::getSpecialLocation (
-                                                                     juce::File::userHomeDirectory),
-                                 "*.json");
+    juce::FileChooser myChooser (
+        "Please select the preset you want to load...",
+        processor.getLastDir().exists()
+            ? processor.getLastDir()
+            : juce::File::getSpecialLocation (juce::File::userHomeDirectory),
+        "*.json");
     if (myChooser.browseForFileToOpen())
     {
         juce::File presetFile (myChooser.getResult());
