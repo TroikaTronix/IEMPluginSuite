@@ -146,7 +146,7 @@ void SimpleDecoderAudioProcessor::setLastDir (juce::File newLastDir)
 //==============================================================================
 int SimpleDecoderAudioProcessor::getNumPrograms()
 {
-    return 11;
+    return 12;
 }
 
 int SimpleDecoderAudioProcessor::getCurrentProgram()
