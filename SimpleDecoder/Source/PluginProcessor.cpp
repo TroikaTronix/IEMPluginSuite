@@ -590,7 +590,11 @@ void SimpleDecoderAudioProcessor::loadConfigFromString (juce::String configStrin
 
     result = ConfigurationHelper::parseVarForDecoder (parsedJson, &tempDecoder);
     if (result.failed())
+    {
         messageForEditor = result.getErrorMessage();
+        messageChanged = true;
+        return;
+    }
 
     if (tempDecoder != nullptr)
     {
