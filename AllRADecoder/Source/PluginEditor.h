@@ -108,6 +108,7 @@ private:
 
     juce::TextButton tbCalculateDecoder;
     juce::TextButton tbAddSpeakers;
+    juce::TextButton tbClearSpeakers;
     juce::TextButton tbUndo;
     juce::TextButton tbRedo;
     juce::TextButton tbRotate;
