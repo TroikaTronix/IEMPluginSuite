@@ -69,9 +69,9 @@ DualDelayAudioProcessorEditor::DualDelayAudioProcessorEditor (
     SlLeftRot.setColour (juce::Slider::rotarySliderOutlineColourId, globalLaF.ClWidgetColours[0]);
 
     addAndMakeVisible (&SlLeftDelay);
-    SlLeftDelayAttachment.reset (new SliderAttachment (valueTreeState, "delayTimeL", SlLeftDelay));
+    SlLeftDelayAttachment.reset (new SliderAttachment (valueTreeState, "delayBPML", SlLeftDelay));
     SlLeftDelay.setSliderStyle (juce::Slider::RotaryHorizontalVerticalDrag);
-    SlLeftDelay.setTextValueSuffix (" ms");
+    SlLeftDelay.setTextValueSuffix (" BPM");
     SlLeftDelay.setTextBoxStyle (juce::Slider::TextBoxBelow, false, 50, 15);
     SlLeftDelay.setColour (juce::Slider::rotarySliderOutlineColourId, globalLaF.ClWidgetColours[1]);
 
@@ -143,10 +143,9 @@ DualDelayAudioProcessorEditor::DualDelayAudioProcessorEditor (
     SlRightRot.setColour (juce::Slider::rotarySliderOutlineColourId, globalLaF.ClWidgetColours[0]);
 
     addAndMakeVisible (&SlRightDelay);
-    SlRightDelayAttachment.reset (
-        new SliderAttachment (valueTreeState, "delayTimeR", SlRightDelay));
+    SlRightDelayAttachment.reset (new SliderAttachment (valueTreeState, "delayBPMR", SlRightDelay));
     SlRightDelay.setSliderStyle (juce::Slider::RotaryHorizontalVerticalDrag);
-    SlRightDelay.setTextValueSuffix (" ms");
+    SlRightDelay.setTextValueSuffix (" BPM");
     SlRightDelay.setTextBoxStyle (juce::Slider::TextBoxBelow, false, 50, 15);
     SlRightDelay.setColour (juce::Slider::rotarySliderOutlineColourId,
                             globalLaF.ClWidgetColours[1]);

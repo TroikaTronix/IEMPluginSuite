@@ -76,8 +76,8 @@ private:
     std::atomic<float>* dryGain;
     std::atomic<float>* wetGainL;
     std::atomic<float>* wetGainR;
-    std::atomic<float>* delayTimeL;
-    std::atomic<float>* delayTimeR;
+    std::atomic<float>* delayBPML;
+    std::atomic<float>* delayBPMR;
     std::atomic<float>* rotationL;
     std::atomic<float>* rotationR;
     std::atomic<float>* LPcutOffL;

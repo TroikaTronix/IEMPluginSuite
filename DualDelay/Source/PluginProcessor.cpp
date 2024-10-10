@@ -53,8 +53,8 @@ DualDelayAudioProcessor::DualDelayAudioProcessor() :
     dryGain = parameters.getRawParameterValue ("dryGain");
     wetGainL = parameters.getRawParameterValue ("wetGainL");
     wetGainR = parameters.getRawParameterValue ("wetGainR");
-    delayTimeL = parameters.getRawParameterValue ("delayTimeL");
-    delayTimeR = parameters.getRawParameterValue ("delayTimeR");
+    delayBPML = parameters.getRawParameterValue ("delayBPML");
+    delayBPMR = parameters.getRawParameterValue ("delayBPMR");
     rotationL = parameters.getRawParameterValue ("rotationL");
     rotationR = parameters.getRawParameterValue ("rotationR");
     HPcutOffL = parameters.getRawParameterValue ("HPcutOffL");
@@ -152,8 +152,8 @@ void DualDelayAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBl
     delayInLeft.clear();
     delayInRight.clear();
 
-    _delayL = *delayTimeL * sampleRate / 1000.0 * 128;
-    _delayR = *delayTimeR * sampleRate / 1000.0 * 128;
+    _delayL = (60000.0f / *delayBPML) * sampleRate / 1000.0 * 128;
+    _delayR = (60000.0f / *delayBPMR) * sampleRate / 1000.0 * 128;
 }
 
 void DualDelayAudioProcessor::releaseResources()
@@ -333,8 +333,8 @@ void DualDelayAudioProcessor::processBlock (juce::AudioSampleBuffer& buffer,
     rotateBuffer (&delayInRight, nCh, spb);
 
     // =============== UPDATE DELAY PARAMETERS =====
-    float delayL = *delayTimeL * msToFractSmpls;
-    float delayR = *delayTimeR * msToFractSmpls;
+    float delayL = (60000.0f / *delayBPML) * msToFractSmpls;
+    float delayR = (60000.0f / *delayBPMR) * msToFractSmpls;
 
     int firstIdx, copyL;
 
@@ -790,19 +790,19 @@ std::vector<std::unique_ptr<juce::RangedAudioParameter>>
         nullptr));
 
     params.push_back (OSCParameterInterface::createParameterTheOldWay (
-        "delayTimeL",
-        "delay time left",
-        "ms",
-        juce::NormalisableRange<float> (10.0f, 500.0f, 0.1f),
-        500.0f,
+        "delayBPML",
+        "delay left",
+        "BPM",
+        juce::NormalisableRange<float> (10.0f, 2000.0f, 0.001f),
+        100.0f,
         [] (float value) { return juce::String (value, 1); },
         nullptr));
     params.push_back (OSCParameterInterface::createParameterTheOldWay (
-        "delayTimeR",
-        "delay time right",
-        "ms",
-        juce::NormalisableRange<float> (10.0f, 500.0f, 0.1f),
-        375.0f,
+        "delayBPMR",
+        "delay right",
+        "BPM",
+        juce::NormalisableRange<float> (10.0f, 2000.0f, 0.001f),
+        120.0f,
         [] (float value) { return juce::String (value, 1); },
         nullptr));
 
