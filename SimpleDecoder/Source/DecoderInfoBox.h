@@ -107,6 +107,16 @@ public:
         g.setColour (juce::Colours::white);
         g.setFont (getLookAndFeel().getTypefaceForFont (juce::Font (12.0f, 2))); // regular font
 
+        if (errorText.isNotEmpty())
+        {
+            auto options =
+                juce::MessageBoxOptions::makeOptionsOk (juce::MessageBoxIconType::WarningIcon,
+                                                        "Error",
+                                                        errorText);
+            messageBox = juce::AlertWindow::showScopedAsync (options, nullptr);
+
+            errorText.clear();
+        }
         if (retainedDecoder == nullptr)
         {
             g.setFont (valueHeight);
@@ -206,6 +216,8 @@ private:
     ReferenceCountedDecoder::Ptr decoder { nullptr };
 
     juce::GlyphArrangement arr;
+
+    juce::ScopedMessageBox messageBox;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (DecoderInfoBox)
 };

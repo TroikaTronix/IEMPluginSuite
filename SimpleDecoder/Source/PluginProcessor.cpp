@@ -578,8 +578,6 @@ void SimpleDecoderAudioProcessor::loadConfigFromString (juce::String configStrin
     if (configString.isEmpty())
         return;
 
-    lastConfigString = configString;
-
     juce::var parsedJson;
     juce::Result result = juce::JSON::parse (configString, parsedJson);
 
@@ -590,7 +588,11 @@ void SimpleDecoderAudioProcessor::loadConfigFromString (juce::String configStrin
 
     result = ConfigurationHelper::parseVarForDecoder (parsedJson, &tempDecoder);
     if (result.failed())
+    {
         messageForEditor = result.getErrorMessage();
+        messageChanged = true;
+        return;
+    }
 
     if (tempDecoder != nullptr)
     {
@@ -619,6 +621,7 @@ void SimpleDecoderAudioProcessor::loadConfigFromString (juce::String configStrin
 
     updateDecoderInfo = true;
     messageChanged = true;
+    lastConfigString = configString;
 }
 
 //==============================================================================
