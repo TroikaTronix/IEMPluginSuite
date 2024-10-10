@@ -31,7 +31,6 @@ class DecoderInfoBox : public juce::Component
 {
     static constexpr int attributeHeight = 12;
     static constexpr int valueHeight = 17;
-    static constexpr int valueErrorTextHeight = 30;
     static constexpr int spacing = 5;
 
 public:
@@ -85,14 +84,14 @@ public:
             arr.addFittedText (font,
                                retainedDecoder->getDescription(),
                                valueStart,
-                               valueHeight + 1 + errorTextHeight,
+                               valueHeight + 1,
                                valueWidth,
                                3 * valueHeight,
                                juce::Justification::topLeft,
                                4,
                                0.8f);
 
-            int descriptionEnd =
+            const int descriptionEnd =
                 arr.getBoundingBox (juce::jmax (0, arr.getNumGlyphs() - 1), 1, true).getBottom();
 
             cbWeights.setBounds (valueStart, descriptionEnd + 2 * valueHeight + 2, 80, valueHeight);
@@ -108,21 +107,16 @@ public:
         g.setColour (juce::Colours::white);
         g.setFont (getLookAndFeel().getTypefaceForFont (juce::Font (12.0f, 2))); // regular font
 
-        if (errorText.isNotEmpty())
-        {
-            g.setFont (valueHeight);
-            g.drawMultiLineText (errorText, 20, 10, width - 20);
-        }
-
         if (retainedDecoder == nullptr)
         {
             g.setFont (valueHeight);
             g.drawText ("No configuration loaded.",
                         20,
-                        1 + errorTextHeight,
+                        1,
                         width,
                         valueHeight,
                         juce::Justification::bottomLeft);
+            g.drawMultiLineText (errorText, 20, 30, width - 20);
         }
         else
         {
@@ -134,23 +128,22 @@ public:
 
             g.drawText ("NAME:",
                         0,
-                        errorTextHeight,
+                        0,
                         maxAttributeWidth,
                         valueHeight,
                         juce::Justification::bottomRight);
             g.drawText ("DESCRIPTION:",
                         0,
-                        valueHeight + errorTextHeight,
+                        valueHeight,
                         maxAttributeWidth,
                         valueHeight,
                         juce::Justification::bottomRight);
 
             g.setFont (getLookAndFeel().getTypefaceForFont (juce::Font (12.0f, 1))); // bold font
-
             g.setFont (valueHeight);
             g.drawText (retainedDecoder->getName(),
                         resStart,
-                        1 + errorTextHeight,
+                        1,
                         resWidth,
                         valueHeight,
                         juce::Justification::bottomLeft);
@@ -158,9 +151,8 @@ public:
             juce::String descriptionText = retainedDecoder->getDescription();
 
             arr.draw (g);
-            int descEnd =
-                arr.getBoundingBox (juce::jmax (0, arr.getNumGlyphs() - 1), 1, true).getBottom()
-                + errorTextHeight;
+            const int descEnd =
+                arr.getBoundingBox (juce::jmax (0, arr.getNumGlyphs() - 1), 1, true).getBottom();
 
             g.setFont (getLookAndFeel().getTypefaceForFont (juce::Font (12.0f, 2))); // regular font
             g.setFont (attributeHeight);
@@ -203,14 +195,7 @@ public:
     void setErrorMessage (juce::String errorMessage)
     {
         errorText = errorMessage;
-
-        if (errorText.isNotEmpty())
-            errorTextHeight = valueErrorTextHeight;
-        else
-            errorTextHeight = 0;
-
         repaint();
-        resized();
     }
 
 private:
@@ -218,8 +203,6 @@ private:
     std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> cbWeightsAttachment;
 
     juce::String errorText { "" };
-    int errorTextHeight = 0;
-
     ReferenceCountedDecoder::Ptr decoder { nullptr };
 
     juce::GlyphArrangement arr;
