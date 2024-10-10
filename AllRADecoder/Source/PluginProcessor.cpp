@@ -588,6 +588,14 @@ void AllRADecoderAudioProcessor::addImaginaryLoudspeakerBelow()
         &undoManager);
 }
 
+void AllRADecoderAudioProcessor::clearLoudspeakers()
+{
+    undoManager.beginNewTransaction();
+    loudspeakers.removeAllChildren (&undoManager);
+    highestChannelNumber = 0;
+    prepareLayout();
+}
+
 void AllRADecoderAudioProcessor::addRandomPoint()
 {
     undoManager.beginNewTransaction();
