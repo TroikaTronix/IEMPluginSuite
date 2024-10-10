@@ -544,6 +544,7 @@ void DualDelayAudioProcessor::setStateInformation (const void* data, int sizeInB
 {
     std::unique_ptr<juce::XmlElement> xmlState (getXmlFromBinary (data, sizeInBytes));
     if (xmlState.get() != nullptr)
+    {
         if (xmlState->hasTagName (parameters.state.getType()))
         {
             parameters.replaceState (juce::ValueTree::fromXml (*xmlState));
@@ -557,7 +558,24 @@ void DualDelayAudioProcessor::setStateInformation (const void* data, int sizeInB
             auto oscConfig = parameters.state.getChildWithName ("OSCConfig");
             if (oscConfig.isValid())
                 oscParameterInterface.setConfig (oscConfig);
+
+            // Add compatibility layer for old delay time parameter in ms
+            juce::String ch[2] = { "L", "R" };
+
+            for (int i = 0; i < 2; ++i)
+            {
+                auto oldTimeParameter = xmlState->getChildByAttribute ("id", "delayTime" + ch[i]);
+                if (oldTimeParameter != nullptr)
+                {
+                    float value = oldTimeParameter->getStringAttribute ("value").getFloatValue();
+                    auto delayState =
+                        parameters.state.getChildWithProperty ("id", "delayBPM" + ch[i]);
+                    if (delayState.isValid())
+                        delayState.setProperty ("value", 60000.0f / value, nullptr);
+                }
+            }
         }
+    }
 }
 
 //==============================================================================
