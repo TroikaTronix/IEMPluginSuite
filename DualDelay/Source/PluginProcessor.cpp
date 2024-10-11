@@ -176,7 +176,7 @@ void DualDelayAudioProcessor::processBlock (juce::AudioSampleBuffer& buffer,
     const double fs = getSampleRate();
     const float msToFractSmpls = fs / 1000.0 * 128.0;
 
-    const int delayBufferLength = delayOutLeft.getNumSamples();
+    const int delayBufferLength = fs * 6;
     const int spb = buffer.getNumSamples();
 
     //clear not used channels
@@ -834,7 +834,7 @@ std::vector<std::unique_ptr<juce::RangedAudioParameter>>
         "BPM",
         juce::NormalisableRange<float> (45.0f, 320.0f, 0.001f),
         100.0f,
-        [] (float value) { return juce::String (value, 1); },
+        [] (float value) { return juce::String (value, 0); },
         nullptr));
     params.push_back (OSCParameterInterface::createParameterTheOldWay (
         "delayBPMR",
@@ -842,7 +842,7 @@ std::vector<std::unique_ptr<juce::RangedAudioParameter>>
         "BPM",
         juce::NormalisableRange<float> (45.0f, 320.0f, 0.001f),
         120.0f,
-        [] (float value) { return juce::String (value, 1); },
+        [] (float value) { return juce::String (value, 0); },
         nullptr));
 
     params.push_back (OSCParameterInterface::createParameterTheOldWay (
@@ -885,7 +885,7 @@ std::vector<std::unique_ptr<juce::RangedAudioParameter>>
         "Hz",
         juce::NormalisableRange<float> (20.0f, 20000.0f, 1.0f, 0.2),
         20000.0f,
-        [] (float value) { return juce::String (value, 1); },
+        [] (float value) { return juce::String (value, 0); },
         nullptr));
     params.push_back (OSCParameterInterface::createParameterTheOldWay (
         "LPcutOffR",
@@ -893,7 +893,7 @@ std::vector<std::unique_ptr<juce::RangedAudioParameter>>
         "Hz",
         juce::NormalisableRange<float> (20.0f, 20000.0f, 1.0f, 0.2),
         20000.0f,
-        [] (float value) { return juce::String (value, 1); },
+        [] (float value) { return juce::String (value, 0); },
         nullptr));
 
     params.push_back (OSCParameterInterface::createParameterTheOldWay (
@@ -902,7 +902,7 @@ std::vector<std::unique_ptr<juce::RangedAudioParameter>>
         "Hz",
         juce::NormalisableRange<float> (20.0f, 20000.0f, 1.0f, 0.2),
         100.0f,
-        [] (float value) { return juce::String (value, 1); },
+        [] (float value) { return juce::String (value, 0); },
         nullptr));
     params.push_back (OSCParameterInterface::createParameterTheOldWay (
         "HPcutOffR",
@@ -910,7 +910,7 @@ std::vector<std::unique_ptr<juce::RangedAudioParameter>>
         "Hz",
         juce::NormalisableRange<float> (20.0f, 20000.0f, 1.0f, 0.2),
         100.0f,
-        [] (float value) { return juce::String (value, 1); },
+        [] (float value) { return juce::String (value, 0); },
         nullptr));
 
     params.push_back (OSCParameterInterface::createParameterTheOldWay (
