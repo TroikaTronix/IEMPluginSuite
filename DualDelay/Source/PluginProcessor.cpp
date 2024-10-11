@@ -735,6 +735,25 @@ void DualDelayAudioProcessor::updateBuffers()
 std::vector<std::unique_ptr<juce::RangedAudioParameter>>
     DualDelayAudioProcessor::createParameterLayout()
 {
+    // Remaping functions for delay multiplicator
+    using ValueRemapFunction =
+        std::function<float (float rangeStart, float rangeEnd, float valueToRemap)>;
+
+    ValueRemapFunction snapToMult = [] (float rangeStart, float rangeEnd, float valueToRemap)
+    { return std::exp2f (std::round (std::log2f (valueToRemap))); };
+
+    ValueRemapFunction remapMultTo0to1 = [] (float rangeStart, float rangeEnd, float valueToRemap)
+    {
+        return (std::log2f (valueToRemap) - std::log2f (rangeStart))
+               / (std::log2f (rangeEnd) - std::log2f (rangeStart));
+    };
+
+    ValueRemapFunction remap0to1ToMult = [] (float rangeStart, float rangeEnd, float valueToRemap)
+    {
+        return std::exp2f (valueToRemap * (std::log2f (rangeEnd) - std::log2f (rangeStart))
+                           + std::log2f (rangeStart));
+    };
+
     // add your audio parameters here
     std::vector<std::unique_ptr<juce::RangedAudioParameter>> params;
 
@@ -811,7 +830,7 @@ std::vector<std::unique_ptr<juce::RangedAudioParameter>>
         "delayBPML",
         "delay left",
         "BPM",
-        juce::NormalisableRange<float> (10.0f, 2000.0f, 0.001f),
+        juce::NormalisableRange<float> (30.0f, 320.0f, 0.001f),
         100.0f,
         [] (float value) { return juce::String (value, 1); },
         nullptr));
@@ -819,9 +838,26 @@ std::vector<std::unique_ptr<juce::RangedAudioParameter>>
         "delayBPMR",
         "delay right",
         "BPM",
-        juce::NormalisableRange<float> (10.0f, 2000.0f, 0.001f),
+        juce::NormalisableRange<float> (30.0f, 320.0f, 0.001f),
         120.0f,
         [] (float value) { return juce::String (value, 1); },
+        nullptr));
+
+    params.push_back (OSCParameterInterface::createParameterTheOldWay (
+        "delayMultL",
+        "delay multiplicator left",
+        "",
+        juce::NormalisableRange<float> (0.25f, 8.0f, remap0to1ToMult, remapMultTo0to1, snapToMult),
+        1.0f,
+        [] (float value) { return juce::String ("1/") + juce::String (value * 4.0f, 0); },
+        nullptr));
+    params.push_back (OSCParameterInterface::createParameterTheOldWay (
+        "delayMultR",
+        "delay multiplicator right",
+        "",
+        juce::NormalisableRange<float> (0.25f, 8.0f, remap0to1ToMult, remapMultTo0to1, snapToMult),
+        1.0f,
+        [] (float value) { return juce::String ("1/") + juce::String (value * 4.0f, 0); },
         nullptr));
 
     params.push_back (OSCParameterInterface::createParameterTheOldWay (
