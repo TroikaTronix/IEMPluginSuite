@@ -129,10 +129,13 @@ DualDelayAudioProcessorEditor::DualDelayAudioProcessorEditor (
     SlLeftGain.setTextBoxStyle (juce::Slider::TextBoxBelow, false, 50, 15);
     SlLeftGain.setColour (juce::Slider::rotarySliderOutlineColourId, globalLaF.ClWidgetColours[0]);
 
-    addAndMakeVisible (&tbTimeMode);
-    tbTimeMode.setButtonText ("ms");
-    tbTimeMode.setColour (juce::ToggleButton::textColourId, globalLaF.ClWidgetColours[1]);
-    tbTimeMode.addListener (this);
+    addAndMakeVisible (&btTimeMode);
+    btTimeMode.setButtonText ("BPM");
+    btTimeMode.setToggleable (true);
+    btTimeMode.setClickingTogglesState (true);
+    btTimeMode.setColour (juce::TextButton::buttonColourId, globalLaF.ClWidgetColours[1]);
+    btTimeMode.setColour (juce::TextButton::buttonOnColourId, globalLaF.ClWidgetColours[1]);
+    btTimeMode.addListener (this);
 
     // =========================== RIGHT SIDE ================================================================
 
@@ -385,8 +388,15 @@ void DualDelayAudioProcessorEditor::resized()
 
     sliderRow = groupArea.removeFromTop (textHeight);
     lbDelR.setBounds (sliderRow.removeFromLeft (55));
-
     // ======== END: Rotations and Delays =================
+
+    // ======== BEGIN: BPM/MS button ===========
+    int actualWidth = tempArea.getWidth();
+    int wantedWidth = 40;
+    tempArea.removeFromLeft (juce::roundToInt ((actualWidth - wantedWidth) / 2));
+    tempArea.removeFromTop (95 + sliderHeight + textHeight);
+    btTimeMode.setBounds (tempArea.removeFromLeft (wantedWidth).removeFromTop (20));
+    // ======== BEGIN: BPM/MS button ===========
 
     area.removeFromTop (30); // spacing
 
@@ -449,8 +459,8 @@ void DualDelayAudioProcessorEditor::resized()
     // ======== END: Feedback ===============
 
     // ======== BEGIN: Output Mix ===========
-    int actualWidth = tempArea.getWidth();
-    int wantedWidth = 186;
+    actualWidth = tempArea.getWidth();
+    wantedWidth = 186;
     tempArea.removeFromLeft (juce::roundToInt ((actualWidth - wantedWidth) / 2));
     tempArea.setWidth (wantedWidth);
 
@@ -477,15 +487,15 @@ void DualDelayAudioProcessorEditor::resized()
 
 void DualDelayAudioProcessorEditor::buttonClicked (juce::Button* button)
 {
-    if (button == &tbTimeMode)
+    if (button == &btTimeMode)
     {
-        if (tbTimeMode.getToggleState())
+        if (btTimeMode.getToggleState())
         {
-            tbTimeMode.setButtonText ("ms");
+            btTimeMode.setButtonText ("ms");
         }
         else
         {
-            tbTimeMode.setButtonText ("BPM");
+            btTimeMode.setButtonText ("BPM");
         }
     }
 }

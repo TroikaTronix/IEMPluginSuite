@@ -91,7 +91,7 @@ private:
         SlRightLfoDepthAttachment, SlRightFbAttachment, SlRightCrossFbAttachment,
         SlRightGainAttachment;
 
-    juce::ToggleButton tbTimeMode;
+    juce::TextButton btTimeMode;
 
     // labels and groups
     SimpleLabel lbRotL, lbDelL, lbFbL, lbXFbL;
