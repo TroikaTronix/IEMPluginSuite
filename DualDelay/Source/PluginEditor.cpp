@@ -129,6 +129,11 @@ DualDelayAudioProcessorEditor::DualDelayAudioProcessorEditor (
     SlLeftGain.setTextBoxStyle (juce::Slider::TextBoxBelow, false, 50, 15);
     SlLeftGain.setColour (juce::Slider::rotarySliderOutlineColourId, globalLaF.ClWidgetColours[0]);
 
+    addAndMakeVisible (&tbTimeMode);
+    tbTimeMode.setButtonText ("ms");
+    tbTimeMode.setColour (juce::ToggleButton::textColourId, globalLaF.ClWidgetColours[1]);
+    tbTimeMode.addListener (this);
+
     // =========================== RIGHT SIDE ================================================================
 
     addAndMakeVisible (&SlRightRot);
@@ -282,7 +287,7 @@ DualDelayAudioProcessorEditor::DualDelayAudioProcessorEditor (
     addAndMakeVisible (&lbFilterR);
     lbFilterR.setText ("HighPass", "Cutoff Frequency", "LowPass", false, true, false);
 
-    setSize (600, 500);
+    setSize (550, 580);
 
     startTimer (20);
 }
@@ -325,73 +330,87 @@ void DualDelayAudioProcessorEditor::resized()
     juce::Rectangle<int> tempArea;
 
     // ======== BEGIN: Rotations and Delays =========
-    tempArea = area.removeFromTop (30 + sliderHeight + textHeight);
+    tempArea = area.removeFromTop (40 + 2 * sliderHeight + 2 * textHeight);
 
     // ------ left side ---------
-    groupArea = tempArea.removeFromLeft (250);
+    tempArea.removeFromLeft (25);
+    groupArea = tempArea.removeFromLeft (185);
     gcRotDelL.setBounds (groupArea);
     groupArea.removeFromTop (30);
 
+    // juce::Rectangle<int> sliderRowLeft = groupArea.removeFromTop (sliderHeight * 2 + 10);
     sliderRow = groupArea.removeFromTop (sliderHeight);
     SlLeftRot.setBounds (sliderRow.removeFromLeft (55));
-    sliderRow.removeFromLeft (10); // spacing between rotary sliders
-    SlLeftDelay.setBounds (sliderRow.removeFromLeft (55));
     sliderRow.removeFromLeft (10); // spacing between rotary sliders
     SlLeftLfoRate.setBounds (sliderRow.removeFromLeft (55));
     sliderRow.removeFromLeft (10); // spacing between rotary sliders
     SlLeftLfoDepth.setBounds (sliderRow.removeFromLeft (55));
 
-    lbRotL.setBounds (groupArea.removeFromLeft (55));
-    groupArea.removeFromLeft (10);
-    lbDelL.setBounds (groupArea.removeFromLeft (55));
-    groupArea.removeFromLeft (10);
-    lbLfoL.setBounds (groupArea.reduced (9, 0));
+    sliderRow = groupArea.removeFromTop (textHeight); // spacing between rotary sliders
+    lbRotL.setBounds (sliderRow.removeFromLeft (55));
+    sliderRow.removeFromLeft (10);
+    lbLfoL.setBounds (sliderRow.reduced (15, 0));
+
+    groupArea.removeFromTop (10);
+    sliderRow = groupArea.removeFromTop (sliderHeight);
+    SlLeftDelay.setBounds (sliderRow.removeFromLeft (55));
+    // sliderRow.removeFromLeft (10); // spacing between rotary sliders
+
+    sliderRow = groupArea.removeFromTop (textHeight);
+    lbDelL.setBounds (sliderRow.removeFromLeft (55));
 
     // ------ right side --------
-    groupArea = tempArea.removeFromRight (250);
+    tempArea.removeFromRight (25);
+    groupArea = tempArea.removeFromRight (185);
     gcRotDelR.setBounds (groupArea);
     groupArea.removeFromTop (30);
 
+    // juce::Rectangle<int> sliderRowLeft = groupArea.removeFromTop (sliderHeight * 2 + 10);
     sliderRow = groupArea.removeFromTop (sliderHeight);
     SlRightRot.setBounds (sliderRow.removeFromLeft (55));
-    sliderRow.removeFromLeft (10); // spacing between rotary sliders
-    SlRightDelay.setBounds (sliderRow.removeFromLeft (55));
     sliderRow.removeFromLeft (10); // spacing between rotary sliders
     SlRightLfoRate.setBounds (sliderRow.removeFromLeft (55));
     sliderRow.removeFromLeft (10); // spacing between rotary sliders
     SlRightLfoDepth.setBounds (sliderRow.removeFromLeft (55));
 
-    lbRotR.setBounds (groupArea.removeFromLeft (55));
-    groupArea.removeFromLeft (10);
-    lbDelR.setBounds (groupArea.removeFromLeft (55));
-    groupArea.removeFromLeft (10);
-    lbLfoR.setBounds (groupArea.reduced (9, 0));
+    sliderRow = groupArea.removeFromTop (textHeight); // spacing between rotary sliders
+    lbRotR.setBounds (sliderRow.removeFromLeft (55));
+    sliderRow.removeFromLeft (10);
+    lbLfoR.setBounds (sliderRow.reduced (15, 0));
+
+    groupArea.removeFromTop (10);
+    sliderRow = groupArea.removeFromTop (sliderHeight);
+    SlRightDelay.setBounds (sliderRow.removeFromLeft (55));
+    // sliderRow.removeFromLeft (10); // spacing between rotary sliders
+
+    sliderRow = groupArea.removeFromTop (textHeight);
+    lbDelR.setBounds (sliderRow.removeFromLeft (55));
 
     // ======== END: Rotations and Delays =================
 
-    area.removeFromTop (40); // spacing
+    area.removeFromTop (30); // spacing
 
     // ======== BEGIN: Filters =============
-    tempArea = area.removeFromTop (45 + textHeight);
+    tempArea = area.removeFromTop (60 + textHeight);
 
     // ----- left side ------
-    groupArea = tempArea.removeFromLeft (250);
+    groupArea = tempArea.removeFromLeft (230);
     gcFiltL.setBounds (groupArea);
     groupArea.removeFromTop (30);
 
-    dblSlLeftFilter.setBounds (groupArea.removeFromTop (15));
-    lbFilterL.setBounds (groupArea.reduced (15, 0));
+    dblSlLeftFilter.setBounds (groupArea.removeFromTop (30));
+    lbFilterL.setBounds (groupArea.reduced (9, 0));
 
     // ----- right side ------
-    groupArea = tempArea.removeFromRight (250);
+    groupArea = tempArea.removeFromRight (230);
     gcFiltR.setBounds (groupArea);
     groupArea.removeFromTop (30);
 
-    dblSlRightFilter.setBounds (groupArea.removeFromTop (15));
-    lbFilterR.setBounds (groupArea.reduced (15, 0));
+    dblSlRightFilter.setBounds (groupArea.removeFromTop (30));
+    lbFilterR.setBounds (groupArea.reduced (9, 0));
     // ======== END: Filters ===============
 
-    area.removeFromTop (40); // spacing
+    area.removeFromTop (30); // spacing
 
     // ======== BEGIN: Feedback =============
 
@@ -454,6 +473,21 @@ void DualDelayAudioProcessorEditor::resized()
     lbGainR.setBounds (tempArea.removeFromLeft (55));
 
     // ======== END: Output Mix =============
+}
+
+void DualDelayAudioProcessorEditor::buttonClicked (juce::Button* button)
+{
+    if (button == &tbTimeMode)
+    {
+        if (tbTimeMode.getToggleState())
+        {
+            tbTimeMode.setButtonText ("ms");
+        }
+        else
+        {
+            tbTimeMode.setButtonText ("BPM");
+        }
+    }
 }
 void DualDelayAudioProcessorEditor::timerCallback()
 {

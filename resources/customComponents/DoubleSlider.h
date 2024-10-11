@@ -40,7 +40,7 @@ public:
         addAndMakeVisible (rightSlider.get());
 
         leftSlider->setSliderStyle (juce::Slider::IncDecButtons);
-        leftSlider->setTextBoxStyle (juce::Slider::TextBoxLeft, false, 50, 50);
+        leftSlider->setTextBoxStyle (juce::Slider::TextBoxAbove, false, 50, 50);
         leftSlider->setRange (minRange, maxRange, 1);
         leftSlider->setIncDecButtonsMode (juce::Slider::incDecButtonsDraggable_AutoDirection);
         leftSlider->addListener (this);
@@ -50,7 +50,7 @@ public:
         middleSlider->addListener (this);
 
         rightSlider->setSliderStyle (juce::Slider::IncDecButtons);
-        rightSlider->setTextBoxStyle (juce::Slider::TextBoxRight, false, 50, 50);
+        rightSlider->setTextBoxStyle (juce::Slider::TextBoxAbove, false, 50, 50);
         rightSlider->setRange (minRange, maxRange, 1);
         rightSlider->setIncDecButtonsMode (juce::Slider::incDecButtonsDraggable_AutoDirection);
         rightSlider->addListener (this);
@@ -121,13 +121,13 @@ public:
         juce::Rectangle<int> bounds = getLocalBounds();
 
         leftSlider->setBounds (bounds.removeFromLeft (leftRightSliderWidth + buttonsWidth));
-        leftSlider->setTextBoxStyle (juce::Slider::TextBoxLeft,
+        leftSlider->setTextBoxStyle (juce::Slider::TextBoxAbove,
                                      false,
                                      leftRightSliderWidth,
                                      bounds.getHeight());
 
         rightSlider->setBounds (bounds.removeFromRight (leftRightSliderWidth + buttonsWidth));
-        rightSlider->setTextBoxStyle (juce::Slider::TextBoxRight,
+        rightSlider->setTextBoxStyle (juce::Slider::TextBoxAbove,
                                       false,
                                       leftRightSliderWidth,
                                       bounds.getHeight());
@@ -141,5 +141,5 @@ private:
     float leftRightSliderWidth = 50;
     float minRange = 0;
     float maxRange = 1;
-    float buttonsWidth = 30;
+    float buttonsWidth = 10;
 };

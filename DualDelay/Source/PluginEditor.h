@@ -37,7 +37,9 @@ typedef juce::AudioProcessorValueTreeState::ComboBoxAttachment ComboBoxAttachmen
 //==============================================================================
 /**
 */
-class DualDelayAudioProcessorEditor : public juce::AudioProcessorEditor, private juce::Timer
+class DualDelayAudioProcessorEditor : public juce::AudioProcessorEditor,
+                                      private juce::Timer,
+                                      private juce::Button::Listener
 {
 public:
     DualDelayAudioProcessorEditor (DualDelayAudioProcessor&, juce::AudioProcessorValueTreeState&);
@@ -46,6 +48,8 @@ public:
     //==============================================================================
     void paint (juce::Graphics&) override;
     void resized() override;
+
+    void buttonClicked (juce::Button* button) override;
 
 private:
     LaF globalLaF;
@@ -86,6 +90,8 @@ private:
     std::unique_ptr<SliderAttachment> SlRightDelayAttachment, SlRightLfoRateAttachment,
         SlRightLfoDepthAttachment, SlRightFbAttachment, SlRightCrossFbAttachment,
         SlRightGainAttachment;
+
+    juce::ToggleButton tbTimeMode;
 
     // labels and groups
     SimpleLabel lbRotL, lbDelL, lbFbL, lbXFbL;
