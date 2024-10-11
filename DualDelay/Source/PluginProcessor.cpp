@@ -55,6 +55,8 @@ DualDelayAudioProcessor::DualDelayAudioProcessor() :
     wetGainR = parameters.getRawParameterValue ("wetGainR");
     delayBPML = parameters.getRawParameterValue ("delayBPML");
     delayBPMR = parameters.getRawParameterValue ("delayBPMR");
+    delayMultL = parameters.getRawParameterValue ("delayMultL");
+    delayMultR = parameters.getRawParameterValue ("delayMultR");
     rotationL = parameters.getRawParameterValue ("rotationL");
     rotationR = parameters.getRawParameterValue ("rotationR");
     HPcutOffL = parameters.getRawParameterValue ("HPcutOffL");
@@ -152,8 +154,8 @@ void DualDelayAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBl
     delayInLeft.clear();
     delayInRight.clear();
 
-    _delayL = (60000.0f / *delayBPML) * sampleRate / 1000.0 * 128;
-    _delayR = (60000.0f / *delayBPMR) * sampleRate / 1000.0 * 128;
+    _delayL = (60000.0f / (*delayBPML * *delayMultL)) * sampleRate / 1000.0 * 128;
+    _delayR = (60000.0f / (*delayBPMR * *delayMultR)) * sampleRate / 1000.0 * 128;
 }
 
 void DualDelayAudioProcessor::releaseResources()
@@ -171,10 +173,10 @@ void DualDelayAudioProcessor::processBlock (juce::AudioSampleBuffer& buffer,
         juce::jmin (isqrt (buffer.getNumChannels()) - 1, input.getOrder(), output.getOrder());
     const int nCh = squares[workingOrder + 1];
 
-    const int delayBufferLength = getSampleRate(); // not necessarily samplerate
     const double fs = getSampleRate();
+    const float msToFractSmpls = fs / 1000.0 * 128.0;
 
-    const float msToFractSmpls = getSampleRate() / 1000.0 * 128.0;
+    const int delayBufferLength = delayOutLeft.getNumSamples();
     const int spb = buffer.getNumSamples();
 
     //clear not used channels
@@ -333,8 +335,8 @@ void DualDelayAudioProcessor::processBlock (juce::AudioSampleBuffer& buffer,
     rotateBuffer (&delayInRight, nCh, spb);
 
     // =============== UPDATE DELAY PARAMETERS =====
-    float delayL = (60000.0f / *delayBPML) * msToFractSmpls;
-    float delayR = (60000.0f / *delayBPMR) * msToFractSmpls;
+    float delayL = (60000.0f / (*delayBPML * *delayMultL)) * msToFractSmpls;
+    float delayR = (60000.0f / (*delayBPMR * *delayMultR)) * msToFractSmpls;
 
     int firstIdx, copyL;
 
@@ -711,14 +713,14 @@ void DualDelayAudioProcessor::updateBuffers()
         parameters.getParameterRange ("lfoDepthL").getRange().getEnd() * sampleRate / 500.0f));
 
     delayBufferLeft.setSize (nChannels,
-                             samplesPerBlock + interpOffset - 1 + maxLfoDepth + sampleRate);
+                             samplesPerBlock + interpOffset - 1 + maxLfoDepth + sampleRate * 6);
     delayBufferRight.setSize (nChannels,
-                              samplesPerBlock + interpOffset - 1 + maxLfoDepth + sampleRate);
+                              samplesPerBlock + interpOffset - 1 + maxLfoDepth + sampleRate * 6);
     delayBufferLeft.clear();
     delayBufferRight.clear();
 
     delayTempBuffer.setSize (nChannels,
-                             samplesPerBlock + interpOffset - 1 + maxLfoDepth + sampleRate * 0.5);
+                             samplesPerBlock + interpOffset - 1 + maxLfoDepth + sampleRate * 3);
 
     delayOutLeft.setSize (nChannels, samplesPerBlock);
     delayOutRight.setSize (nChannels, samplesPerBlock);
@@ -830,7 +832,7 @@ std::vector<std::unique_ptr<juce::RangedAudioParameter>>
         "delayBPML",
         "delay left",
         "BPM",
-        juce::NormalisableRange<float> (30.0f, 320.0f, 0.001f),
+        juce::NormalisableRange<float> (45.0f, 320.0f, 0.001f),
         100.0f,
         [] (float value) { return juce::String (value, 1); },
         nullptr));
@@ -838,7 +840,7 @@ std::vector<std::unique_ptr<juce::RangedAudioParameter>>
         "delayBPMR",
         "delay right",
         "BPM",
-        juce::NormalisableRange<float> (30.0f, 320.0f, 0.001f),
+        juce::NormalisableRange<float> (45.0f, 320.0f, 0.001f),
         120.0f,
         [] (float value) { return juce::String (value, 1); },
         nullptr));
@@ -847,7 +849,7 @@ std::vector<std::unique_ptr<juce::RangedAudioParameter>>
         "delayMultL",
         "delay multiplicator left",
         "",
-        juce::NormalisableRange<float> (0.25f, 8.0f, remap0to1ToMult, remapMultTo0to1, snapToMult),
+        juce::NormalisableRange<float> (0.5f, 8.0f, remap0to1ToMult, remapMultTo0to1, snapToMult),
         1.0f,
         [] (float value) { return juce::String ("1/") + juce::String (value * 4.0f, 0); },
         nullptr));
@@ -855,7 +857,7 @@ std::vector<std::unique_ptr<juce::RangedAudioParameter>>
         "delayMultR",
         "delay multiplicator right",
         "",
-        juce::NormalisableRange<float> (0.25f, 8.0f, remap0to1ToMult, remapMultTo0to1, snapToMult),
+        juce::NormalisableRange<float> (0.5f, 8.0f, remap0to1ToMult, remapMultTo0to1, snapToMult),
         1.0f,
         [] (float value) { return juce::String ("1/") + juce::String (value * 4.0f, 0); },
         nullptr));
