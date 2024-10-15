@@ -71,22 +71,24 @@ private:
 
     // elements for left side
     DoubleSlider dblSlLeftFilter;
-    ReverseSlider SlLeftRot;
+    ReverseSlider SlLeftYaw, SlLeftPitch, SlLeftRoll;
     ReverseSlider SlLeftDelay, SlLeftLfoRate, SlLeftLfoDepth, SlLeftFb, SlLeftCrossFb, SlLeftGain;
 
     std::unique_ptr<SliderAttachment> dblSlLeftFilterHpAttachment, dblSlLeftFilterLpAttachment;
-    std::unique_ptr<SliderAttachment> SlLeftRotAttachment;
+    std::unique_ptr<SliderAttachment> SlLeftYawAttachment, SlLeftPitchAttachment,
+        SlLeftRollAttachment;
     std::unique_ptr<SliderAttachment> SlLeftDelayAttachment, SlLeftLfoRateAttachment,
         SlLeftLfoDepthAttachment, SlLeftFbAttachment, SlLeftCrossFbAttachment, SlLeftGainAttachment;
 
     // elements for right side
     DoubleSlider dblSlRightFilter;
-    ReverseSlider SlRightRot;
+    ReverseSlider SlRightYaw, SlRightPitch, SlRightRoll;
     ReverseSlider SlRightDelay, SlRightLfoRate, SlRightLfoDepth, SlRightFb, SlRightCrossFb,
         SlRightGain;
 
     std::unique_ptr<SliderAttachment> dblSlRightFilterHpAttachment, dblSlRightFilterLpAttachment;
-    std::unique_ptr<SliderAttachment> SlRightRotAttachment;
+    std::unique_ptr<SliderAttachment> SlRightYawAttachment, SlRightPitchAttachment,
+        SlRightRollAttachment;
     std::unique_ptr<SliderAttachment> SlRightDelayAttachment, SlRightLfoRateAttachment,
         SlRightLfoDepthAttachment, SlRightFbAttachment, SlRightCrossFbAttachment,
         SlRightGainAttachment;
@@ -94,8 +96,8 @@ private:
     juce::TextButton btTimeMode;
 
     // labels and groups
-    SimpleLabel lbRotL, lbDelL, lbFbL, lbXFbL;
-    SimpleLabel lbRotR, lbDelR, lbFbR, lbXFbR;
+    SimpleLabel lbYawL, lbPitchL, lbRollL, lbDelL, lbFbL, lbXFbL;
+    SimpleLabel lbYawR, lbPitchR, lbRollR, lbDelR, lbFbR, lbXFbR;
     SimpleLabel lbGainL, lbGainR, lbGainDry;
     TripleLabel lbLfoL, lbLfoR, lbFilterL, lbFilterR;
 

@@ -57,16 +57,16 @@ DualDelayAudioProcessorEditor::DualDelayAudioProcessorEditor (
 
     // =========================== LEFT SIDE ==============================================================
 
-    addAndMakeVisible (&SlLeftRot);
-    SlLeftRotAttachment.reset (new SliderAttachment (valueTreeState, "rotationL", SlLeftRot));
-    SlLeftRot.setSliderStyle (juce::Slider::RotaryHorizontalVerticalDrag);
-    SlLeftRot.setReverse (true);
-    SlLeftRot.setTextValueSuffix (" deg");
-    SlLeftRot.setTextBoxStyle (juce::Slider::TextBoxBelow, false, 50, 15);
-    SlLeftRot.setRotaryParameters (juce::MathConstants<float>::pi,
+    addAndMakeVisible (&SlLeftYaw);
+    SlLeftYawAttachment.reset (new SliderAttachment (valueTreeState, "yawL", SlLeftYaw));
+    SlLeftYaw.setSliderStyle (juce::Slider::RotaryHorizontalVerticalDrag);
+    SlLeftYaw.setReverse (true);
+    SlLeftYaw.setTextValueSuffix (" deg");
+    SlLeftYaw.setTextBoxStyle (juce::Slider::TextBoxBelow, false, 50, 15);
+    SlLeftYaw.setRotaryParameters (juce::MathConstants<float>::pi,
                                    3 * juce::MathConstants<float>::pi,
                                    false);
-    SlLeftRot.setColour (juce::Slider::rotarySliderOutlineColourId, globalLaF.ClWidgetColours[0]);
+    SlLeftYaw.setColour (juce::Slider::rotarySliderOutlineColourId, globalLaF.ClWidgetColours[0]);
 
     addAndMakeVisible (&SlLeftDelay);
     SlLeftDelayAttachment.reset (new SliderAttachment (valueTreeState, "delayBPML", SlLeftDelay));
@@ -139,16 +139,16 @@ DualDelayAudioProcessorEditor::DualDelayAudioProcessorEditor (
 
     // =========================== RIGHT SIDE ================================================================
 
-    addAndMakeVisible (&SlRightRot);
-    SlRightRotAttachment.reset (new SliderAttachment (valueTreeState, "rotationR", SlRightRot));
-    SlRightRot.setSliderStyle (juce::Slider::RotaryHorizontalVerticalDrag);
-    SlRightRot.setReverse (true);
-    SlRightRot.setTextValueSuffix (" deg");
-    SlRightRot.setTextBoxStyle (juce::Slider::TextBoxBelow, false, 50, 15);
-    SlRightRot.setRotaryParameters (juce::MathConstants<float>::pi,
+    addAndMakeVisible (&SlRightYaw);
+    SlRightYawAttachment.reset (new SliderAttachment (valueTreeState, "yawR", SlRightYaw));
+    SlRightYaw.setSliderStyle (juce::Slider::RotaryHorizontalVerticalDrag);
+    SlRightYaw.setReverse (true);
+    SlRightYaw.setTextValueSuffix (" deg");
+    SlRightYaw.setTextBoxStyle (juce::Slider::TextBoxBelow, false, 50, 15);
+    SlRightYaw.setRotaryParameters (juce::MathConstants<float>::pi,
                                     3 * juce::MathConstants<float>::pi,
                                     false);
-    SlRightRot.setColour (juce::Slider::rotarySliderOutlineColourId, globalLaF.ClWidgetColours[0]);
+    SlRightYaw.setColour (juce::Slider::rotarySliderOutlineColourId, globalLaF.ClWidgetColours[0]);
 
     addAndMakeVisible (&SlRightDelay);
     SlRightDelayAttachment.reset (new SliderAttachment (valueTreeState, "delayBPMR", SlRightDelay));
@@ -245,8 +245,8 @@ DualDelayAudioProcessorEditor::DualDelayAudioProcessorEditor (
     gcOutput.setTextLabelPosition (juce::Justification::centred);
 
     // ============ LABELS =========
-    addAndMakeVisible (&lbRotL);
-    lbRotL.setText ("Yaw");
+    addAndMakeVisible (&lbYawL);
+    lbYawL.setText ("Yaw");
 
     addAndMakeVisible (&lbDelL);
     lbDelL.setText ("Delay");
@@ -257,8 +257,8 @@ DualDelayAudioProcessorEditor::DualDelayAudioProcessorEditor (
     addAndMakeVisible (&lbXFbL);
     lbXFbL.setText ("Cross");
 
-    addAndMakeVisible (&lbRotR);
-    lbRotR.setText ("Yaw");
+    addAndMakeVisible (&lbYawR);
+    lbYawR.setText ("Yaw");
 
     addAndMakeVisible (&lbDelR);
     lbDelR.setText ("Delay");
@@ -343,14 +343,14 @@ void DualDelayAudioProcessorEditor::resized()
 
     // juce::Rectangle<int> sliderRowLeft = groupArea.removeFromTop (sliderHeight * 2 + 10);
     sliderRow = groupArea.removeFromTop (sliderHeight);
-    SlLeftRot.setBounds (sliderRow.removeFromLeft (55));
+    SlLeftYaw.setBounds (sliderRow.removeFromLeft (55));
     sliderRow.removeFromLeft (10); // spacing between rotary sliders
     SlLeftLfoRate.setBounds (sliderRow.removeFromLeft (55));
     sliderRow.removeFromLeft (10); // spacing between rotary sliders
     SlLeftLfoDepth.setBounds (sliderRow.removeFromLeft (55));
 
     sliderRow = groupArea.removeFromTop (textHeight); // spacing between rotary sliders
-    lbRotL.setBounds (sliderRow.removeFromLeft (55));
+    lbYawL.setBounds (sliderRow.removeFromLeft (55));
     sliderRow.removeFromLeft (10);
     lbLfoL.setBounds (sliderRow.reduced (15, 0));
 
@@ -370,14 +370,14 @@ void DualDelayAudioProcessorEditor::resized()
 
     // juce::Rectangle<int> sliderRowLeft = groupArea.removeFromTop (sliderHeight * 2 + 10);
     sliderRow = groupArea.removeFromTop (sliderHeight);
-    SlRightRot.setBounds (sliderRow.removeFromLeft (55));
+    SlRightYaw.setBounds (sliderRow.removeFromLeft (55));
     sliderRow.removeFromLeft (10); // spacing between rotary sliders
     SlRightLfoRate.setBounds (sliderRow.removeFromLeft (55));
     sliderRow.removeFromLeft (10); // spacing between rotary sliders
     SlRightLfoDepth.setBounds (sliderRow.removeFromLeft (55));
 
     sliderRow = groupArea.removeFromTop (textHeight); // spacing between rotary sliders
-    lbRotR.setBounds (sliderRow.removeFromLeft (55));
+    lbYawR.setBounds (sliderRow.removeFromLeft (55));
     sliderRow.removeFromLeft (10);
     lbLfoR.setBounds (sliderRow.reduced (15, 0));
 
