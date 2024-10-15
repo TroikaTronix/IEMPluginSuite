@@ -85,11 +85,6 @@ DualDelayAudioProcessor::DualDelayAudioProcessor() :
     parameters.addParameterListener ("rollR", this);
     parameters.addParameterListener ("orderSetting", this);
 
-    // cos_z.resize (8);
-    // sin_z.resize (8);
-    // cos_z.set (0, 1.f);
-    // sin_z.set (0, 0.f);
-
     rotator[0].updateParams (*yawL, *pitchL, *rollL, static_cast<int> (*orderSetting));
     rotator[1].updateParams (*yawR, *pitchR, *rollR, static_cast<int> (*orderSetting));
 }

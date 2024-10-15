@@ -39,7 +39,8 @@ typedef juce::AudioProcessorValueTreeState::ComboBoxAttachment ComboBoxAttachmen
 */
 class DualDelayAudioProcessorEditor : public juce::AudioProcessorEditor,
                                       private juce::Timer,
-                                      private juce::Button::Listener
+                                      private juce::Button::Listener,
+                                      private juce::Slider::Listener
 {
 public:
     DualDelayAudioProcessorEditor (DualDelayAudioProcessor&, juce::AudioProcessorValueTreeState&);
@@ -50,6 +51,7 @@ public:
     void resized() override;
 
     void buttonClicked (juce::Button* button) override;
+    void sliderValueChanged (juce::Slider* slider) override;
 
 private:
     LaF globalLaF;
