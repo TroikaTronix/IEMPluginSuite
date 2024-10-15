@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include "../../resources/AmbisonicRotator.h"
 #include "../../resources/AudioProcessorBase.h"
 #include "../../resources/ambisonicTools.h"
 #include "../../resources/interpLagrangeWeights.h"
@@ -121,13 +122,9 @@ private:
     int readOffsetRight;
 
     float* readPointer;
-    juce::Array<float> sin_z;
-    juce::Array<float> cos_z;
 
-    void calcParams (float phi);
-    void rotateBuffer (juce::AudioBuffer<float>* bufferToRotate,
-                       const int nChannels,
-                       const int samples);
+    AmbisonicRotator rotator[2];
+
     float feedback = 0.8f;
 
     juce::OwnedArray<juce::IIRFilter> lowPassFiltersLeft;

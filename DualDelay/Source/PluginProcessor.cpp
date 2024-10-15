@@ -72,12 +72,18 @@ DualDelayAudioProcessor::DualDelayAudioProcessor() :
     lfoDepthL = parameters.getRawParameterValue ("lfoDepthL");
     lfoDepthR = parameters.getRawParameterValue ("lfoDepthR");
     orderSetting = parameters.getRawParameterValue ("orderSetting");
+
+    parameters.addParameterListener ("rotationL", this);
+    parameters.addParameterListener ("rotationR", this);
     parameters.addParameterListener ("orderSetting", this);
 
-    cos_z.resize (8);
-    sin_z.resize (8);
-    cos_z.set (0, 1.f);
-    sin_z.set (0, 0.f);
+    // cos_z.resize (8);
+    // sin_z.resize (8);
+    // cos_z.set (0, 1.f);
+    // sin_z.set (0, 0.f);
+
+    rotator[0].updateParams (*rotationL, 0.f, 0.f, static_cast<int> (*orderSetting));
+    rotator[1].updateParams (*rotationR, 0.f, 0.f, static_cast<int> (*orderSetting));
 }
 
 DualDelayAudioProcessor::~DualDelayAudioProcessor()
@@ -178,6 +184,13 @@ void DualDelayAudioProcessor::processBlock (juce::AudioSampleBuffer& buffer,
 
     const int delayBufferLength = fs * 6;
     const int spb = buffer.getNumSamples();
+
+    // Update rotator to current working order if it has changed
+    if (rotator[0].getOrder() != workingOrder)
+    {
+        rotator[0].updateParams (*rotationL, 0.f, 0.f, workingOrder);
+        rotator[1].updateParams (*rotationR, 0.f, 0.f, workingOrder);
+    }
 
     //clear not used channels
     for (int channel = nCh; channel < totalNumInputChannels; ++channel)
@@ -326,13 +339,9 @@ void DualDelayAudioProcessor::processBlock (juce::AudioSampleBuffer& buffer,
                                                        spb); //filter
     }
 
-    // left delay rotation
-    calcParams (*rotationL / 180.0f * juce::MathConstants<float>::pi);
-    rotateBuffer (&delayInLeft, nCh, spb);
-
-    // right delay rotation
-    calcParams (*rotationR / 180.0f * juce::MathConstants<float>::pi);
-    rotateBuffer (&delayInRight, nCh, spb);
+    // Apply rotation
+    rotator[0].process (&delayInLeft);
+    rotator[1].process (&delayInRight);
 
     // =============== UPDATE DELAY PARAMETERS =====
     float delayL = (60000.0f / (*delayBPML * *delayMultL)) * msToFractSmpls;
@@ -587,93 +596,21 @@ juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
     return new DualDelayAudioProcessor();
 }
 
-void DualDelayAudioProcessor::calcParams (float phi)
-{
-    // use mathematical negative angles!
-    cos_z.set (1, cos (phi));
-    sin_z.set (1, sin (phi));
-
-    // chebyshev recursion
-    for (int i = 2; i < 8; i++)
-    {
-        cos_z.set (i, 2 * cos_z[1] * cos_z[i - 1] - cos_z[i - 2]);
-        sin_z.set (i, 2 * cos_z[1] * sin_z[i - 1] - sin_z[i - 2]);
-    }
-}
-
-void DualDelayAudioProcessor::rotateBuffer (juce::AudioBuffer<float>* bufferToRotate,
-                                            const int nCh,
-                                            const int samples)
-{
-    juce::AudioBuffer<float> tempBuffer;
-    tempBuffer.makeCopyOf (*bufferToRotate);
-    bufferToRotate->clear();
-
-    //int nCh = juce::jmin(nChannels, bufferToRotate->getNumChannels());
-
-    for (int acn_out = 0; acn_out < nCh; ++acn_out)
-    {
-        int l_out = 0;
-        int m_out = 0;
-
-        ACNtoLM (acn_out, l_out, m_out);
-
-        for (int acn_in = 0; acn_in < nCh; ++acn_in)
-        {
-            int l_in = 0; // degree 0, 1, 2, 3, 4, ......
-            int m_in = 0; // order ...., -2, -1, 0 , 1, 2, ...
-
-            ACNtoLM (acn_in, l_in, m_in);
-
-            if (abs (m_out) == abs (m_in) && l_in == l_out)
-            { // if degree and order match  do something
-
-                if (m_out == 0 && m_in == 0)
-                {
-                    // gain 1 -> no interpolation needed
-                    bufferToRotate->copyFrom (acn_out, 0, tempBuffer, acn_in, 0, samples);
-                }
-                else if (m_in < 0 && m_out < 0)
-                {
-                    bufferToRotate->addFrom (acn_out,
-                                             0,
-                                             tempBuffer.getReadPointer (acn_in),
-                                             samples,
-                                             cos_z[-m_out]); //
-                }
-                else if (m_in < 0 && m_out > 0)
-                {
-                    bufferToRotate->addFrom (acn_out,
-                                             0,
-                                             tempBuffer.getReadPointer (acn_in),
-                                             samples,
-                                             -sin_z[m_out]);
-                }
-                else if (m_in > 0 && m_out > 0)
-                {
-                    bufferToRotate->addFrom (acn_out,
-                                             0,
-                                             tempBuffer.getReadPointer (acn_in),
-                                             samples,
-                                             cos_z[m_out]);
-                }
-                else if (m_in > 0 && m_out < 0)
-                {
-                    bufferToRotate->addFrom (acn_out,
-                                             0,
-                                             tempBuffer.getReadPointer (acn_in),
-                                             samples,
-                                             sin_z[m_in]);
-                }
-            }
-        }
-    }
-}
-
 void DualDelayAudioProcessor::parameterChanged (const juce::String& parameterID, float newValue)
 {
     if (parameterID == "orderSetting")
+    {
         userChangedIOSettings = true;
+        rotator[0].updateParams (*rotationL, 0.f, 0.f, static_cast<int> (newValue));
+        rotator[1].updateParams (*rotationR, 0.f, 0.f, static_cast<int> (newValue));
+    }
+
+    const int currentOrder = static_cast<int> (*orderSetting);
+    if (parameterID == "rotationL")
+        rotator[0].updateParams (newValue, 0.f, 0.f, currentOrder);
+
+    if (parameterID == "rotationR")
+        rotator[1].updateParams (newValue, 0.f, 0.f, currentOrder);
 }
 
 void DualDelayAudioProcessor::updateBuffers()
