@@ -22,11 +22,12 @@
 
 #pragma once
 
+#include <JuceHeader.h>
+
 #include "../../resources/AmbisonicRotator.h"
 #include "../../resources/AudioProcessorBase.h"
 #include "../../resources/ambisonicTools.h"
 #include "../../resources/interpLagrangeWeights.h"
-#include "../JuceLibraryCode/JuceHeader.h"
 
 #define ProcessorClass DualDelayAudioProcessor
 
@@ -81,6 +82,8 @@ private:
     std::atomic<float>* delayBPMR;
     std::atomic<float>* delayMultL;
     std::atomic<float>* delayMultR;
+    std::atomic<float>* syncL;
+    std::atomic<float>* syncR;
     std::atomic<float>* yawL;
     std::atomic<float>* yawR;
     std::atomic<float>* pitchL;

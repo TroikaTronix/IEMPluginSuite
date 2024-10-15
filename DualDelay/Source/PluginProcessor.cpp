@@ -57,6 +57,8 @@ DualDelayAudioProcessor::DualDelayAudioProcessor() :
     delayBPMR = parameters.getRawParameterValue ("delayBPMR");
     delayMultL = parameters.getRawParameterValue ("delayMultL");
     delayMultR = parameters.getRawParameterValue ("delayMultR");
+    syncL = parameters.getRawParameterValue ("syncL");
+    syncR = parameters.getRawParameterValue ("syncR");
     yawL = parameters.getRawParameterValue ("yawL");
     yawR = parameters.getRawParameterValue ("yawR");
     pitchL = parameters.getRawParameterValue ("pitchL");
@@ -187,6 +189,29 @@ void DualDelayAudioProcessor::processBlock (juce::AudioSampleBuffer& buffer,
 
     const int delayBufferLength = fs * 6;
     const int spb = buffer.getNumSamples();
+
+    // Sync delay time to host BPM if enabled
+    // float BPML_tmp = *delayBPML;
+    // float BPMR_tmp = *delayBPMR;
+
+    juce::Optional<double> hostBPM;
+    juce::AudioPlayHead* playHead = getPlayHead();
+
+    if (playHead != nullptr && (*syncL > 0.5f || *syncR > 0.5f))
+    {
+        hostBPM = playHead->getPosition()->getBpm();
+
+        if (hostBPM.hasValue())
+        {
+            auto hostBPMMapped = parameters.getParameter ("delayBPML")->convertTo0to1 (*hostBPM);
+            if (*syncL > 0.5f)
+                parameters.getParameter ("delayBPML")
+                    ->setValue (static_cast<float> (hostBPMMapped));
+            if (*syncR > 0.5f)
+                parameters.getParameter ("delayBPML")
+                    ->setValue (static_cast<float> (hostBPMMapped));
+        }
+    }
 
     // Update rotator to current working order if it has changed
     if (rotator[0].getOrder() != workingOrder)
@@ -840,6 +865,24 @@ std::vector<std::unique_ptr<juce::RangedAudioParameter>>
         juce::NormalisableRange<float> (0.5f, 8.0f, remap0to1ToMult, remapMultTo0to1, snapToMult),
         1.0f,
         [] (float value) { return juce::String ("1/") + juce::String (value * 4.0f, 0); },
+        nullptr));
+
+    params.push_back (OSCParameterInterface::createParameterTheOldWay (
+        "syncL",
+        "sync BPM left",
+        "",
+        juce::NormalisableRange<float> (0.0f, 1.0f, 1.0f),
+        0.0f,
+        [] (float value) { return (value >= 0.5f) ? "on" : "off"; },
+        nullptr));
+
+    params.push_back (OSCParameterInterface::createParameterTheOldWay (
+        "syncR",
+        "sync BPM right",
+        "",
+        juce::NormalisableRange<float> (0.0f, 1.0f, 1.0f),
+        0.0f,
+        [] (float value) { return (value >= 0.5f) ? "on" : "off"; },
         nullptr));
 
     params.push_back (OSCParameterInterface::createParameterTheOldWay (
