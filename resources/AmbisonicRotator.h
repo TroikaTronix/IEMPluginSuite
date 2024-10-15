@@ -45,16 +45,16 @@ public:
         copyBuffer.setSize (64, 64);
     };
 
-    ~AmbisonicRotator();
+    ~AmbisonicRotator() {};
 
-    void process (juce::AudioBuffer<float>* bufferToRotate, const int inputOrder)
+    void process (juce::AudioBuffer<float>* bufferToRotate)
     {
         // Get samples per block and actual number of channels
         const int samples = bufferToRotate->getNumSamples();
         const int bufferChannels = bufferToRotate->getNumChannels();
 
         const int workingOrder =
-            juce::jmin (isqrt (bufferToRotate->getNumChannels()) - 1, bufferChannels, 7);
+            juce::jmin (isqrt (bufferToRotate->getNumChannels()) - 1, orderSetting, 7);
 
         const int actualChannels = squares[workingOrder + 1];
 
@@ -74,7 +74,7 @@ public:
         if (rotationParamsHaveChanged.get())
         {
             newRotationMatrix = true;
-            calcRotationMatrix (inputOrder);
+            calcRotationMatrix (workingOrder);
         }
 
         // make copy of input
@@ -109,7 +109,7 @@ public:
 
         // make copies for fading between old and new matrices
         if (newRotationMatrix)
-            for (int l = 1; l <= inputOrder; ++l)
+            for (int l = 1; l <= workingOrder; ++l)
                 *orderMatricesCopy[l] = *orderMatrices[l];
     }
 
@@ -122,6 +122,8 @@ public:
 
         rotationParamsHaveChanged = true;
     }
+
+    const int getOrder() { return orderSetting; }
 
 private:
     double
