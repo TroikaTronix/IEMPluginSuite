@@ -57,8 +57,12 @@ DualDelayAudioProcessor::DualDelayAudioProcessor() :
     delayBPMR = parameters.getRawParameterValue ("delayBPMR");
     delayMultL = parameters.getRawParameterValue ("delayMultL");
     delayMultR = parameters.getRawParameterValue ("delayMultR");
-    rotationL = parameters.getRawParameterValue ("rotationL");
-    rotationR = parameters.getRawParameterValue ("rotationR");
+    yawL = parameters.getRawParameterValue ("yawL");
+    yawR = parameters.getRawParameterValue ("yawR");
+    pitchL = parameters.getRawParameterValue ("pitchL");
+    pitchR = parameters.getRawParameterValue ("pitchR");
+    rollL = parameters.getRawParameterValue ("rollL");
+    rollR = parameters.getRawParameterValue ("rollR");
     HPcutOffL = parameters.getRawParameterValue ("HPcutOffL");
     HPcutOffR = parameters.getRawParameterValue ("HPcutOffR");
     LPcutOffL = parameters.getRawParameterValue ("LPcutOffL");
@@ -73,8 +77,12 @@ DualDelayAudioProcessor::DualDelayAudioProcessor() :
     lfoDepthR = parameters.getRawParameterValue ("lfoDepthR");
     orderSetting = parameters.getRawParameterValue ("orderSetting");
 
-    parameters.addParameterListener ("rotationL", this);
-    parameters.addParameterListener ("rotationR", this);
+    parameters.addParameterListener ("yawL", this);
+    parameters.addParameterListener ("yawR", this);
+    parameters.addParameterListener ("pitchL", this);
+    parameters.addParameterListener ("pitchR", this);
+    parameters.addParameterListener ("rollL", this);
+    parameters.addParameterListener ("rollR", this);
     parameters.addParameterListener ("orderSetting", this);
 
     // cos_z.resize (8);
@@ -82,8 +90,8 @@ DualDelayAudioProcessor::DualDelayAudioProcessor() :
     // cos_z.set (0, 1.f);
     // sin_z.set (0, 0.f);
 
-    rotator[0].updateParams (*rotationL, 0.f, 0.f, static_cast<int> (*orderSetting));
-    rotator[1].updateParams (*rotationR, 0.f, 0.f, static_cast<int> (*orderSetting));
+    rotator[0].updateParams (*yawL, *pitchL, *rollL, static_cast<int> (*orderSetting));
+    rotator[1].updateParams (*yawR, *pitchR, *rollR, static_cast<int> (*orderSetting));
 }
 
 DualDelayAudioProcessor::~DualDelayAudioProcessor()
@@ -188,8 +196,8 @@ void DualDelayAudioProcessor::processBlock (juce::AudioSampleBuffer& buffer,
     // Update rotator to current working order if it has changed
     if (rotator[0].getOrder() != workingOrder)
     {
-        rotator[0].updateParams (*rotationL, 0.f, 0.f, workingOrder);
-        rotator[1].updateParams (*rotationR, 0.f, 0.f, workingOrder);
+        rotator[0].updateParams (*yawL, *pitchL, *rollL, workingOrder);
+        rotator[1].updateParams (*yawR, *pitchR, *rollR, workingOrder);
     }
 
     //clear not used channels
@@ -570,12 +578,29 @@ void DualDelayAudioProcessor::setStateInformation (const void* data, int sizeInB
             if (oscConfig.isValid())
                 oscParameterInterface.setConfig (oscConfig);
 
-            // Add compatibility layer for old delay time parameter in ms
+            // Add compatibility layer for old delay parameters
             juce::String ch[2] = { "L", "R" };
 
             for (int i = 0; i < 2; ++i)
             {
-                auto oldTimeParameter = xmlState->getChildByAttribute ("id", "delayTime" + ch[i]);
+                // rotation to yaw
+                auto oldTimeParameter = xmlState->getChildByAttribute ("id", "rotation" + ch[i]);
+                if (oldTimeParameter != nullptr)
+                {
+                    auto parameterState =
+                        parameters.state.getChildWithProperty ("id", "yaw" + ch[i]);
+
+                    if (parameterState.isValid())
+                    {
+                        parameterState.setProperty (
+                            "value",
+                            oldTimeParameter->getStringAttribute ("value").getFloatValue(),
+                            nullptr);
+                    }
+                }
+
+                // ms to BPM
+                oldTimeParameter = xmlState->getChildByAttribute ("id", "delayTime" + ch[i]);
                 if (oldTimeParameter != nullptr)
                 {
                     float value =
@@ -624,16 +649,16 @@ void DualDelayAudioProcessor::parameterChanged (const juce::String& parameterID,
     if (parameterID == "orderSetting")
     {
         userChangedIOSettings = true;
-        rotator[0].updateParams (*rotationL, 0.f, 0.f, static_cast<int> (newValue));
-        rotator[1].updateParams (*rotationR, 0.f, 0.f, static_cast<int> (newValue));
+        rotator[0].updateParams (*yawL, *pitchL, *rollL, static_cast<int> (newValue));
+        rotator[1].updateParams (*yawR, *pitchR, *rollR, static_cast<int> (newValue));
     }
 
     const int currentOrder = static_cast<int> (*orderSetting);
-    if (parameterID == "rotationL")
-        rotator[0].updateParams (newValue, 0.f, 0.f, currentOrder);
+    if (parameterID == "yawL" || parameterID == "pitchL" || parameterID == "rollL")
+        rotator[0].updateParams (*yawL, *pitchL, *rollL, currentOrder);
 
-    if (parameterID == "rotationR")
-        rotator[1].updateParams (newValue, 0.f, 0.f, currentOrder);
+    if (parameterID == "yawR" || parameterID == "pitchR" || parameterID == "rollR")
+        rotator[1].updateParams (*yawR, *pitchR, *rollR, currentOrder);
 }
 
 void DualDelayAudioProcessor::updateBuffers()
@@ -823,19 +848,53 @@ std::vector<std::unique_ptr<juce::RangedAudioParameter>>
         nullptr));
 
     params.push_back (OSCParameterInterface::createParameterTheOldWay (
-        "rotationL",
-        "rotation left",
+        "yawL",
+        "yaw left",
         juce::CharPointer_UTF8 (R"(°)"),
         juce::NormalisableRange<float> (-180.0f, 180.0f, 0.1f),
         10.0f,
         [] (float value) { return juce::String (value, 1); },
         nullptr));
     params.push_back (OSCParameterInterface::createParameterTheOldWay (
-        "rotationR",
-        "rotation right",
+        "yawR",
+        "yaw right",
         juce::CharPointer_UTF8 (R"(°)"),
         juce::NormalisableRange<float> (-180.0f, 180.0f, 0.1f),
         -7.5f,
+        [] (float value) { return juce::String (value, 1); },
+        nullptr));
+
+    params.push_back (OSCParameterInterface::createParameterTheOldWay (
+        "pitchL",
+        "pitch left",
+        juce::CharPointer_UTF8 (R"(°)"),
+        juce::NormalisableRange<float> (-180.0f, 180.0f, 0.1f),
+        0.0f,
+        [] (float value) { return juce::String (value, 1); },
+        nullptr));
+    params.push_back (OSCParameterInterface::createParameterTheOldWay (
+        "pitchR",
+        "pitch right",
+        juce::CharPointer_UTF8 (R"(°)"),
+        juce::NormalisableRange<float> (-180.0f, 180.0f, 0.1f),
+        0.0f,
+        [] (float value) { return juce::String (value, 1); },
+        nullptr));
+
+    params.push_back (OSCParameterInterface::createParameterTheOldWay (
+        "rollL",
+        "roll left",
+        juce::CharPointer_UTF8 (R"(°)"),
+        juce::NormalisableRange<float> (-180.0f, 180.0f, 0.1f),
+        0.0f,
+        [] (float value) { return juce::String (value, 1); },
+        nullptr));
+    params.push_back (OSCParameterInterface::createParameterTheOldWay (
+        "rollR",
+        "roll right",
+        juce::CharPointer_UTF8 (R"(°)"),
+        juce::NormalisableRange<float> (-180.0f, 180.0f, 0.1f),
+        0.0f,
         [] (float value) { return juce::String (value, 1); },
         nullptr));
 

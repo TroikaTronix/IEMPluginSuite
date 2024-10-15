@@ -81,8 +81,12 @@ private:
     std::atomic<float>* delayBPMR;
     std::atomic<float>* delayMultL;
     std::atomic<float>* delayMultR;
-    std::atomic<float>* rotationL;
-    std::atomic<float>* rotationR;
+    std::atomic<float>* yawL;
+    std::atomic<float>* yawR;
+    std::atomic<float>* pitchL;
+    std::atomic<float>* pitchR;
+    std::atomic<float>* rollL;
+    std::atomic<float>* rollR;
     std::atomic<float>* LPcutOffL;
     std::atomic<float>* LPcutOffR;
     std::atomic<float>* HPcutOffL;
