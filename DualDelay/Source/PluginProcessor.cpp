@@ -85,8 +85,8 @@ DualDelayAudioProcessor::DualDelayAudioProcessor() :
     parameters.addParameterListener ("rollR", this);
     parameters.addParameterListener ("orderSetting", this);
 
-    rotator[0].updateParams (*yawL, *pitchL, *rollL, static_cast<int> (*orderSetting));
-    rotator[1].updateParams (*yawR, *pitchR, *rollR, static_cast<int> (*orderSetting));
+    rotator[0].updateParams (*yawL, -*pitchL, *rollL, static_cast<int> (*orderSetting));
+    rotator[1].updateParams (*yawR, -*pitchR, *rollR, static_cast<int> (*orderSetting));
 }
 
 DualDelayAudioProcessor::~DualDelayAudioProcessor()
@@ -644,16 +644,16 @@ void DualDelayAudioProcessor::parameterChanged (const juce::String& parameterID,
     if (parameterID == "orderSetting")
     {
         userChangedIOSettings = true;
-        rotator[0].updateParams (*yawL, *pitchL, *rollL, static_cast<int> (newValue));
-        rotator[1].updateParams (*yawR, *pitchR, *rollR, static_cast<int> (newValue));
+        rotator[0].updateParams (*yawL, -*pitchL, *rollL, static_cast<int> (newValue));
+        rotator[1].updateParams (*yawR, -*pitchR, *rollR, static_cast<int> (newValue));
     }
 
     const int currentOrder = static_cast<int> (*orderSetting);
     if (parameterID == "yawL" || parameterID == "pitchL" || parameterID == "rollL")
-        rotator[0].updateParams (*yawL, *pitchL, *rollL, currentOrder);
+        rotator[0].updateParams (*yawL, -*pitchL, *rollL, currentOrder);
 
     if (parameterID == "yawR" || parameterID == "pitchR" || parameterID == "rollR")
-        rotator[1].updateParams (*yawR, *pitchR, *rollR, currentOrder);
+        rotator[1].updateParams (*yawR, -*pitchR, *rollR, currentOrder);
 }
 
 void DualDelayAudioProcessor::updateBuffers()
