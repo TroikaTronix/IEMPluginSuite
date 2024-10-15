@@ -72,17 +72,19 @@ DualDelayAudioProcessorEditor::DualDelayAudioProcessorEditor (
     addAndMakeVisible (&SlLeftPitch);
     SlLeftPitchAttachment.reset (new SliderAttachment (valueTreeState, "pitchL", SlLeftPitch));
     SlLeftPitch.setSliderStyle (juce::Slider::RotaryHorizontalVerticalDrag);
-    SlLeftPitch.setReverse (false);
+    SlLeftPitch.setReverse (true);
     SlLeftPitch.setTextValueSuffix (" deg");
     SlLeftPitch.setTextBoxStyle (juce::Slider::TextBoxBelow, false, 50, 15);
-    SlLeftPitch.setRotaryParameters (0, 2 * juce::MathConstants<float>::pi, false);
+    SlLeftPitch.setRotaryParameters (0.5 * juce::MathConstants<float>::pi,
+                                     2.5 * juce::MathConstants<float>::pi,
+                                     false);
     SlLeftPitch.setColour (juce::Slider::rotarySliderOutlineColourId, globalLaF.ClWidgetColours[0]);
     SlLeftPitch.addListener (this);
 
     addAndMakeVisible (&SlLeftRoll);
     SlLeftRollAttachment.reset (new SliderAttachment (valueTreeState, "rollL", SlLeftRoll));
     SlLeftRoll.setSliderStyle (juce::Slider::RotaryHorizontalVerticalDrag);
-    SlLeftRoll.setReverse (true);
+    SlLeftRoll.setReverse (false);
     SlLeftRoll.setTextValueSuffix (" deg");
     SlLeftRoll.setTextBoxStyle (juce::Slider::TextBoxBelow, false, 50, 15);
     SlLeftRoll.setRotaryParameters (juce::MathConstants<float>::pi,
@@ -180,7 +182,9 @@ DualDelayAudioProcessorEditor::DualDelayAudioProcessorEditor (
     SlRightPitch.setReverse (true);
     SlRightPitch.setTextValueSuffix (" deg");
     SlRightPitch.setTextBoxStyle (juce::Slider::TextBoxBelow, false, 50, 15);
-    SlRightPitch.setRotaryParameters (0, 2 * juce::MathConstants<float>::pi, false);
+    SlRightPitch.setRotaryParameters (0.5 * juce::MathConstants<float>::pi,
+                                      2.5 * juce::MathConstants<float>::pi,
+                                      false);
     SlRightPitch.setColour (juce::Slider::rotarySliderOutlineColourId,
                             globalLaF.ClWidgetColours[0]);
     SlRightPitch.addListener (this);
@@ -188,7 +192,7 @@ DualDelayAudioProcessorEditor::DualDelayAudioProcessorEditor (
     addAndMakeVisible (&SlRightRoll);
     SlRightRollAttachment.reset (new SliderAttachment (valueTreeState, "rollR", SlRightRoll));
     SlRightRoll.setSliderStyle (juce::Slider::RotaryHorizontalVerticalDrag);
-    SlRightRoll.setReverse (true);
+    SlRightRoll.setReverse (false);
     SlRightRoll.setTextValueSuffix (" deg");
     SlRightRoll.setTextBoxStyle (juce::Slider::TextBoxBelow, false, 50, 15);
     SlRightRoll.setRotaryParameters (juce::MathConstants<float>::pi,
