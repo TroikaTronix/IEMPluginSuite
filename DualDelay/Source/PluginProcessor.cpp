@@ -578,11 +578,34 @@ void DualDelayAudioProcessor::setStateInformation (const void* data, int sizeInB
                 auto oldTimeParameter = xmlState->getChildByAttribute ("id", "delayTime" + ch[i]);
                 if (oldTimeParameter != nullptr)
                 {
-                    float value = oldTimeParameter->getStringAttribute ("value").getFloatValue();
+                    float value =
+                        60000.0f / oldTimeParameter->getStringAttribute ("value").getFloatValue();
                     auto delayState =
                         parameters.state.getChildWithProperty ("id", "delayBPM" + ch[i]);
+
+                    const float maxBPM =
+                        parameters.getParameterRange ("delayBPM" + ch[i]).getRange().getEnd();
+                    const float maxMult =
+                        parameters.getParameterRange ("delayMult" + ch[i]).getRange().getEnd();
+
+                    // Set multiplicator if BPM is too high
+                    if (value > maxBPM)
+                    {
+                        float mult = static_cast<float> (
+                            juce::nextPowerOfTwo (static_cast<int> (ceil (value / maxBPM))));
+                        value /= mult;
+
+                        // Limiting multiplicator to maximum value, so it's at least somehow on beat
+                        mult = juce::jmin (mult, maxMult);
+
+                        auto multState =
+                            parameters.state.getChildWithProperty ("id", "delayMult" + ch[i]);
+                        if (multState.isValid())
+                            multState.setProperty ("value", mult, nullptr);
+                    }
+
                     if (delayState.isValid())
-                        delayState.setProperty ("value", 60000.0f / value, nullptr);
+                        delayState.setProperty ("value", value, nullptr);
                 }
             }
         }
