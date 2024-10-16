@@ -33,6 +33,7 @@
 
 typedef ReverseSlider::SliderAttachment SliderAttachment;
 typedef juce::AudioProcessorValueTreeState::ComboBoxAttachment ComboBoxAttachment;
+typedef juce::AudioProcessorValueTreeState::ButtonAttachment ButtonAttachment;
 
 //==============================================================================
 /**
@@ -64,8 +65,8 @@ private:
     TitleBar<AmbisonicIOWidget<>, NoIOWidget> title;
     OSCFooter footer;
 
-    std::unique_ptr<ComboBoxAttachment> cbNormalizationAtachement;
-    std::unique_ptr<ComboBoxAttachment> cbOrderAtachement;
+    std::unique_ptr<ComboBoxAttachment> cbNormalizationAttachement;
+    std::unique_ptr<ComboBoxAttachment> cbOrderAttachement;
     int maxPossibleOrder;
 
     ReverseSlider SlDryGain;
@@ -75,18 +76,26 @@ private:
     DoubleSlider dblSlLeftFilter;
     ReverseSlider SlLeftYaw, SlLeftPitch, SlLeftRoll;
     ReverseSlider SlLeftDelay, SlLeftLfoRate, SlLeftLfoDepth, SlLeftFb, SlLeftCrossFb, SlLeftGain;
+    juce::ComboBox cbLeftDelayMult;
+    juce::ToggleButton tbLeftSync;
+    juce::TextButton btLeftTap;
 
     std::unique_ptr<SliderAttachment> dblSlLeftFilterHpAttachment, dblSlLeftFilterLpAttachment;
     std::unique_ptr<SliderAttachment> SlLeftYawAttachment, SlLeftPitchAttachment,
         SlLeftRollAttachment;
     std::unique_ptr<SliderAttachment> SlLeftDelayAttachment, SlLeftLfoRateAttachment,
         SlLeftLfoDepthAttachment, SlLeftFbAttachment, SlLeftCrossFbAttachment, SlLeftGainAttachment;
+    std::unique_ptr<ComboBoxAttachment> cbLeftDelayMultAttachment;
+    std::unique_ptr<ButtonAttachment> btLeftSyncAttachment;
 
     // elements for right side
     DoubleSlider dblSlRightFilter;
     ReverseSlider SlRightYaw, SlRightPitch, SlRightRoll;
     ReverseSlider SlRightDelay, SlRightLfoRate, SlRightLfoDepth, SlRightFb, SlRightCrossFb,
         SlRightGain;
+    juce::ComboBox cbRightDelayMult;
+    juce::ToggleButton tbRightSync;
+    juce::TextButton btRightTap;
 
     std::unique_ptr<SliderAttachment> dblSlRightFilterHpAttachment, dblSlRightFilterLpAttachment;
     std::unique_ptr<SliderAttachment> SlRightYawAttachment, SlRightPitchAttachment,
@@ -94,6 +103,8 @@ private:
     std::unique_ptr<SliderAttachment> SlRightDelayAttachment, SlRightLfoRateAttachment,
         SlRightLfoDepthAttachment, SlRightFbAttachment, SlRightCrossFbAttachment,
         SlRightGainAttachment;
+    std::unique_ptr<ComboBoxAttachment> cbRightDelayMultAttachment;
+    std::unique_ptr<ButtonAttachment> btRightSyncAttachment;
 
     juce::TextButton btTimeMode;
 
