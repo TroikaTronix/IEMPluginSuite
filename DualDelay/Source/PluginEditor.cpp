@@ -55,6 +55,15 @@ DualDelayAudioProcessorEditor::DualDelayAudioProcessorEditor (
     SlDryGain.setTextBoxStyle (juce::Slider::TextBoxBelow, false, 50, 15);
     SlDryGain.setColour (juce::Slider::rotarySliderOutlineColourId, globalLaF.ClWidgetColours[0]);
 
+    auto delayMSRange = juce::NormalisableRange<double> (
+        60000.0f
+            / (valueTreeState.getParameterRange ("delayBPML").end
+               * valueTreeState.getParameterRange ("delayMultL").end),
+        60000.0f
+            / (valueTreeState.getParameterRange ("delayBPML").start
+               * valueTreeState.getParameterRange ("delayMultL").start),
+        0.1f);
+
     // =========================== LEFT SIDE ==============================================================
 
     addAndMakeVisible (&SlLeftYaw);
@@ -99,14 +108,17 @@ DualDelayAudioProcessorEditor::DualDelayAudioProcessorEditor (
     SlLeftDelay.setTextValueSuffix (" BPM");
     SlLeftDelay.setTextBoxStyle (juce::Slider::TextBoxBelow, false, 50, 15);
     SlLeftDelay.setColour (juce::Slider::rotarySliderOutlineColourId, globalLaF.ClWidgetColours[1]);
+    SlLeftDelay.addListener (this);
 
     SlLeftDelayMS.setVisible (false);
     addChildComponent (&SlLeftDelayMS);
     SlLeftDelayMS.setSliderStyle (juce::Slider::RotaryHorizontalVerticalDrag);
+    SlLeftDelayMS.setNormalisableRange (delayMSRange);
     SlLeftDelayMS.setTextValueSuffix (" ms");
     SlLeftDelayMS.setTextBoxStyle (juce::Slider::TextBoxBelow, false, 50, 15);
     SlLeftDelayMS.setColour (juce::Slider::rotarySliderOutlineColourId,
                              globalLaF.ClWidgetColours[1]);
+    SlLeftDelayMS.addListener (this);
 
     addAndMakeVisible (&tbLeftSync);
     btLeftSyncAttachment.reset (new ButtonAttachment (valueTreeState, "syncL", tbLeftSync));
@@ -238,6 +250,17 @@ DualDelayAudioProcessorEditor::DualDelayAudioProcessorEditor (
     SlRightDelay.setTextBoxStyle (juce::Slider::TextBoxBelow, false, 50, 15);
     SlRightDelay.setColour (juce::Slider::rotarySliderOutlineColourId,
                             globalLaF.ClWidgetColours[1]);
+    SlRightDelay.addListener (this);
+
+    SlRightDelayMS.setVisible (false);
+    addChildComponent (&SlRightDelayMS);
+    SlRightDelayMS.setSliderStyle (juce::Slider::RotaryHorizontalVerticalDrag);
+    SlRightDelayMS.setNormalisableRange (delayMSRange);
+    SlRightDelayMS.setTextValueSuffix (" ms");
+    SlRightDelayMS.setTextBoxStyle (juce::Slider::TextBoxBelow, false, 50, 15);
+    SlRightDelayMS.setColour (juce::Slider::rotarySliderOutlineColourId,
+                              globalLaF.ClWidgetColours[1]);
+    SlRightDelayMS.addListener (this);
 
     addAndMakeVisible (&tbRightSync);
     btRightSyncAttachment.reset (new ButtonAttachment (valueTreeState, "syncR", tbRightSync));
