@@ -54,6 +54,8 @@ public:
     void buttonClicked (juce::Button* button) override;
     void sliderValueChanged (juce::Slider* slider) override;
 
+    void updateDelayUnit (bool isBPM);
+
 private:
     LaF globalLaF;
 
@@ -75,7 +77,8 @@ private:
     // elements for left side
     DoubleSlider dblSlLeftFilter;
     ReverseSlider SlLeftYaw, SlLeftPitch, SlLeftRoll;
-    ReverseSlider SlLeftDelay, SlLeftLfoRate, SlLeftLfoDepth, SlLeftFb, SlLeftCrossFb, SlLeftGain;
+    ReverseSlider SlLeftDelay, SlLeftDelayMS, SlLeftLfoRate, SlLeftLfoDepth, SlLeftFb,
+        SlLeftCrossFb, SlLeftGain;
     juce::ComboBox cbLeftDelayMult;
     juce::ToggleButton tbLeftSync;
     juce::TextButton btLeftTap;
@@ -91,8 +94,8 @@ private:
     // elements for right side
     DoubleSlider dblSlRightFilter;
     ReverseSlider SlRightYaw, SlRightPitch, SlRightRoll;
-    ReverseSlider SlRightDelay, SlRightLfoRate, SlRightLfoDepth, SlRightFb, SlRightCrossFb,
-        SlRightGain;
+    ReverseSlider SlRightDelay, SlRightDelayMS, SlRightLfoRate, SlRightLfoDepth, SlRightFb,
+        SlRightCrossFb, SlRightGain;
     juce::ComboBox cbRightDelayMult;
     juce::ToggleButton tbRightSync;
     juce::TextButton btRightTap;

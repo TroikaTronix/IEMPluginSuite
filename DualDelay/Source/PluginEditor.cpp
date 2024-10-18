@@ -100,6 +100,14 @@ DualDelayAudioProcessorEditor::DualDelayAudioProcessorEditor (
     SlLeftDelay.setTextBoxStyle (juce::Slider::TextBoxBelow, false, 50, 15);
     SlLeftDelay.setColour (juce::Slider::rotarySliderOutlineColourId, globalLaF.ClWidgetColours[1]);
 
+    SlLeftDelayMS.setVisible (false);
+    addChildComponent (&SlLeftDelayMS);
+    SlLeftDelayMS.setSliderStyle (juce::Slider::RotaryHorizontalVerticalDrag);
+    SlLeftDelayMS.setTextValueSuffix (" ms");
+    SlLeftDelayMS.setTextBoxStyle (juce::Slider::TextBoxBelow, false, 50, 15);
+    SlLeftDelayMS.setColour (juce::Slider::rotarySliderOutlineColourId,
+                             globalLaF.ClWidgetColours[1]);
+
     addAndMakeVisible (&tbLeftSync);
     btLeftSyncAttachment.reset (new ButtonAttachment (valueTreeState, "syncL", tbLeftSync));
     tbLeftSync.setButtonText ("Sync");
@@ -427,6 +435,8 @@ void DualDelayAudioProcessorEditor::resized()
     const int sliderWidth = 55;
     const int sliderSpacing = 10;
 
+    updateDelayUnit (! btTimeMode.getToggleState());
+
     juce::Rectangle<int> area (getLocalBounds());
     juce::Rectangle<int> groupArea;
     juce::Rectangle<int> sliderRow;
@@ -458,7 +468,8 @@ void DualDelayAudioProcessorEditor::resized()
     sliderRow.removeFromLeft (sliderSpacing); // spacing between rotary sliders
     SlLeftRoll.setBounds (sliderRow.removeFromLeft (sliderWidth));
     sliderRow.removeFromLeft (sliderSpacing); // spacing between rotary sliders
-    SlLeftDelay.setBounds (sliderRow.removeFromLeft (sliderWidth));
+    SlLeftDelay.setBounds (sliderRow);
+    SlLeftDelayMS.setBounds (sliderRow);
 
     sliderRow = groupArea.removeFromTop (textHeight); // spacing between rotary sliders
     lbYawL.setBounds (sliderRow.removeFromLeft (sliderWidth));
@@ -497,7 +508,8 @@ void DualDelayAudioProcessorEditor::resized()
     sliderRow.removeFromLeft (sliderSpacing); // spacing between rotary sliders
     SlRightRoll.setBounds (sliderRow.removeFromLeft (sliderWidth));
     sliderRow.removeFromLeft (sliderSpacing); // spacing between rotary sliders
-    SlRightDelay.setBounds (sliderRow.removeFromLeft (sliderWidth));
+    SlRightDelay.setBounds (sliderRow);
+    SlRightDelayMS.setBounds (sliderRow);
 
     sliderRow = groupArea.removeFromTop (textHeight); // spacing between rotary sliders
     lbYawR.setBounds (sliderRow.removeFromLeft (sliderWidth));
@@ -623,14 +635,7 @@ void DualDelayAudioProcessorEditor::buttonClicked (juce::Button* button)
 {
     if (button == &btTimeMode)
     {
-        if (btTimeMode.getToggleState())
-        {
-            btTimeMode.setButtonText ("ms");
-        }
-        else
-        {
-            btTimeMode.setButtonText ("BPM");
-        }
+        updateDelayUnit (! btTimeMode.getToggleState());
     }
 }
 
@@ -648,6 +653,16 @@ void DualDelayAudioProcessorEditor::sliderValueChanged (juce::Slider* slider)
     // {
     //     SlRightRoll.setValue (SlLeftRoll.getValue(), juce::dontSendNotification);
     // }
+}
+
+void DualDelayAudioProcessorEditor::updateDelayUnit (bool isBPM)
+{
+    SlLeftDelay.setVisible (isBPM);
+    SlRightDelay.setVisible (isBPM);
+    cbLeftDelayMult.setVisible (isBPM);
+    cbRightDelayMult.setVisible (isBPM);
+    SlRightDelayMS.setVisible (! isBPM);
+    SlLeftDelayMS.setVisible (! isBPM);
 }
 
 void DualDelayAudioProcessorEditor::timerCallback()
