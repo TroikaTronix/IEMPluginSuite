@@ -118,6 +118,8 @@ DualDelayAudioProcessorEditor::DualDelayAudioProcessorEditor (
     SlLeftDelayMS.setTextBoxStyle (juce::Slider::TextBoxBelow, false, 50, 15);
     SlLeftDelayMS.setColour (juce::Slider::rotarySliderOutlineColourId,
                              globalLaF.ClWidgetColours[1]);
+    SlLeftDelayMS.setValue ((60000.0f / *valueTreeState.getRawParameterValue ("delayBPML"))
+                            / *valueTreeState.getRawParameterValue ("delayMultL"));
     SlLeftDelayMS.addListener (this);
 
     addAndMakeVisible (&tbLeftSync);
@@ -262,6 +264,8 @@ DualDelayAudioProcessorEditor::DualDelayAudioProcessorEditor (
     SlRightDelayMS.setTextBoxStyle (juce::Slider::TextBoxBelow, false, 50, 15);
     SlRightDelayMS.setColour (juce::Slider::rotarySliderOutlineColourId,
                               globalLaF.ClWidgetColours[1]);
+    SlRightDelayMS.setValue ((60000.0f / *valueTreeState.getRawParameterValue ("delayBPMR"))
+                             / *valueTreeState.getRawParameterValue ("delayMultR"));
     SlRightDelayMS.addListener (this);
 
     addAndMakeVisible (&tbRightSync);
