@@ -41,7 +41,8 @@ typedef juce::AudioProcessorValueTreeState::ButtonAttachment ButtonAttachment;
 class DualDelayAudioProcessorEditor : public juce::AudioProcessorEditor,
                                       private juce::Timer,
                                       private juce::Button::Listener,
-                                      private juce::Slider::Listener
+                                      private juce::Slider::Listener,
+                                      private juce::ComboBox::Listener
 {
 public:
     DualDelayAudioProcessorEditor (DualDelayAudioProcessor&, juce::AudioProcessorValueTreeState&);
@@ -53,6 +54,7 @@ public:
 
     void buttonClicked (juce::Button* button) override;
     void sliderValueChanged (juce::Slider* slider) override;
+    void comboBoxChanged (juce::ComboBox* comboBox) override;
 
     void updateDelayUnit (bool isBPM);
 

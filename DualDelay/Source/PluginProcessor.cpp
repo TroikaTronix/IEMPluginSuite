@@ -870,7 +870,7 @@ std::vector<std::unique_ptr<juce::RangedAudioParameter>>
         "BPM",
         juce::NormalisableRange<float> (46.0f, 320.0f, 0.001f),
         100.0f,
-        [] (float value) { return juce::String (value, 0); },
+        [] (float value) { return juce::String (value, 1); },
         nullptr));
     params.push_back (OSCParameterInterface::createParameterTheOldWay (
         "delayBPMR",
@@ -878,7 +878,7 @@ std::vector<std::unique_ptr<juce::RangedAudioParameter>>
         "BPM",
         juce::NormalisableRange<float> (46.0f, 320.0f, 0.001f),
         120.0f,
-        [] (float value) { return juce::String (value, 0); },
+        [] (float value) { return juce::String (value, 1); },
         nullptr));
 
     params.push_back (OSCParameterInterface::createParameterTheOldWay (
