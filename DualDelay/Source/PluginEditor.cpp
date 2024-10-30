@@ -695,8 +695,8 @@ void DualDelayAudioProcessorEditor::buttonClicked (juce::Button* button)
                 int multIdx = static_cast<int> (std::log2 (
                                   mult / valueTreeState.getParameterRange ("delayMultR").start))
                               + 1;
-                SlRightDelay.setValue (bpm, juce::dontSendNotification);
-                cbRightDelayMult.setSelectedId (multIdx, juce::dontSendNotification);
+                SlRightDelay.setValue (bpm, juce::sendNotification);
+                cbRightDelayMult.setSelectedId (multIdx, juce::sendNotification);
             }
             else
             {
@@ -705,8 +705,8 @@ void DualDelayAudioProcessorEditor::buttonClicked (juce::Button* button)
                 int multIdx = static_cast<int> (std::log2 (
                                   mult / valueTreeState.getParameterRange ("delayMultL").start))
                               + 1;
-                SlLeftDelay.setValue (bpm, juce::dontSendNotification);
-                cbLeftDelayMult.setSelectedId (multIdx, juce::dontSendNotification);
+                SlLeftDelay.setValue (bpm, juce::sendNotification);
+                cbLeftDelayMult.setSelectedId (multIdx, juce::sendNotification);
             }
 
             lastTap = currentTap;
@@ -726,8 +726,8 @@ void DualDelayAudioProcessorEditor::sliderValueChanged (juce::Slider* slider)
         int multIdx = static_cast<int> (
                           std::log2 (mult / valueTreeState.getParameterRange ("delayMultL").start))
                       + 1;
-        SlLeftDelay.setValue (bpm, juce::dontSendNotification);
-        cbLeftDelayMult.setSelectedId (multIdx, juce::dontSendNotification);
+        SlLeftDelay.setValue (bpm, juce::sendNotification);
+        cbLeftDelayMult.setSelectedId (multIdx, juce::sendNotification);
     }
     else if (slider == &SlRightDelayMS)
     {
@@ -735,20 +735,20 @@ void DualDelayAudioProcessorEditor::sliderValueChanged (juce::Slider* slider)
         int multIdx = static_cast<int> (
                           std::log2 (mult / valueTreeState.getParameterRange ("delayMultR").start))
                       + 1;
-        SlRightDelay.setValue (bpm, juce::dontSendNotification);
-        cbRightDelayMult.setSelectedId (multIdx, juce::dontSendNotification);
+        SlRightDelay.setValue (bpm, juce::sendNotification);
+        cbRightDelayMult.setSelectedId (multIdx, juce::sendNotification);
     }
     else if (slider == &SlLeftDelay)
     {
         float ms = (60000.0f / SlLeftDelay.getValue())
                    / *valueTreeState.getRawParameterValue ("delayMultL");
-        SlLeftDelayMS.setValue (ms, juce::dontSendNotification);
+        SlLeftDelayMS.setValue (ms, juce::sendNotification);
     }
     else if (slider == &SlRightDelay)
     {
         float ms = (60000.0f / SlRightDelay.getValue())
                    / *valueTreeState.getRawParameterValue ("delayMultR");
-        SlRightDelayMS.setValue (ms, juce::dontSendNotification);
+        SlRightDelayMS.setValue (ms, juce::sendNotification);
     }
 }
 
@@ -758,13 +758,13 @@ void DualDelayAudioProcessorEditor::comboBoxChanged (juce::ComboBox* comboBox)
     {
         float ms = (60000.0f / SlLeftDelay.getValue())
                    / std::exp2f (comboBox->getItemId (comboBox->getSelectedItemIndex()) - 2);
-        SlLeftDelayMS.setValue (ms, juce::dontSendNotification);
+        SlLeftDelayMS.setValue (ms, juce::sendNotification);
     }
     else if (comboBox == &cbRightDelayMult)
     {
         float ms = (60000.0f / SlRightDelay.getValue())
                    / std::exp2f (comboBox->getItemId (comboBox->getSelectedItemIndex()) - 2);
-        SlRightDelayMS.setValue (ms, juce::dontSendNotification);
+        SlRightDelayMS.setValue (ms, juce::sendNotification);
     }
 }
 
