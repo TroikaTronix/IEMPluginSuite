@@ -68,6 +68,8 @@ public:
     void parameterChanged (const juce::String& parameterID, float newValue) override;
     void updateBuffers() override;
 
+    std::tuple<float, float> msToBPM (float ms);
+
     //======= Parameters ===========================================================
     std::vector<std::unique_ptr<juce::RangedAudioParameter>> createParameterLayout();
     //==============================================================================

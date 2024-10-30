@@ -139,6 +139,7 @@ DualDelayAudioProcessorEditor::DualDelayAudioProcessorEditor (
     cbLeftDelayMult.addItem ("1/8", 3);
     cbLeftDelayMult.addItem ("1/16", 4);
     cbLeftDelayMult.addItem ("1/32", 5);
+    cbLeftDelayMult.addItem ("1/64", 6);
     cbLeftDelayMultAttachment.reset (
         new ComboBoxAttachment (valueTreeState, "delayMultL", cbLeftDelayMult));
 
@@ -282,6 +283,7 @@ DualDelayAudioProcessorEditor::DualDelayAudioProcessorEditor (
     cbRightDelayMult.addItem ("1/8", 3);
     cbRightDelayMult.addItem ("1/16", 4);
     cbRightDelayMult.addItem ("1/32", 5);
+    cbRightDelayMult.addItem ("1/64", 6);
     cbRightDelayMultAttachment.reset (
         new ComboBoxAttachment (valueTreeState, "delayMultR", cbRightDelayMult));
 
@@ -664,18 +666,36 @@ void DualDelayAudioProcessorEditor::buttonClicked (juce::Button* button)
 
 void DualDelayAudioProcessorEditor::sliderValueChanged (juce::Slider* slider)
 {
-    // if (slider == &SlLeftYaw)
-    // {
-    //     SlRightYaw.setValue (SlLeftYaw.getValue(), juce::dontSendNotification);
-    // }
-    // else if (slider == &SlLeftPitch)
-    // {
-    //     SlRightPitch.setValue (SlLeftPitch.getValue(), juce::dontSendNotification);
-    // }
-    // else if (slider == &SlLeftRoll)
-    // {
-    //     SlRightRoll.setValue (SlLeftRoll.getValue(), juce::dontSendNotification);
-    // }
+    if (slider == &SlLeftDelayMS)
+    {
+        auto [bpm, mult] = processor.msToBPM (SlLeftDelayMS.getValue());
+        int multIdx = static_cast<int> (
+                          std::log2 (mult / valueTreeState.getParameterRange ("delayMultL").start))
+                      + 1;
+        SlLeftDelay.setValue (bpm, juce::dontSendNotification);
+        cbLeftDelayMult.setSelectedId (multIdx, juce::dontSendNotification);
+    }
+    else if (slider == &SlRightDelayMS)
+    {
+        auto [bpm, mult] = processor.msToBPM (SlRightDelayMS.getValue());
+        int multIdx = static_cast<int> (
+                          std::log2 (mult / valueTreeState.getParameterRange ("delayMultR").start))
+                      + 1;
+        SlRightDelay.setValue (bpm, juce::dontSendNotification);
+        cbRightDelayMult.setSelectedId (multIdx, juce::dontSendNotification);
+    }
+    else if (slider == &SlLeftDelay)
+    {
+        float ms = (60000.0f / SlLeftDelay.getValue())
+                   * *valueTreeState.getRawParameterValue ("delayMultL");
+        SlLeftDelayMS.setValue (ms, juce::dontSendNotification);
+    }
+    else if (slider == &SlRightDelay)
+    {
+        float ms = (60000.0f / SlRightDelay.getValue())
+                   * *valueTreeState.getRawParameterValue ("delayMultR");
+        SlRightDelayMS.setValue (ms, juce::dontSendNotification);
+    }
 }
 
 void DualDelayAudioProcessorEditor::updateDelayUnit (bool isBPM)

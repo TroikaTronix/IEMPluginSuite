@@ -738,6 +738,37 @@ void DualDelayAudioProcessor::updateBuffers()
     delayInRight.clear();
 }
 
+std::tuple<float, float> DualDelayAudioProcessor::msToBPM (const float ms)
+{
+    float transformedBPM = 60000.0f / ms;
+    float mult = 1.0f;
+
+    const float maxBPM = parameters.getParameterRange ("delayBPML").getRange().getEnd();
+    const float minBPM = parameters.getParameterRange ("delayBPML").getRange().getStart();
+    const float maxMult = parameters.getParameterRange ("delayMultL").getRange().getEnd();
+    const float minMult = parameters.getParameterRange ("delayMultL").getRange().getStart();
+
+    if (transformedBPM > maxBPM)
+    {
+        mult = static_cast<float> (
+            juce::nextPowerOfTwo (static_cast<int> (ceil (transformedBPM / maxBPM))));
+        transformedBPM /= mult;
+        mult = juce::jmin (mult, maxMult);
+    }
+    else if (transformedBPM < minBPM)
+    {
+        float transformedBPM_tmp =
+            juce::jmax (transformedBPM / minMult, minBPM); // Clip values to avoid division by zero
+
+        mult = static_cast<float> (
+            juce::nextPowerOfTwo (static_cast<int> (floor (transformedBPM / minBPM))));
+        mult = juce::jmax (mult, 1.0f) * minMult;
+        transformedBPM /= mult;
+    }
+
+    return { transformedBPM, mult };
+}
+
 //==============================================================================
 std::vector<std::unique_ptr<juce::RangedAudioParameter>>
     DualDelayAudioProcessor::createParameterLayout()
@@ -837,7 +868,7 @@ std::vector<std::unique_ptr<juce::RangedAudioParameter>>
         "delayBPML",
         "delay left",
         "BPM",
-        juce::NormalisableRange<float> (45.0f, 320.0f, 0.001f),
+        juce::NormalisableRange<float> (46.0f, 320.0f, 0.001f),
         100.0f,
         [] (float value) { return juce::String (value, 0); },
         nullptr));
@@ -845,7 +876,7 @@ std::vector<std::unique_ptr<juce::RangedAudioParameter>>
         "delayBPMR",
         "delay right",
         "BPM",
-        juce::NormalisableRange<float> (45.0f, 320.0f, 0.001f),
+        juce::NormalisableRange<float> (46.0f, 320.0f, 0.001f),
         120.0f,
         [] (float value) { return juce::String (value, 0); },
         nullptr));
@@ -854,7 +885,7 @@ std::vector<std::unique_ptr<juce::RangedAudioParameter>>
         "delayMultL",
         "delay multiplicator left",
         "",
-        juce::NormalisableRange<float> (0.5f, 8.0f, remap0to1ToMult, remapMultTo0to1, snapToMult),
+        juce::NormalisableRange<float> (0.5f, 16.0f, remap0to1ToMult, remapMultTo0to1, snapToMult),
         1.0f,
         [] (float value) { return juce::String ("1/") + juce::String (value * 4.0f, 0); },
         nullptr));
@@ -862,7 +893,7 @@ std::vector<std::unique_ptr<juce::RangedAudioParameter>>
         "delayMultR",
         "delay multiplicator right",
         "",
-        juce::NormalisableRange<float> (0.5f, 8.0f, remap0to1ToMult, remapMultTo0to1, snapToMult),
+        juce::NormalisableRange<float> (0.5f, 16.0f, remap0to1ToMult, remapMultTo0to1, snapToMult),
         1.0f,
         [] (float value) { return juce::String ("1/") + juce::String (value * 4.0f, 0); },
         nullptr));
