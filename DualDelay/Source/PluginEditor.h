@@ -40,6 +40,7 @@ typedef juce::AudioProcessorValueTreeState::ButtonAttachment ButtonAttachment;
 */
 class DualDelayAudioProcessorEditor : public juce::AudioProcessorEditor,
                                       private juce::Timer,
+                                      private juce::Time,
                                       private juce::Button::Listener,
                                       private juce::Slider::Listener,
                                       private juce::ComboBox::Listener
@@ -120,6 +121,12 @@ private:
     TripleLabel lbLfoL, lbLfoR, lbFilterL, lbFilterR;
 
     juce::GroupComponent gcRotDelL, gcRotDelR, gcFiltL, gcFiltR, gcFbL, gcFbR, gcOutput;
+
+    double lastTap = 0.0;
+    double tapIntervalMS = 0.0;
+    const double tapBeta = 0.5;
+    const double minTapIntervalMS = 100.0;
+    const double maxTapIntervalMS = 2000.0;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (DualDelayAudioProcessorEditor)
 };

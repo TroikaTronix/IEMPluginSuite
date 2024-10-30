@@ -664,7 +664,55 @@ void DualDelayAudioProcessorEditor::resized()
 
 void DualDelayAudioProcessorEditor::buttonClicked (juce::Button* button)
 {
-    if (button == &btTimeMode)
+    if ((button == &btLeftTap) || (button == &btRightTap))
+    {
+        double currentTap = juce::Time::getMillisecondCounterHiRes();
+        double rawTapInterval = currentTap - lastTap;
+
+        if (rawTapInterval > maxTapIntervalMS)
+        {
+            tapIntervalMS = 0.0;
+            lastTap = currentTap;
+        }
+
+        else if (rawTapInterval > minTapIntervalMS)
+        {
+            if (tapIntervalMS > 0.0)
+            {
+                tapIntervalMS = tapBeta * tapIntervalMS + (1.0 - tapBeta) * rawTapInterval;
+            }
+            else
+            {
+                tapIntervalMS = rawTapInterval;
+            }
+
+            auto [bpm, mult] = processor.msToBPM (tapIntervalMS);
+
+            if (button == &btRightTap)
+            {
+                SlRightDelayMS.setValue (tapIntervalMS, juce::dontSendNotification);
+
+                int multIdx = static_cast<int> (std::log2 (
+                                  mult / valueTreeState.getParameterRange ("delayMultR").start))
+                              + 1;
+                SlRightDelay.setValue (bpm, juce::dontSendNotification);
+                cbRightDelayMult.setSelectedId (multIdx, juce::dontSendNotification);
+            }
+            else
+            {
+                SlLeftDelayMS.setValue (tapIntervalMS, juce::dontSendNotification);
+
+                int multIdx = static_cast<int> (std::log2 (
+                                  mult / valueTreeState.getParameterRange ("delayMultL").start))
+                              + 1;
+                SlLeftDelay.setValue (bpm, juce::dontSendNotification);
+                cbLeftDelayMult.setSelectedId (multIdx, juce::dontSendNotification);
+            }
+
+            lastTap = currentTap;
+        }
+    }
+    else if (button == &btTimeMode)
     {
         updateDelayUnit (! btTimeMode.getToggleState());
     }
