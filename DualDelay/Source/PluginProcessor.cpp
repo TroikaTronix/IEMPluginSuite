@@ -167,6 +167,24 @@ void DualDelayAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBl
 
     _delayL = (60000.0f / (*delayBPML * *delayMultL)) * sampleRate / 1000.0 * 128;
     _delayR = (60000.0f / (*delayBPMR * *delayMultR)) * sampleRate / 1000.0 * 128;
+
+    const int maxDelay =
+        juce::roundToInt (sampleRate * 60.0f
+                              / (parameters.getParameterRange ("delayBPML").start
+                                 * parameters.getParameterRange ("delayMultL").start)
+                          + 1);
+    juce::dsp::ProcessSpec specDelay;
+    specDelay.sampleRate = sampleRate;
+    specDelay.numChannels = numberOfOutputChannels;
+    specDelay.maximumBlockSize = samplesPerBlock;
+
+    delayLineL.reset();
+    delayLineL.prepare (specDelay);
+
+    delayLineL.setMaximumDelayInSamples (maxDelay);
+    delayLineL.setDelay (sampleRate * 60.0f / (*delayBPML * *delayMultL));
+
+    delayTimeInterpL.setFrequency (0.5f, sampleRate);
 }
 
 void DualDelayAudioProcessor::releaseResources()
@@ -189,6 +207,10 @@ void DualDelayAudioProcessor::processBlock (juce::AudioSampleBuffer& buffer,
 
     const int delayBufferLength = fs * 6;
     const int spb = buffer.getNumSamples();
+
+    // Setting up delay inteprolator
+    const float newDelayL = fs * 60.0f / (*delayBPML * *delayMultL);
+    delayTimeInterpL.setTargetValue (newDelayL);
 
     // Sync delay time to host BPM if enabled
     // float BPML_tmp = *delayBPML;
@@ -224,24 +246,56 @@ void DualDelayAudioProcessor::processBlock (juce::AudioSampleBuffer& buffer,
     for (int channel = nCh; channel < totalNumInputChannels; ++channel)
         buffer.clear (channel, 0, spb);
 
-    LFOLeft.setFrequency (*lfoRateL);
-    LFORight.setFrequency (*lfoRateR);
-
-    for (int i = 0; i < nCh; ++i)
+    for (int sample = 0; sample < spb; ++sample)
     {
-        lowPassFiltersLeft[i]->setCoefficients (juce::IIRCoefficients::makeLowPass (
-            fs,
-            juce::jmin (fs / 2.0, static_cast<double> (*LPcutOffL))));
-        lowPassFiltersRight[i]->setCoefficients (juce::IIRCoefficients::makeLowPass (
-            fs,
-            juce::jmin (fs / 2.0, static_cast<double> (*LPcutOffR))));
-        highPassFiltersLeft[i]->setCoefficients (juce::IIRCoefficients::makeHighPass (
-            fs,
-            juce::jmin (fs / 2.0, static_cast<double> (*HPcutOffL))));
-        highPassFiltersRight[i]->setCoefficients (juce::IIRCoefficients::makeHighPass (
-            fs,
-            juce::jmin (fs / 2.0, static_cast<double> (*HPcutOffR))));
+        float currentDelay = delayTimeInterpL.process();
+        for (int channel = 0; channel < nCh; ++channel)
+        {
+            // Add input to delay line
+            delayLineL.pushSample (channel, delayOutLeft.getSample (channel, sample));
+
+            // Add dely line output to output buffer
+            delayOutLeft.setSample (channel, sample, delayLineL.popSample (channel, currentDelay));
+        }
     }
+
+    // Apply gain to direct signal
+    buffer.applyGain (juce::Decibels::decibelsToGain (dryGain->load(), -59.91f));
+
+    // Add delayed signal to output buffer
+    for (int channel = 0; channel < nCh; ++channel)
+    {
+        buffer.addFrom (channel,
+                        0,
+                        delayOutLeft,
+                        channel,
+                        0,
+                        spb,
+                        juce::Decibels::decibelsToGain (wetGainL->load(), -59.91f));
+    }
+
+    // Update feedback delay line
+    delayOutLeft.makeCopyOf (buffer, true);
+    delayOutLeft.applyGain (juce::Decibels::decibelsToGain (feedbackL->load(), -59.91f));
+
+    // LFOLeft.setFrequency (*lfoRateL);
+    // LFORight.setFrequency (*lfoRateR);
+
+    // for (int i = 0; i < nCh; ++i)
+    // {
+    //     lowPassFiltersLeft[i]->setCoefficients (juce::IIRCoefficients::makeLowPass (
+    //         fs,
+    //         juce::jmin (fs / 2.0, static_cast<double> (*LPcutOffL))));
+    //     lowPassFiltersRight[i]->setCoefficients (juce::IIRCoefficients::makeLowPass (
+    //         fs,
+    //         juce::jmin (fs / 2.0, static_cast<double> (*LPcutOffR))));
+    //     highPassFiltersLeft[i]->setCoefficients (juce::IIRCoefficients::makeHighPass (
+    //         fs,
+    //         juce::jmin (fs / 2.0, static_cast<double> (*HPcutOffL))));
+    //     highPassFiltersRight[i]->setCoefficients (juce::IIRCoefficients::makeHighPass (
+    //         fs,
+    //         juce::jmin (fs / 2.0, static_cast<double> (*HPcutOffR))));
+    // }
 
     // ==================== MAKE COPY OF INPUT BUFFER==============================
     for (int channel = 0; channel < nCh; ++channel)
@@ -251,309 +305,309 @@ void DualDelayAudioProcessor::processBlock (juce::AudioSampleBuffer& buffer,
 
     // ==================== READ FROM DELAYLINE AND GENERTE OUTPUT SIGNAL ===========
     // LEFT CHANNEL
-    if (readOffsetLeft + spb >= delayBufferLength)
-    { // overflow
-        int nFirstRead = delayBufferLength - readOffsetLeft;
+    // if (readOffsetLeft + spb >= delayBufferLength)
+    // { // overflow
+    //     int nFirstRead = delayBufferLength - readOffsetLeft;
 
-        for (int channel = 0; channel < nCh; ++channel)
-        {
-            delayOutLeft
-                .copyFrom (channel, 0, delayBufferLeft, channel, readOffsetLeft, nFirstRead);
-            delayOutLeft
-                .copyFrom (channel, nFirstRead, delayBufferLeft, channel, 0, spb - nFirstRead);
-        }
-        delayBufferLeft.clear (readOffsetLeft, nFirstRead);
-        delayBufferLeft.clear (0, spb - nFirstRead);
+    //     for (int channel = 0; channel < nCh; ++channel)
+    //     {
+    //         delayOutLeft
+    //             .copyFrom (channel, 0, delayBufferLeft, channel, readOffsetLeft, nFirstRead);
+    //         delayOutLeft
+    //             .copyFrom (channel, nFirstRead, delayBufferLeft, channel, 0, spb - nFirstRead);
+    //     }
+    //     delayBufferLeft.clear (readOffsetLeft, nFirstRead);
+    //     delayBufferLeft.clear (0, spb - nFirstRead);
 
-        readOffsetLeft += spb;
-        readOffsetLeft -= delayBufferLength;
-    }
-    else
-    { //noverflow
-        for (int channel = 0; channel < nCh; ++channel)
-        {
-            delayOutLeft.copyFrom (channel, 0, delayBufferLeft, channel, readOffsetLeft, spb);
-        }
-        delayBufferLeft.clear (readOffsetLeft, spb);
-        readOffsetLeft += spb;
-    }
+    //     readOffsetLeft += spb;
+    //     readOffsetLeft -= delayBufferLength;
+    // }
+    // else
+    // { //noverflow
+    //     for (int channel = 0; channel < nCh; ++channel)
+    //     {
+    //         delayOutLeft.copyFrom (channel, 0, delayBufferLeft, channel, readOffsetLeft, spb);
+    //     }
+    //     delayBufferLeft.clear (readOffsetLeft, spb);
+    //     readOffsetLeft += spb;
+    // }
 
-    // RIGHT CHANNEL
-    if (readOffsetRight + spb >= delayBufferLength)
-    { // overflow
-        int nFirstRead = delayBufferLength - readOffsetRight;
+    //     // RIGHT CHANNEL
+    //     if (readOffsetRight + spb >= delayBufferLength)
+    //     { // overflow
+    //         int nFirstRead = delayBufferLength - readOffsetRight;
 
-        for (int channel = 0; channel < nCh; ++channel)
-        {
-            delayOutRight
-                .copyFrom (channel, 0, delayBufferRight, channel, readOffsetRight, nFirstRead);
-            delayOutRight
-                .copyFrom (channel, nFirstRead, delayBufferRight, channel, 0, spb - nFirstRead);
-        }
-        delayBufferRight.clear (readOffsetRight, nFirstRead);
-        delayBufferRight.clear (0, spb - nFirstRead);
+    //         for (int channel = 0; channel < nCh; ++channel)
+    //         {
+    //             delayOutRight
+    //                 .copyFrom (channel, 0, delayBufferRight, channel, readOffsetRight, nFirstRead);
+    //             delayOutRight
+    //                 .copyFrom (channel, nFirstRead, delayBufferRight, channel, 0, spb - nFirstRead);
+    //         }
+    //         delayBufferRight.clear (readOffsetRight, nFirstRead);
+    //         delayBufferRight.clear (0, spb - nFirstRead);
 
-        readOffsetRight += spb;
-        readOffsetRight -= delayBufferLength;
-    }
-    else
-    { //noverflow
-        for (int channel = 0; channel < nCh; ++channel)
-        {
-            delayOutRight.copyFrom (channel, 0, delayBufferRight, channel, readOffsetRight, spb);
-        }
-        delayBufferRight.clear (readOffsetRight, spb);
-        readOffsetRight += spb;
-    }
+    //         readOffsetRight += spb;
+    //         readOffsetRight -= delayBufferLength;
+    //     }
+    //     else
+    //     { //noverflow
+    //         for (int channel = 0; channel < nCh; ++channel)
+    //         {
+    //             delayOutRight.copyFrom (channel, 0, delayBufferRight, channel, readOffsetRight, spb);
+    //         }
+    //         delayBufferRight.clear (readOffsetRight, spb);
+    //         readOffsetRight += spb;
+    //     }
 
-    // ========== OUTPUT
-    buffer.applyGain (juce::Decibels::decibelsToGain (dryGain->load(), -59.91f)); //dry signal
-    for (int channel = 0; channel < nCh; ++channel)
-    {
-        buffer.addFrom (channel,
-                        0,
-                        delayOutLeft,
-                        channel,
-                        0,
-                        spb,
-                        juce::Decibels::decibelsToGain (wetGainL->load(), -59.91f)); //wet signal
-        buffer.addFrom (channel,
-                        0,
-                        delayOutRight,
-                        channel,
-                        0,
-                        spb,
-                        juce::Decibels::decibelsToGain (wetGainR->load(), -59.91f)); //wet signal
-    }
+    //     // ========== OUTPUT
+    //     buffer.applyGain (juce::Decibels::decibelsToGain (dryGain->load(), -59.91f)); //dry signal
+    //     for (int channel = 0; channel < nCh; ++channel)
+    //     {
+    //         buffer.addFrom (channel,
+    //                         0,
+    //                         delayOutLeft,
+    //                         channel,
+    //                         0,
+    //                         spb,
+    //                         juce::Decibels::decibelsToGain (wetGainL->load(), -59.91f)); //wet signal
+    //         buffer.addFrom (channel,
+    //                         0,
+    //                         delayOutRight,
+    //                         channel,
+    //                         0,
+    //                         spb,
+    //                         juce::Decibels::decibelsToGain (wetGainR->load(), -59.91f)); //wet signal
+    //     }
 
-    // ================ ADD INPUT AND FED BACK OUTPUT WITH PROCESSING ===========
+    //     // ================ ADD INPUT AND FED BACK OUTPUT WITH PROCESSING ===========
 
-    for (int channel = 0; channel < nCh; ++channel) // should be optimizable with SIMD
-    {
-        delayInLeft.copyFrom (channel, 0, AudioIN.getReadPointer (channel), spb); // input
-        delayInLeft.addFrom (
-            channel,
-            0,
-            delayOutLeft.getReadPointer (channel),
-            spb,
-            juce::Decibels::decibelsToGain (feedbackL->load(), -59.91f)); // feedback gain
-        delayInLeft.addFrom (
-            channel,
-            0,
-            delayOutRight.getReadPointer (channel),
-            spb,
-            juce::Decibels::decibelsToGain (xfeedbackR->load(), -59.91f)); // feedback bleed gain
-        lowPassFiltersLeft[channel]->processSamples (delayInLeft.getWritePointer (channel),
-                                                     spb); //filter
-        highPassFiltersLeft[channel]->processSamples (delayInLeft.getWritePointer (channel),
-                                                      spb); //filter
+    //     for (int channel = 0; channel < nCh; ++channel) // should be optimizable with SIMD
+    //     {
+    //         delayInLeft.copyFrom (channel, 0, AudioIN.getReadPointer (channel), spb); // input
+    //         delayInLeft.addFrom (
+    //             channel,
+    //             0,
+    //             delayOutLeft.getReadPointer (channel),
+    //             spb,
+    //             juce::Decibels::decibelsToGain (feedbackL->load(), -59.91f)); // feedback gain
+    //         delayInLeft.addFrom (
+    //             channel,
+    //             0,
+    //             delayOutRight.getReadPointer (channel),
+    //             spb,
+    //             juce::Decibels::decibelsToGain (xfeedbackR->load(), -59.91f)); // feedback bleed gain
+    //         lowPassFiltersLeft[channel]->processSamples (delayInLeft.getWritePointer (channel),
+    //                                                      spb); //filter
+    //         highPassFiltersLeft[channel]->processSamples (delayInLeft.getWritePointer (channel),
+    //                                                       spb); //filter
 
-        delayInRight.copyFrom (channel, 0, AudioIN.getReadPointer (channel), spb); // input
-        delayInRight.addFrom (
-            channel,
-            0,
-            delayOutRight.getReadPointer (channel),
-            spb,
-            juce::Decibels::decibelsToGain (feedbackR->load(), -59.91f)); // feedback gain
-        delayInRight.addFrom (
-            channel,
-            0,
-            delayOutLeft.getReadPointer (channel),
-            spb,
-            juce::Decibels::decibelsToGain (xfeedbackL->load(), -59.91f)); // feedback bleed gain
-        lowPassFiltersRight[channel]->processSamples (delayInRight.getWritePointer (channel),
-                                                      spb); //filter
-        highPassFiltersRight[channel]->processSamples (delayInRight.getWritePointer (channel),
-                                                       spb); //filter
-    }
+    //         delayInRight.copyFrom (channel, 0, AudioIN.getReadPointer (channel), spb); // input
+    //         delayInRight.addFrom (
+    //             channel,
+    //             0,
+    //             delayOutRight.getReadPointer (channel),
+    //             spb,
+    //             juce::Decibels::decibelsToGain (feedbackR->load(), -59.91f)); // feedback gain
+    //         delayInRight.addFrom (
+    //             channel,
+    //             0,
+    //             delayOutLeft.getReadPointer (channel),
+    //             spb,
+    //             juce::Decibels::decibelsToGain (xfeedbackL->load(), -59.91f)); // feedback bleed gain
+    //         lowPassFiltersRight[channel]->processSamples (delayInRight.getWritePointer (channel),
+    //                                                       spb); //filter
+    //         highPassFiltersRight[channel]->processSamples (delayInRight.getWritePointer (channel),
+    //                                                        spb); //filter
+    //     }
 
-    // Apply rotation
-    rotator[0].process (&delayInLeft);
-    rotator[1].process (&delayInRight);
+    //     // Apply rotation
+    //     rotator[0].process (&delayInLeft);
+    //     rotator[1].process (&delayInRight);
 
-    // =============== UPDATE DELAY PARAMETERS =====
-    float delayL = (60000.0f / (*delayBPML * *delayMultL)) * msToFractSmpls;
-    float delayR = (60000.0f / (*delayBPMR * *delayMultR)) * msToFractSmpls;
+    //     // =============== UPDATE DELAY PARAMETERS =====
+    //     float delayL = (60000.0f / (*delayBPML * *delayMultL)) * msToFractSmpls;
+    //     float delayR = (60000.0f / (*delayBPMR * *delayMultR)) * msToFractSmpls;
 
-    int firstIdx, copyL;
+    //     int firstIdx, copyL;
 
-    // ============= WRITE INTO DELAYLINE ========================
-    // ===== LEFT CHANNEL
+    //     // ============= WRITE INTO DELAYLINE ========================
+    //     // ===== LEFT CHANNEL
 
-    float delayStep = (delayL - _delayL) / spb;
-    //calculate firstIdx and copyL
-    for (int i = 0; i < spb; ++i)
-    {
-        delay.set (i,
-                   i * 128 + _delayL + i * delayStep
-                       + *lfoDepthL * msToFractSmpls * LFOLeft.processSample (1.0f));
-    }
-    firstIdx =
-        (((int) *std::min_element (delay.getRawDataPointer(), delay.getRawDataPointer() + spb))
-         >> interpShift)
-        - interpOffset;
-    int lastIdx =
-        (((int) *std::max_element (delay.getRawDataPointer(), delay.getRawDataPointer() + spb))
-         >> interpShift)
-        - interpOffset;
-    copyL = abs (firstIdx - lastIdx) + interpLength;
+    //     float delayStep = (delayL - _delayL) / spb;
+    //     //calculate firstIdx and copyL
+    //     for (int i = 0; i < spb; ++i)
+    //     {
+    //         delay.set (i,
+    //                    i * 128 + _delayL + i * delayStep
+    //                        + *lfoDepthL * msToFractSmpls * LFOLeft.processSample (1.0f));
+    //     }
+    //     firstIdx =
+    //         (((int) *std::min_element (delay.getRawDataPointer(), delay.getRawDataPointer() + spb))
+    //          >> interpShift)
+    //         - interpOffset;
+    //     int lastIdx =
+    //         (((int) *std::max_element (delay.getRawDataPointer(), delay.getRawDataPointer() + spb))
+    //          >> interpShift)
+    //         - interpOffset;
+    //     copyL = abs (firstIdx - lastIdx) + interpLength;
 
-    delayTempBuffer.clear (0, copyL);
-    //delayTempBuffer.clear();
-    const float* const* readPtrArr = delayInLeft.getArrayOfReadPointers();
+    //     delayTempBuffer.clear (0, copyL);
+    //     //delayTempBuffer.clear();
+    //     const float* const* readPtrArr = delayInLeft.getArrayOfReadPointers();
 
-    for (int i = 0; i < spb; ++i)
-    {
-        float integer;
-        float fraction = modff (delay[i], &integer);
-        int delayInt = (int) integer;
+    //     for (int i = 0; i < spb; ++i)
+    //     {
+    //         float integer;
+    //         float fraction = modff (delay[i], &integer);
+    //         int delayInt = (int) integer;
 
-        int interpCoeffIdx = delayInt & interpMask;
-        delayInt = delayInt >> interpShift;
-        int idx = delayInt - interpOffset - firstIdx;
+    //         int interpCoeffIdx = delayInt & interpMask;
+    //         delayInt = delayInt >> interpShift;
+    //         int idx = delayInt - interpOffset - firstIdx;
 
-#if JUCE_USE_SSE_INTRINSICS
-        __m128 interp = getInterpolatedLagrangeWeights (interpCoeffIdx, fraction);
+    // #if JUCE_USE_SSE_INTRINSICS
+    //         __m128 interp = getInterpolatedLagrangeWeights (interpCoeffIdx, fraction);
 
-        for (int ch = 0; ch < nCh; ++ch)
-        {
-            float* dest = delayTempBuffer.getWritePointer (ch, idx);
+    //         for (int ch = 0; ch < nCh; ++ch)
+    //         {
+    //             float* dest = delayTempBuffer.getWritePointer (ch, idx);
 
-            __m128 destSamples = _mm_loadu_ps (dest);
-            __m128 srcSample = _mm_set1_ps (readPtrArr[ch][i]);
-            destSamples = _mm_add_ps (destSamples, _mm_mul_ps (interp, srcSample));
-            _mm_storeu_ps (dest, destSamples);
-        }
-#else /* !JUCE_USE_SSE_INTRINSICS */
-        float interp[4];
-        getInterpolatedLagrangeWeights (interpCoeffIdx, fraction, interp);
+    //             __m128 destSamples = _mm_loadu_ps (dest);
+    //             __m128 srcSample = _mm_set1_ps (readPtrArr[ch][i]);
+    //             destSamples = _mm_add_ps (destSamples, _mm_mul_ps (interp, srcSample));
+    //             _mm_storeu_ps (dest, destSamples);
+    //         }
+    // #else /* !JUCE_USE_SSE_INTRINSICS */
+    //         float interp[4];
+    //         getInterpolatedLagrangeWeights (interpCoeffIdx, fraction, interp);
 
-        for (int ch = 0; ch < nCh; ++ch)
-        {
-            float* dest = delayTempBuffer.getWritePointer (ch, idx);
-            float src = readPtrArr[ch][i];
-            dest[0] += interp[0] * src;
-            dest[1] += interp[1] * src;
-            dest[2] += interp[2] * src;
-            dest[3] += interp[3] * src;
-        }
-#endif /* JUCE_USE_SSE_INTRINSICS */
-    }
-    writeOffsetLeft = readOffsetLeft + firstIdx;
-    if (writeOffsetLeft >= delayBufferLength)
-        writeOffsetLeft -= delayBufferLength;
+    //         for (int ch = 0; ch < nCh; ++ch)
+    //         {
+    //             float* dest = delayTempBuffer.getWritePointer (ch, idx);
+    //             float src = readPtrArr[ch][i];
+    //             dest[0] += interp[0] * src;
+    //             dest[1] += interp[1] * src;
+    //             dest[2] += interp[2] * src;
+    //             dest[3] += interp[3] * src;
+    //         }
+    // #endif /* JUCE_USE_SSE_INTRINSICS */
+    //     }
+    //     writeOffsetLeft = readOffsetLeft + firstIdx;
+    //     if (writeOffsetLeft >= delayBufferLength)
+    //         writeOffsetLeft -= delayBufferLength;
 
-    if (writeOffsetLeft + copyL >= delayBufferLength)
-    { // overflow
-        int firstNumCopy = delayBufferLength - writeOffsetLeft;
-        int secondNumCopy = copyL - firstNumCopy;
+    //     if (writeOffsetLeft + copyL >= delayBufferLength)
+    //     { // overflow
+    //         int firstNumCopy = delayBufferLength - writeOffsetLeft;
+    //         int secondNumCopy = copyL - firstNumCopy;
 
-        for (int channel = 0; channel < nCh; ++channel)
-        {
-            delayBufferLeft
-                .addFrom (channel, writeOffsetLeft, delayTempBuffer, channel, 0, firstNumCopy);
-            delayBufferLeft
-                .addFrom (channel, 0, delayTempBuffer, channel, firstNumCopy, secondNumCopy);
-        }
-    }
-    else
-    { // no overflow
-        for (int channel = 0; channel < nCh; ++channel)
-        {
-            delayBufferLeft.addFrom (channel, writeOffsetLeft, delayTempBuffer, channel, 0, copyL);
-        }
-    }
+    //         for (int channel = 0; channel < nCh; ++channel)
+    //         {
+    //             delayBufferLeft
+    //                 .addFrom (channel, writeOffsetLeft, delayTempBuffer, channel, 0, firstNumCopy);
+    //             delayBufferLeft
+    //                 .addFrom (channel, 0, delayTempBuffer, channel, firstNumCopy, secondNumCopy);
+    //         }
+    //     }
+    //     else
+    //     { // no overflow
+    //         for (int channel = 0; channel < nCh; ++channel)
+    //         {
+    //             delayBufferLeft.addFrom (channel, writeOffsetLeft, delayTempBuffer, channel, 0, copyL);
+    //         }
+    //     }
 
-    // ===== Right CHANNEL
+    //     // ===== Right CHANNEL
 
-    delayStep = (delayR - _delayR) / spb;
-    //calculate firstIdx and copyL
-    for (int i = 0; i < spb; ++i)
-    {
-        delay.set (i,
-                   i * 128 + _delayR + i * delayStep
-                       + *lfoDepthR * msToFractSmpls * LFORight.processSample (1.0f));
-    }
-    firstIdx =
-        (((int) *std::min_element (delay.getRawDataPointer(), delay.getRawDataPointer() + spb))
-         >> interpShift)
-        - interpOffset;
-    lastIdx =
-        (((int) *std::max_element (delay.getRawDataPointer(), delay.getRawDataPointer() + spb))
-         >> interpShift)
-        - interpOffset;
-    copyL = abs (firstIdx - lastIdx) + interpLength;
+    //     delayStep = (delayR - _delayR) / spb;
+    //     //calculate firstIdx and copyL
+    //     for (int i = 0; i < spb; ++i)
+    //     {
+    //         delay.set (i,
+    //                    i * 128 + _delayR + i * delayStep
+    //                        + *lfoDepthR * msToFractSmpls * LFORight.processSample (1.0f));
+    //     }
+    //     firstIdx =
+    //         (((int) *std::min_element (delay.getRawDataPointer(), delay.getRawDataPointer() + spb))
+    //          >> interpShift)
+    //         - interpOffset;
+    //     lastIdx =
+    //         (((int) *std::max_element (delay.getRawDataPointer(), delay.getRawDataPointer() + spb))
+    //          >> interpShift)
+    //         - interpOffset;
+    //     copyL = abs (firstIdx - lastIdx) + interpLength;
 
-    delayTempBuffer.clear (0, copyL);
+    //     delayTempBuffer.clear (0, copyL);
 
-    const float* const* readPtrArrR = delayInRight.getArrayOfReadPointers();
+    //     const float* const* readPtrArrR = delayInRight.getArrayOfReadPointers();
 
-    for (int i = 0; i < spb; ++i)
-    {
-        float integer;
-        float fraction = modff (delay[i], &integer);
-        int delayInt = (int) integer;
+    //     for (int i = 0; i < spb; ++i)
+    //     {
+    //         float integer;
+    //         float fraction = modff (delay[i], &integer);
+    //         int delayInt = (int) integer;
 
-        int interpCoeffIdx = delayInt & interpMask;
-        delayInt = delayInt >> interpShift;
-        int idx = delayInt - interpOffset - firstIdx;
+    //         int interpCoeffIdx = delayInt & interpMask;
+    //         delayInt = delayInt >> interpShift;
+    //         int idx = delayInt - interpOffset - firstIdx;
 
-#if JUCE_USE_SSE_INTRINSICS
-        __m128 interp = getInterpolatedLagrangeWeights (interpCoeffIdx, fraction);
+    // #if JUCE_USE_SSE_INTRINSICS
+    //         __m128 interp = getInterpolatedLagrangeWeights (interpCoeffIdx, fraction);
 
-        for (int ch = 0; ch < nCh; ++ch)
-        {
-            float* dest = delayTempBuffer.getWritePointer (ch, idx);
+    //         for (int ch = 0; ch < nCh; ++ch)
+    //         {
+    //             float* dest = delayTempBuffer.getWritePointer (ch, idx);
 
-            __m128 destSamples = _mm_loadu_ps (dest);
-            __m128 srcSample = _mm_set1_ps (readPtrArrR[ch][i]);
-            destSamples = _mm_add_ps (destSamples, _mm_mul_ps (interp, srcSample));
-            _mm_storeu_ps (dest, destSamples);
-        }
-#else /* !JUCE_USE_SSE_INTRINSICS */
-        float interp[4];
-        getInterpolatedLagrangeWeights (interpCoeffIdx, fraction, interp);
+    //             __m128 destSamples = _mm_loadu_ps (dest);
+    //             __m128 srcSample = _mm_set1_ps (readPtrArrR[ch][i]);
+    //             destSamples = _mm_add_ps (destSamples, _mm_mul_ps (interp, srcSample));
+    //             _mm_storeu_ps (dest, destSamples);
+    //         }
+    // #else /* !JUCE_USE_SSE_INTRINSICS */
+    //         float interp[4];
+    //         getInterpolatedLagrangeWeights (interpCoeffIdx, fraction, interp);
 
-        for (int ch = 0; ch < nCh; ++ch)
-        {
-            float* dest = delayTempBuffer.getWritePointer (ch, idx);
-            float src = readPtrArrR[ch][i];
-            dest[0] += interp[0] * src;
-            dest[1] += interp[1] * src;
-            dest[2] += interp[2] * src;
-            dest[3] += interp[3] * src;
-        }
-#endif /* JUCE_USE_SSE_INTRINSICS */
-    }
-    writeOffsetRight = readOffsetRight + firstIdx;
-    if (writeOffsetRight >= delayBufferLength)
-        writeOffsetRight -= delayBufferLength;
+    //         for (int ch = 0; ch < nCh; ++ch)
+    //         {
+    //             float* dest = delayTempBuffer.getWritePointer (ch, idx);
+    //             float src = readPtrArrR[ch][i];
+    //             dest[0] += interp[0] * src;
+    //             dest[1] += interp[1] * src;
+    //             dest[2] += interp[2] * src;
+    //             dest[3] += interp[3] * src;
+    //         }
+    // #endif /* JUCE_USE_SSE_INTRINSICS */
+    //     }
+    //     writeOffsetRight = readOffsetRight + firstIdx;
+    //     if (writeOffsetRight >= delayBufferLength)
+    //         writeOffsetRight -= delayBufferLength;
 
-    if (writeOffsetRight + copyL >= delayBufferLength)
-    { // overflow
-        int firstNumCopy = delayBufferLength - writeOffsetRight;
-        int secondNumCopy = copyL - firstNumCopy;
+    //     if (writeOffsetRight + copyL >= delayBufferLength)
+    //     { // overflow
+    //         int firstNumCopy = delayBufferLength - writeOffsetRight;
+    //         int secondNumCopy = copyL - firstNumCopy;
 
-        for (int channel = 0; channel < nCh; ++channel)
-        {
-            delayBufferRight
-                .addFrom (channel, writeOffsetRight, delayTempBuffer, channel, 0, firstNumCopy);
-            delayBufferRight
-                .addFrom (channel, 0, delayTempBuffer, channel, firstNumCopy, secondNumCopy);
-        }
-    }
-    else
-    { // no overflow
-        for (int channel = 0; channel < nCh; ++channel)
-        {
-            delayBufferRight
-                .addFrom (channel, writeOffsetRight, delayTempBuffer, channel, 0, copyL);
-        }
-    }
+    //         for (int channel = 0; channel < nCh; ++channel)
+    //         {
+    //             delayBufferRight
+    //                 .addFrom (channel, writeOffsetRight, delayTempBuffer, channel, 0, firstNumCopy);
+    //             delayBufferRight
+    //                 .addFrom (channel, 0, delayTempBuffer, channel, firstNumCopy, secondNumCopy);
+    //         }
+    //     }
+    //     else
+    //     { // no overflow
+    //         for (int channel = 0; channel < nCh; ++channel)
+    //         {
+    //             delayBufferRight
+    //                 .addFrom (channel, writeOffsetRight, delayTempBuffer, channel, 0, copyL);
+    //         }
+    //     }
 
-    // =============== UPDATE DELAY PARAMETERS =====
-    _delayL = delayL;
-    _delayR = delayR;
+    //     // =============== UPDATE DELAY PARAMETERS =====
+    //     _delayL = delayL;
+    //     _delayR = delayR;
 }
 
 //==============================================================================

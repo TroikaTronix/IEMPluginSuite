@@ -26,6 +26,7 @@
 
 #include "../../resources/AmbisonicRotator.h"
 #include "../../resources/AudioProcessorBase.h"
+#include "../../resources/OnePoleFilter.h"
 #include "../../resources/ambisonicTools.h"
 #include "../../resources/interpLagrangeWeights.h"
 
@@ -140,6 +141,10 @@ private:
     juce::OwnedArray<juce::IIRFilter> lowPassFiltersRight;
     juce::OwnedArray<juce::IIRFilter> highPassFiltersLeft;
     juce::OwnedArray<juce::IIRFilter> highPassFiltersRight;
+
+    juce::dsp::DelayLine<float, juce::dsp::DelayLineInterpolationTypes::Lagrange3rd> delayLineL;
+    OnePoleFilter<float> delayTimeInterpL;
+    float _delayInSamplesL;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (DualDelayAudioProcessor)
 };
