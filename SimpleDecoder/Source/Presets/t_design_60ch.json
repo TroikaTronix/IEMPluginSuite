@@ -1,9 +1,9 @@
 {
   "Name": "All-Round Ambisonic decoder (AllRAD) and loudspeaker layout",
-  "Description": "This configuration file was created with the IEM AllRADecoder v0.9.5 plug-in. 19 Jul 2024 1:21:15pm",
+  "Description": "This configuration file was created with the IEM AllRADecoder v0.9.5 plug-in. 8 Nov 2024 5:32:07pm",
   "Decoder": {
-    "Name": "t-design (degree 10)",
-    "Description": "A 7th order Ambisonics decoder for a t-design with degree 10.",
+    "Name": "Decoder",
+    "Description": "A 7th order Ambisonics decoder of a 10th order t-design (60 channels).",
     "ExpectedInputNormalization": "n3d",
     "Weights": "maxrE",
     "WeightsAlreadyApplied": false,
