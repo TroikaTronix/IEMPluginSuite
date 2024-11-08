@@ -125,7 +125,7 @@ MultiEncoderAudioProcessor::~MultiEncoderAudioProcessor()
 
 int MultiEncoderAudioProcessor::getNumPrograms()
 {
-    return 2;
+    return 6;
 }
 
 int MultiEncoderAudioProcessor::getCurrentProgram()
@@ -141,7 +141,19 @@ void MultiEncoderAudioProcessor::setCurrentProgram (int index)
         case 0:
             return;
         case 1:
-            preset = juce::String (Presets::t_design_10_json, Presets::t_design_10_jsonSize);
+            preset = juce::String (Presets::t_design_12ch_json, Presets::t_design_12ch_jsonSize);
+            break;
+        case 2:
+            preset = juce::String (Presets::t_design_24ch_json, Presets::t_design_24ch_jsonSize);
+            break;
+        case 3:
+            preset = juce::String (Presets::t_design_36ch_json, Presets::t_design_36ch_jsonSize);
+            break;
+        case 4:
+            preset = juce::String (Presets::t_design_48ch_json, Presets::t_design_48ch_jsonSize);
+            break;
+        case 5:
+            preset = juce::String (Presets::t_design_60ch_json, Presets::t_design_60ch_jsonSize);
             break;
 
         default:
@@ -159,7 +171,15 @@ const juce::String MultiEncoderAudioProcessor::getProgramName (int index)
         case 0:
             return "---";
         case 1:
-            return "t-design (degree 10)";
+            return "t-design (12 channels)";
+        case 2:
+            return "t-design (24 channels)";
+        case 3:
+            return "t-design (36 channels)";
+        case 4:
+            return "t-design (48 channels)";
+        case 5:
+            return "t-design (60 channels)";
 
         default:
             return {};
