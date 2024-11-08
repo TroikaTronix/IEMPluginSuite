@@ -79,71 +79,35 @@ private:
     //==============================================================================
     // parameters
     std::atomic<float>* dryGain;
-    std::atomic<float>* wetGainL;
-    std::atomic<float>* wetGainR;
-    std::atomic<float>* delayBPML;
-    std::atomic<float>* delayBPMR;
-    std::atomic<float>* delayMultL;
-    std::atomic<float>* delayMultR;
-    std::atomic<float>* syncL;
-    std::atomic<float>* syncR;
-    std::atomic<float>* yawL;
-    std::atomic<float>* yawR;
-    std::atomic<float>* pitchL;
-    std::atomic<float>* pitchR;
-    std::atomic<float>* rollL;
-    std::atomic<float>* rollR;
-    std::atomic<float>* LPcutOffL;
-    std::atomic<float>* LPcutOffR;
-    std::atomic<float>* HPcutOffL;
-    std::atomic<float>* HPcutOffR;
-    std::atomic<float>* feedbackL;
-    std::atomic<float>* feedbackR;
-    std::atomic<float>* xfeedbackL;
-    std::atomic<float>* xfeedbackR;
-    std::atomic<float>* lfoRateL;
-    std::atomic<float>* lfoRateR;
-    std::atomic<float>* lfoDepthL;
-    std::atomic<float>* lfoDepthR;
+    std::atomic<float>* wetGain[2];
+    std::atomic<float>* delayBPM[2];
+    std::atomic<float>* delayMult[2];
+    std::atomic<float>* sync[2];
+    std::atomic<float>* yaw[2];
+    std::atomic<float>* pitch[2];
+    std::atomic<float>* roll[2];
+    std::atomic<float>* LPcutOff[2];
+    std::atomic<float>* HPcutOff[2];
+    std::atomic<float>* feedback[2];
+    std::atomic<float>* xfeedback[2];
+    std::atomic<float>* lfoRate[2];
+    std::atomic<float>* lfoDepth[2];
     std::atomic<float>* orderSetting;
 
-    float _delayL, _delayR;
-
-    juce::AudioBuffer<float> AudioIN;
-
-    juce::AudioBuffer<float> delayBufferLeft;
-    juce::AudioBuffer<float> delayBufferRight;
-    juce::AudioBuffer<float> delayOutLeft;
-    juce::AudioBuffer<float> delayOutRight;
-    juce::AudioBuffer<float> delayInLeft;
-    juce::AudioBuffer<float> delayInRight;
-
-    juce::AudioBuffer<float> delayTempBuffer;
-
-    juce::Array<float> delay;
-    juce::Array<int> interpCoeffIdx;
-    juce::Array<int> idx;
-
-    juce::dsp::Oscillator<float> LFOLeft, LFORight;
-
-    int writeOffsetLeft;
-    int writeOffsetRight;
-    int readOffsetLeft;
-    int readOffsetRight;
-
-    float* readPointer;
-
+    juce::dsp::Oscillator<float> LFO[2];
     AmbisonicRotator rotator[2];
 
-    float feedback = 0.8f;
+    // float feedback = 0.8f;
 
     juce::OwnedArray<juce::IIRFilter> lowPassFiltersLeft;
     juce::OwnedArray<juce::IIRFilter> lowPassFiltersRight;
     juce::OwnedArray<juce::IIRFilter> highPassFiltersLeft;
     juce::OwnedArray<juce::IIRFilter> highPassFiltersRight;
 
-    juce::dsp::DelayLine<float, juce::dsp::DelayLineInterpolationTypes::Lagrange3rd> delayLineL;
-    OnePoleFilter<float> delayTimeInterpL;
+    juce::dsp::DelayLine<float, juce::dsp::DelayLineInterpolationTypes::Lagrange3rd> delayLine[2];
+    juce::AudioBuffer<float> delayBuffer[2];
+    juce::AudioBuffer<float> delayOutBuffer[2];
+    OnePoleFilter<float> delayTimeInterp[2];
     float _delayInSamplesL;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (DualDelayAudioProcessor)
