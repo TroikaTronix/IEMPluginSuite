@@ -70,6 +70,8 @@ DualDelayAudioProcessor::DualDelayAudioProcessor() :
         lfoRate[i] = parameters.getRawParameterValue ("lfoRate" + side);
         lfoDepth[i] = parameters.getRawParameterValue ("lfoDepth" + side);
 
+        LFO[i].initialise ([] (float phi) { return std::sin (phi); });
+
         rotator[i].updateParams (*yaw[i], *pitch[i], *roll[i], static_cast<int> (*orderSetting));
     }
 
@@ -178,6 +180,7 @@ void DualDelayAudioProcessor::processBlock (juce::AudioSampleBuffer& buffer,
     const int nCh = squares[workingOrder + 1];
     const double fs = getSampleRate();
     const int spb = buffer.getNumSamples();
+    const float msToSamples = fs / 1000.0f;
 
     // Sync delay time to host BPM
     juce::Optional<double> hostBPM;
@@ -247,10 +250,14 @@ void DualDelayAudioProcessor::processBlock (juce::AudioSampleBuffer& buffer,
     // ========== Add and get samples from delay line ==========
     for (int i = 0; i < 2; ++i)
     {
+        LFO[i].setFrequency (*lfoRate[i]);
+
         // Cycle through it on sample basis for smooth delay time changes
         for (int sample = 0; sample < spb; ++sample)
         {
-            float currentDelay = delayTimeInterp[i].process();
+            float currentDelay = delayTimeInterp[i].process()
+                                 + LFO[i].processSample (1.0f) * msToSamples * *lfoDepth[i];
+
             for (int channel = 0; channel < nCh; ++channel)
             {
                 // Push samples into delay line
