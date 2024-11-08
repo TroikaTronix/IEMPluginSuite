@@ -42,7 +42,7 @@ for order in orders:
         "Name": f"t-design ({nChannels} positions)",
         "Description": f"t-design of degree {order} ({nChannels} positions), which can be used to decode Ambisonic signals, process them with non-Ambisonic effects, and encode them again.",
         "LoudspeakerLayout": {
-            "Name": "t-design ({nChannels} positions)",
+            "Name": f"t-design ({nChannels} positions)",
             "Description": f"t-design of degree {order} ({nChannels} positions), which can be used to decode Ambisonic signals, process them with non-Ambisonic effects, and encode them again.",
             "Loudspeakers": ls,
         },

@@ -2,7 +2,7 @@
   "Name": "t-design (48 positions)",
   "Description": "t-design of degree 9 (48 positions), which can be used to decode Ambisonic signals, process them with non-Ambisonic effects, and encode them again.",
   "LoudspeakerLayout": {
-    "Name": "t-design ({nChannels} positions)",
+    "Name": "t-design (48 positions)",
     "Description": "t-design of degree 9 (48 positions), which can be used to decode Ambisonic signals, process them with non-Ambisonic effects, and encode them again.",
     "Loudspeakers": [
       {
