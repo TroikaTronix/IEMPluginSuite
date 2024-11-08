@@ -5,7 +5,7 @@
     "Name": "Decoder",
     "Description": "A 7th order Ambisonics decoder of a 9th order t-design (48 channels).",
     "ExpectedInputNormalization": "n3d",
-    "Weights": "maxrE",
+    "Weights": "none",
     "WeightsAlreadyApplied": false,
     "Matrix": [
       [

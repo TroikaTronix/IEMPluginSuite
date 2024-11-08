@@ -3,9 +3,9 @@
   "Description": "This configuration file was created with the IEM AllRADecoder v0.9.5 plug-in. 8 Nov 2024 5:30:02pm",
   "Decoder": {
     "Name": "Decoder",
-    "Description": "A 7th order Ambisonics decoder using the AllRAD approach.",
+    "Description": "A 7th order Ambisonics decoder of a 4th order t-design (12 channels).",
     "ExpectedInputNormalization": "n3d",
-    "Weights": "maxrE",
+    "Weights": "none",
     "WeightsAlreadyApplied": false,
     "Matrix": [
       [
