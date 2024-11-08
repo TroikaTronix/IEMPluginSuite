@@ -1,8 +1,8 @@
 /*
  ==============================================================================
  This file is part of the IEM plug-in suite.
- Author: Daniel Rudrich
- Copyright (c) 2017 - Institute of Electronic Music and Acoustics (IEM)
+ Author: Daniel Rudrich, Felix Holzmüller
+ Copyright (c) 2017, 2024 - Institute of Electronic Music and Acoustics (IEM)
  https://iem.at
 
  The IEM plug-in suite is free software: you can redistribute it and/or modify
@@ -28,7 +28,6 @@
 #include "../../resources/AudioProcessorBase.h"
 #include "../../resources/OnePoleFilter.h"
 #include "../../resources/ambisonicTools.h"
-#include "../../resources/interpLagrangeWeights.h"
 
 #define ProcessorClass DualDelayAudioProcessor
 
@@ -68,6 +67,7 @@ public:
 
     void parameterChanged (const juce::String& parameterID, float newValue) override;
     void updateBuffers() override;
+    void updateFilters (int idx);
 
     std::tuple<float, float> msToBPM (float ms);
 
@@ -97,18 +97,15 @@ private:
     juce::dsp::Oscillator<float> LFO[2];
     AmbisonicRotator rotator[2];
 
-    // float feedback = 0.8f;
-
-    juce::OwnedArray<juce::IIRFilter> lowPassFiltersLeft;
-    juce::OwnedArray<juce::IIRFilter> lowPassFiltersRight;
-    juce::OwnedArray<juce::IIRFilter> highPassFiltersLeft;
-    juce::OwnedArray<juce::IIRFilter> highPassFiltersRight;
+    juce::OwnedArray<juce::IIRFilter> lowPassFilters[2];
+    juce::OwnedArray<juce::IIRFilter> highPassFilters[2];
 
     juce::dsp::DelayLine<float, juce::dsp::DelayLineInterpolationTypes::Lagrange3rd> delayLine[2];
     juce::AudioBuffer<float> delayBuffer[2];
     juce::AudioBuffer<float> delayOutBuffer[2];
     OnePoleFilter<float> delayTimeInterp[2];
-    float _delayInSamplesL;
+
+    bool updateFilterCoeffs = false;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (DualDelayAudioProcessor)
 };
