@@ -124,7 +124,7 @@ private:
 
     double lastTap = 0.0;
     double tapIntervalMS = 0.0;
-    const double tapBeta = 0.5;
+    const double tapBeta = 0.8;
     const double minTapIntervalMS = 100.0;
     const double maxTapIntervalMS = 2000.0;
 

@@ -716,6 +716,41 @@ void DualDelayAudioProcessorEditor::buttonClicked (juce::Button* button)
     {
         updateDelayUnit (! btTimeMode.getToggleState());
     }
+
+    if (button == &tbLeftSync)
+    {
+        if (tbLeftSync.getToggleState())
+        {
+            SlLeftDelayMS.setVisible (false);
+            SlLeftDelay.setVisible (false);
+            cbLeftDelayMult.setVisible (true);
+            lbDelL.setVisible (false);
+        }
+        else
+        {
+            SlLeftDelayMS.setVisible (false);
+            SlLeftDelay.setVisible (true);
+            cbLeftDelayMult.setVisible (true);
+            lbDelL.setVisible (true);
+        }
+    }
+    else if (button == &tbRightSync)
+    {
+        if (tbRightSync.getToggleState())
+        {
+            SlRightDelayMS.setVisible (false);
+            SlRightDelay.setVisible (false);
+            cbRightDelayMult.setVisible (true);
+            lbDelR.setVisible (false);
+        }
+        else
+        {
+            SlRightDelayMS.setVisible (false);
+            SlRightDelay.setVisible (true);
+            cbRightDelayMult.setVisible (true);
+            lbDelR.setVisible (true);
+        }
+    }
 }
 
 void DualDelayAudioProcessorEditor::sliderValueChanged (juce::Slider* slider)
@@ -758,24 +793,30 @@ void DualDelayAudioProcessorEditor::comboBoxChanged (juce::ComboBox* comboBox)
     {
         float ms = (60000.0f / SlLeftDelay.getValue())
                    / std::exp2f (comboBox->getItemId (comboBox->getSelectedItemIndex()) - 2);
-        SlLeftDelayMS.setValue (ms, juce::sendNotification);
+        SlLeftDelayMS.setValue (ms, juce::dontSendNotification);
     }
     else if (comboBox == &cbRightDelayMult)
     {
         float ms = (60000.0f / SlRightDelay.getValue())
                    / std::exp2f (comboBox->getItemId (comboBox->getSelectedItemIndex()) - 2);
-        SlRightDelayMS.setValue (ms, juce::sendNotification);
+        SlRightDelayMS.setValue (ms, juce::dontSendNotification);
     }
 }
 
 void DualDelayAudioProcessorEditor::updateDelayUnit (bool isBPM)
 {
-    SlLeftDelay.setVisible (isBPM);
-    SlRightDelay.setVisible (isBPM);
-    cbLeftDelayMult.setVisible (isBPM);
-    cbRightDelayMult.setVisible (isBPM);
-    SlRightDelayMS.setVisible (! isBPM);
-    SlLeftDelayMS.setVisible (! isBPM);
+    if (! tbLeftSync.getToggleState())
+    {
+        SlLeftDelayMS.setVisible (! isBPM);
+        SlLeftDelay.setVisible (isBPM);
+        cbLeftDelayMult.setVisible (isBPM);
+    }
+    if (! tbRightSync.getToggleState())
+    {
+        SlRightDelayMS.setVisible (! isBPM);
+        SlRightDelay.setVisible (isBPM);
+        cbRightDelayMult.setVisible (isBPM);
+    }
     btTimeMode.setButtonText (isBPM ? "BPM" : "ms");
 }
 
