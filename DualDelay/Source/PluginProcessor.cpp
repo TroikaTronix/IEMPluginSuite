@@ -216,9 +216,11 @@ void DualDelayAudioProcessor::processBlock (juce::AudioSampleBuffer& buffer,
         const float newDelay = fs * 60.0f / (*delayBPM[i] * *delayMult[i]);
         delayTimeInterp[i].setTargetValue (newDelay);
 
+        // ========== Fill input buffer for delay line ==========
         // Copy dry input to delay buffer
         delayBuffer[i].makeCopyOf (buffer, true);
 
+        // Copy feedback and crossfeed to delay buffer
         for (int channel = 0; channel < nCh; ++channel)
         {
             delayBuffer[i].addFrom (channel,
@@ -238,52 +240,48 @@ void DualDelayAudioProcessor::processBlock (juce::AudioSampleBuffer& buffer,
                 juce::Decibels::decibelsToGain (xfeedback[otherSide]->load(), -59.91f));
         }
 
+        // TODO: Apply filter
+        // TODO: Apply rotation
+    }
+
+    // ========== Add and get samples from delay line ==========
+    for (int i = 0; i < 2; ++i)
+    {
+        // Cycle through it on sample basis for smooth delay time changes
         for (int sample = 0; sample < spb; ++sample)
         {
             float currentDelay = delayTimeInterp[i].process();
             for (int channel = 0; channel < nCh; ++channel)
             {
-                const int otherSite = (i + 1) % 2;
-                // Add input to delay line
+                // Push samples into delay line
                 delayLine[i].pushSample (channel, delayBuffer[i].getSample (channel, sample));
 
-                // Add dely line output to output buffer
-                delayBuffer[i].setSample (channel,
-                                          sample,
-                                          delayLine[i].popSample (channel, currentDelay));
+                // Pop samples from delay line to output buffer
+                delayOutBuffer[i].setSample (channel,
+                                             sample,
+                                             delayLine[i].popSample (channel, currentDelay));
             }
         }
     }
 
+    // ========== Calculate output
     // Apply gain to direct signal
     buffer.applyGain (juce::Decibels::decibelsToGain (dryGain->load(), -59.91f));
 
     // Add delayed signal to output buffer
-    for (int channel = 0; channel < nCh; ++channel)
+    for (int i = 0; i < 2; ++i)
     {
-        buffer.addFrom (channel,
-                        0,
-                        delayBuffer[0],
-                        channel,
-                        0,
-                        spb,
-                        juce::Decibels::decibelsToGain (wetGain[0]->load(), -59.91f));
-
-        buffer.addFrom (channel,
-                        0,
-                        delayBuffer[1],
-                        channel,
-                        0,
-                        spb,
-                        juce::Decibels::decibelsToGain (wetGain[1]->load(), -59.91f));
+        for (int channel = 0; channel < nCh; ++channel)
+        {
+            buffer.addFrom (channel,
+                            0,
+                            delayOutBuffer[i],
+                            channel,
+                            0,
+                            spb,
+                            juce::Decibels::decibelsToGain (wetGain[i]->load(), -59.91f));
+        }
     }
-
-    // Update feedback delay line
-    delayBuffer[0].makeCopyOf (buffer, true);
-    delayBuffer[0].applyGain (juce::Decibels::decibelsToGain (feedback[0]->load(), -59.91f));
-
-    delayBuffer[1].makeCopyOf (buffer, true);
-    delayBuffer[1].applyGain (juce::Decibels::decibelsToGain (feedback[1]->load(), -59.91f));
 
     // LFOLeft.setFrequency (*lfoRateL);
     // LFORight.setFrequency (*lfoRateR);
@@ -833,8 +831,8 @@ std::tuple<float, float> DualDelayAudioProcessor::msToBPM (const float ms)
     }
     else if (transformedBPM < minBPM)
     {
-        float transformedBPM_tmp =
-            juce::jmax (transformedBPM / minMult, minBPM); // Clip values to avoid division by zero
+        float transformedBPM_tmp = juce::jmax (transformedBPM / minMult,
+                                               minBPM); // Clip values to avoid division by zero
 
         mult = static_cast<float> (
             juce::nextPowerOfTwo (static_cast<int> (floor (transformedBPM / minBPM))));
