@@ -442,7 +442,6 @@ public:
                                                   juce::ValueTree& elements,
                                                   juce::UndoManager* undoManager)
     {
-        jassert (parsedJson != nullptr);
         // looks for a 'GenericLayout' or 'LoudspeakerLayout' object
         juce::var genericLayout;
         if (parsedJson.hasProperty ("GenericLayout"))

@@ -22,7 +22,11 @@ juce_add_binary_data (MultiEncoderPresets
     HEADER_NAME "Presets.h"
     NAMESPACE Presets
     SOURCES
-    Source/Presets/t_design_10.json)
+    ../_configurationFiles/t_design_12ch.json
+    ../_configurationFiles/t_design_24ch.json
+    ../_configurationFiles/t_design_36ch.json
+    ../_configurationFiles/t_design_48ch.json
+    ../_configurationFiles/t_design_60ch.json)
 
 foreach (TARGET IN LISTS PLUGIN_TARGET)
     juce_generate_juce_header(${TARGET})

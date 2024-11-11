@@ -32,7 +32,11 @@ juce_add_binary_data (SimpleDecoderPresets
     Source/Presets/MSDecoder.json
     Source/Presets/Produktionsstudio.json
     Source/Presets/Quadraphonic.json
-    Source/Presets/t_design_10.json)
+    Source/Presets/t_design_12ch.json
+    Source/Presets/t_design_24ch.json
+    Source/Presets/t_design_36ch.json
+    Source/Presets/t_design_48ch.json
+    Source/Presets/t_design_60ch.json)
 
 foreach (TARGET IN LISTS PLUGIN_TARGET)
     juce_generate_juce_header(${TARGET})

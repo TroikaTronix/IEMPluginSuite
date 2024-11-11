@@ -1,9 +1,9 @@
 {
-  "Name": "t-design (degree 10)",
-  "Description": "t-design of degree 10, which can be used to decode Ambisonic signals, process them with non-Ambisonic effects, and encode them again.",
+  "Name": "t-design (60 positions)",
+  "Description": "t-design of degree 10 (60 positions), which can be used to decode Ambisonic signals, process them with non-Ambisonic effects, and encode them again.",
   "LoudspeakerLayout": {
-    "Name": "t-design (degree 10)",
-    "Description": "t-design of degree 10, which can be used to decode Ambisonic signals, process them with non-Ambisonic effects, and encode them again.",
+    "Name": "t-design (60 positions)",
+    "Description": "t-design of degree 10 (60 positions), which can be used to decode Ambisonic signals, process them with non-Ambisonic effects, and encode them again.",
     "Loudspeakers": [
       {
         "Azimuth": 144.08648885724392,

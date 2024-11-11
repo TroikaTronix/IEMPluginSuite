@@ -146,7 +146,7 @@ void SimpleDecoderAudioProcessor::setLastDir (juce::File newLastDir)
 //==============================================================================
 int SimpleDecoderAudioProcessor::getNumPrograms()
 {
-    return 12;
+    return 16;
 }
 
 int SimpleDecoderAudioProcessor::getCurrentProgram()
@@ -164,46 +164,48 @@ void SimpleDecoderAudioProcessor::setCurrentProgram (int index)
         case 1:
             preset = juce::String (Presets::CUBE_json, Presets::CUBE_jsonSize);
             break;
-
         case 2:
             preset =
                 juce::String (Presets::Produktionsstudio_json, Presets::Produktionsstudio_jsonSize);
             break;
-
         case 3:
             preset = juce::String (Presets::MSDecoder_json, Presets::MSDecoder_jsonSize);
             break;
-
         case 4:
             preset = juce::String (Presets::Quadraphonic_json, Presets::Quadraphonic_jsonSize);
             break;
-
         case 5:
             preset = juce::String (Presets::_5point1_json, Presets::_5point1_jsonSize);
             break;
-
         case 6:
             preset = juce::String (Presets::_7point1_json, Presets::_7point1_jsonSize);
             break;
-
         case 7:
             preset = juce::String (Presets::_5point1point4_json, Presets::_5point1point4_jsonSize);
             break;
-
         case 8:
             preset = juce::String (Presets::_7point1point4_json, Presets::_7point1point4_jsonSize);
             break;
-
         case 9:
             preset = juce::String (Presets::Cube_8ch_json, Presets::Cube_8ch_jsonSize);
             break;
-
         case 10:
             preset = juce::String (Presets::_22_2_NHK_json, Presets::_22_2_NHK_jsonSize);
             break;
-
         case 11:
-            preset = juce::String (Presets::t_design_10_json, Presets::t_design_10_jsonSize);
+            preset = juce::String (Presets::t_design_12ch_json, Presets::t_design_12ch_jsonSize);
+            break;
+        case 12:
+            preset = juce::String (Presets::t_design_24ch_json, Presets::t_design_24ch_jsonSize);
+            break;
+        case 13:
+            preset = juce::String (Presets::t_design_36ch_json, Presets::t_design_36ch_jsonSize);
+            break;
+        case 14:
+            preset = juce::String (Presets::t_design_48ch_json, Presets::t_design_48ch_jsonSize);
+            break;
+        case 15:
+            preset = juce::String (Presets::t_design_60ch_json, Presets::t_design_60ch_jsonSize);
             break;
 
         default:
@@ -241,7 +243,15 @@ const juce::String SimpleDecoderAudioProcessor::getProgramName (int index)
         case 10:
             return "22.2 NHK";
         case 11:
-            return "t-design (degree 10)";
+            return "t-design (12 channels)";
+        case 12:
+            return "t-design (24 channels)";
+        case 13:
+            return "t-design (36 channels)";
+        case 14:
+            return "t-design (48 channels)";
+        case 15:
+            return "t-design (60 channels)";
 
         default:
             return {};
