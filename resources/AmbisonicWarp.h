@@ -41,13 +41,13 @@ public:
 
     enum ElevationWarpType
     {
-        Poles, // Warp from/towards poles
+        Pole, // Warp from/towards pole
         Equator // Warp from/towards equator
 
     };
 
     AmbisonicWarp (AzimuthWarpType azWarpType = AzimuthWarpType::TwoPoint,
-                   ElevationWarpType elWarpType = ElevationWarpType::Equator,
+                   ElevationWarpType elWarpType = ElevationWarpType::Pole,
                    float azWarpFactor = 0.0f,
                    float elWarpFactor = 0.0f,
                    int workingOrder = 7)
@@ -128,14 +128,15 @@ private:
                                                       el_orig);
 
             // Get warped angle and de-emphasis gain
-            auto [el_warped, el_g] = (_elWarpType == ElevationWarpType::Poles)
-                                         ? warpToPoles (el_orig, _elWarpFactor)
+            auto [el_warped, el_g] = (_elWarpType == ElevationWarpType::Pole)
+                                         ? warpToPole (el_orig, _elWarpFactor)
                                          : warpToEquator (el_orig, _elWarpFactor);
 
+            // Use same warp functions for azimuth, just modify in/output
             float az_warped, az_g;
             if (_azWarpType == AzimuthWarpType::OnePoint)
             {
-                auto [az_tmp, az_g] = warpToEquator (az_orig * 0.5f, _azWarpFactor);
+                auto [az_tmp, az_g] = warpToEquator (az_orig * 0.5f, -_azWarpFactor);
                 az_warped = az_tmp * 2.0f;
             }
             else
@@ -143,7 +144,7 @@ private:
                 float in_sign = (az_orig < 0.0f) ? -1.0f : 1.0f;
                 float az_in_tf = (az_orig - 0.5f * juce::MathConstants<float>::pi) * in_sign;
 
-                auto [az_tmp, az_g] = warpToEquator (az_in_tf, -_azWarpFactor);
+                auto [az_tmp, az_g] = warpToEquator (az_in_tf, _azWarpFactor);
                 az_warped = az_tmp + 0.5f * juce::MathConstants<float>::pi * in_sign;
             }
 
@@ -154,6 +155,7 @@ private:
             // Calculate SH coefficients for warped direction
             SHEval (maxOrder, warped_cart, YH.getRawDataPointer() + p * 64, false);
 
+            // FIXME: Double-check gain
             // for (int r = 0; r < maxOrder; ++r)
             //     YH (p, r) *= el_g * az_g;
         }
@@ -161,7 +163,7 @@ private:
         _T = _Y * YH;
     }
 
-    std::tuple<float, float> warpToPoles (const float angleInRad, const float alpha)
+    std::tuple<float, float> warpToPole (const float angleInRad, const float alpha)
     {
         float mu = std::sin (angleInRad);
 
