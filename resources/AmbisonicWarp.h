@@ -47,9 +47,9 @@ public:
     };
 
     AmbisonicWarp (AzimuthWarpType azWarpType = AzimuthWarpType::Sides,
-                   ElevationWarpType elWarpType = ElevationWarpType::Poles,
+                   ElevationWarpType elWarpType = ElevationWarpType::Equator,
                    float azWarpFactor = 0.0f,
-                   float elWarpFactor = 0.5f,
+                   float elWarpFactor = -0.5f,
                    int workingOrder = 7)
     {
         _azWarpType = azWarpType;
@@ -117,6 +117,7 @@ private:
     {
         // TODO: Implement warping to equator
         // TODO: Implement azimuth warping
+        // TODO: Use dsp context
         juce::dsp::Matrix<float> YH = juce::dsp::Matrix<float> (tDesignN, maxChannels);
 
         for (int p = 0; p < tDesignN; ++p)
@@ -136,23 +137,45 @@ private:
             if (_elWarpType == ElevationWarpType::Poles)
             {
                 // Get warped elevation
-                el_warped = std::asin ((mu - _elWarpFactor) / (1 - _elWarpFactor * mu));
+                el_warped = std::asin ((mu - _elWarpFactor) / (1.0f - _elWarpFactor * mu));
 
                 // Get post-emphasis gain
-                // TODO: Check formula
-                g = (1.0f + _elWarpFactor * mu) / std::sqrt (1.0f - _elWarpFactor * _elWarpFactor);
+                g = (1.0f - _elWarpFactor * mu) / std::sqrt (1.0f - _elWarpFactor * _elWarpFactor);
+            }
+            else if (_elWarpType == ElevationWarpType::Equator)
+            {
+                if (_elWarpFactor == 0.0f)
+                    el_warped = el_orig;
+
+                else
+                {
+                    float absalpha = std::abs (_elWarpFactor);
+                    g = ((1.0f - absalpha * mu * mu)
+                         / std::sqrt ((1.0f - absalpha) * (1.0f + absalpha * mu * mu)));
+
+                    if (_elWarpFactor < 0.0f)
+                    {
+                        el_warped = std::asin (((absalpha - 1.0f)
+                                                + std::sqrt ((absalpha - 1.0f) * (absalpha - 1.0f)
+                                                             + 4.0f * absalpha * mu * mu))
+                                               / (2.0f * absalpha * mu));
+                    }
+                    else
+                    {
+                        el_warped =
+                            std::asin ((1.0f - absalpha) * mu / (1.0f - absalpha * mu * mu));
+                        g = 1.0f / g;
+                    }
+                }
             }
 
-            const float el_warped_c = el_warped;
-            const float az_warped_c = az_warped;
-
             juce::Vector3D<float> warped_cart =
-                Conversions<float>::sphericalToCartesian (az_warped_c, el_warped_c);
+                Conversions<float>::sphericalToCartesian (az_warped, el_warped);
 
             SHEval (maxOrder, warped_cart, YH.getRawDataPointer() + p * 64, false);
 
             for (int r = 0; r < maxOrder; ++r)
-                YH (r, p) *= g;
+                YH (p, r) *= g;
         }
 
         _T = _Y * YH;
