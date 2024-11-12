@@ -53,17 +53,24 @@ public:
         _azWarpType = azWarpType;
         _elWarpType = elWarpType;
 
-        juce::dsp::Matrix<float> tmpEncoderMatrix (tDesignN, 64);
+        // Calculate decoder matrix
         for (int p = 0; p < tDesignN; ++p)
+        {
             SHEval (maxOrder,
                     tDesignX[p],
                     tDesignY[p],
                     tDesignZ[p],
-                    tmpEncoderMatrix.getRawDataPointer() + p * 64,
+                    _Y.getRawDataPointer() + p * 64,
                     false);
+        }
+        _Y *= 1.0f / decodeCorrection (maxOrder);
+
+        calculateWarpingMatrix();
     }
 
 private:
+    void calculateWarpingMatrix() {}
+
     const int maxOrder = 7;
     const int maxChannels = squares[maxOrder + 1];
 
@@ -72,6 +79,6 @@ private:
 
     float _azWarpFactor, _elWarpFactor;
 
-    juce::dsp::Matrix<float> decoderMatrix = juce::dsp::Matrix<float> (maxChannels, tDesignN);
-    juce::dsp::Matrix<float> warpingMatrix = juce::dsp::Matrix<float> (maxChannels, maxChannels);
+    juce::dsp::Matrix<float> _Y = juce::dsp::Matrix<float> (tDesignN, maxChannels);
+    juce::dsp::Matrix<float> _T = juce::dsp::Matrix<float> (maxChannels, maxChannels);
 };
