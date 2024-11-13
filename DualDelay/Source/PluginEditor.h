@@ -101,17 +101,22 @@ private:
     // elements for right side
     DoubleSlider dblSlRightFilter;
     ReverseSlider SlRightYaw, SlRightPitch, SlRightRoll;
+    ReverseSlider SlRightWarpFactorAz, SlRightWarpFactorEl;
     ReverseSlider SlRightDelay, SlRightDelayMS, SlRightDelayMult, SlRightLfoRate, SlRightLfoDepth,
         SlRightFb, SlRightCrossFb, SlRightGain;
+    juce::ComboBox cbRightTransfromMode, cbRightWarpTypeAz, cbRightWarpTypeEl;
     juce::ToggleButton tbRightSync;
     juce::TextButton btRightTap;
 
     std::unique_ptr<SliderAttachment> dblSlRightFilterHpAttachment, dblSlRightFilterLpAttachment;
     std::unique_ptr<SliderAttachment> SlRightYawAttachment, SlRightPitchAttachment,
         SlRightRollAttachment;
+    std::unique_ptr<SliderAttachment> SlRightWarpFactorAzAttachment, SlRightWarpFactorElAttachment;
     std::unique_ptr<SliderAttachment> SlRightDelayAttachment, SlRightDelayMultAttachment,
         SlRightLfoRateAttachment, SlRightLfoDepthAttachment, SlRightFbAttachment,
         SlRightCrossFbAttachment, SlRightGainAttachment;
+    std::unique_ptr<ComboBoxAttachment> cbRightTransfromModeAttachment, cbRightWarpTypeAzAttachment,
+        cbRightWarpTypeElAttachment;
     std::unique_ptr<ButtonAttachment> btRightSyncAttachment;
 
     juce::TextButton btTimeMode;
@@ -119,7 +124,8 @@ private:
     // labels and groups
     SimpleLabel lbYawL, lbPitchL, lbRollL, lbDelL, lbDelMultL, lbFbL, lbXFbL, lbWarpFactorAzL,
         lbAzModeL, lbElModeL, lbWarpFactorElL;
-    SimpleLabel lbYawR, lbPitchR, lbRollR, lbDelR, lbDelMultR, lbFbR, lbXFbR;
+    SimpleLabel lbYawR, lbPitchR, lbRollR, lbDelR, lbDelMultR, lbFbR, lbXFbR, lbWarpFactorAzR,
+        lbAzModeR, lbElModeR, lbWarpFactorElR;
     SimpleLabel lbGainL, lbGainR, lbGainDry;
     TripleLabel lbLfoL, lbLfoR, lbFilterL, lbFilterR;
 
