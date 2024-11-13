@@ -76,6 +76,10 @@ DualDelayAudioProcessor::DualDelayAudioProcessor() :
         parameters.addParameterListener ("yaw" + side, this);
         parameters.addParameterListener ("pitch" + side, this);
         parameters.addParameterListener ("roll" + side, this);
+        parameters.addParameterListener ("warpModeAz" + side, this);
+        parameters.addParameterListener ("warpModeEl" + side, this);
+        parameters.addParameterListener ("warpFactorAz" + side, this);
+        parameters.addParameterListener ("warpFactorEl" + side, this);
         parameters.addParameterListener ("lfoRate" + side, this);
         parameters.addParameterListener ("HPcutOff" + side, this);
         parameters.addParameterListener ("LPcutOff" + side, this);
@@ -430,6 +434,9 @@ void DualDelayAudioProcessor::parameterChanged (const juce::String& parameterID,
         userChangedIOSettings = true;
         rotator[0].updateParams (*yaw[0], *pitch[0], *roll[0], static_cast<int> (newValue));
         rotator[1].updateParams (*yaw[1], *pitch[1], *roll[1], static_cast<int> (newValue));
+
+        warp[1].setWorkingOrder (static_cast<int> (newValue));
+        warp[0].setWorkingOrder (static_cast<int> (newValue));
     }
     const int currentOrder = static_cast<int> (*orderSetting);
 
@@ -443,7 +450,15 @@ void DualDelayAudioProcessor::parameterChanged (const juce::String& parameterID,
                                        *roll[sideIdx],
                                        currentOrder);
 
-    if (parameterID.startsWith ("HPcutOff") || parameterID.startsWith ("LPcutOff"))
+    else if (parameterID == "warpmodeAz" + side || parameterID == "warpmodeEl" + side
+             || parameterID == "warpFactorAz" + side || parameterID == "warpFactorEl" + side)
+        warp[sideIdx].updateParams (
+            AmbisonicWarp::AzimuthWarpType (juce::roundToInt (warpModeAz[sideIdx]->load())),
+            AmbisonicWarp::ElevationWarpType (juce::roundToInt (warpModeEl[sideIdx]->load())),
+            *warpFactorAz[sideIdx],
+            *warpFactorEl[sideIdx]);
+
+    else if (parameterID.startsWith ("HPcutOff") || parameterID.startsWith ("LPcutOff"))
     {
         updateFilters (sideIdx);
     }
@@ -801,7 +816,7 @@ std::vector<std::unique_ptr<juce::RangedAudioParameter>>
         "",
         juce::NormalisableRange<float> (-0.9f, 0.9f, 0.01f),
         0.0f,
-        [] (float value) { return juce::String (value, 0); },
+        [] (float value) { return juce::String (value, 2); },
         nullptr));
     params.push_back (OSCParameterInterface::createParameterTheOldWay (
         "warpFactorElL",
@@ -809,7 +824,7 @@ std::vector<std::unique_ptr<juce::RangedAudioParameter>>
         "",
         juce::NormalisableRange<float> (-0.9f, 0.9f, 0.01f),
         0.0f,
-        [] (float value) { return juce::String (value, 0); },
+        [] (float value) { return juce::String (value, 2); },
         nullptr));
 
     params.push_back (OSCParameterInterface::createParameterTheOldWay (
@@ -818,7 +833,7 @@ std::vector<std::unique_ptr<juce::RangedAudioParameter>>
         "",
         juce::NormalisableRange<float> (-0.9f, 0.9f, 0.01f),
         0.0f,
-        [] (float value) { return juce::String (value, 0); },
+        [] (float value) { return juce::String (value, 2); },
         nullptr));
     params.push_back (OSCParameterInterface::createParameterTheOldWay (
         "warpFactorElR",
@@ -826,7 +841,7 @@ std::vector<std::unique_ptr<juce::RangedAudioParameter>>
         "",
         juce::NormalisableRange<float> (-0.9f, 0.9f, 0.01f),
         0.0f,
-        [] (float value) { return juce::String (value, 0); },
+        [] (float value) { return juce::String (value, 2); },
         nullptr));
 
     params.push_back (OSCParameterInterface::createParameterTheOldWay (

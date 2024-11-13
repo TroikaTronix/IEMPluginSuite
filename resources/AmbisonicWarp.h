@@ -144,7 +144,7 @@ public:
         _azWarpFactor = azWarpFactor;
         _elWarpFactor = elWarpFactor;
 
-        startTimer (250);
+        startTimer (100);
     }
 
 private:
