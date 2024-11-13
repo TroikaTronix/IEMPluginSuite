@@ -450,7 +450,7 @@ void DualDelayAudioProcessor::parameterChanged (const juce::String& parameterID,
                                        *roll[sideIdx],
                                        currentOrder);
 
-    else if (parameterID == "warpmodeAz" + side || parameterID == "warpmodeEl" + side
+    else if (parameterID == "warpModeAz" + side || parameterID == "warpModeEl" + side
              || parameterID == "warpFactorAz" + side || parameterID == "warpFactorEl" + side)
         warp[sideIdx].updateParams (
             AmbisonicWarp::AzimuthWarpType (juce::roundToInt (warpModeAz[sideIdx]->load())),
@@ -565,25 +565,6 @@ std::tuple<float, float> DualDelayAudioProcessor::msToBPM (const float ms)
 std::vector<std::unique_ptr<juce::RangedAudioParameter>>
     DualDelayAudioProcessor::createParameterLayout()
 {
-    // Remaping functions for delay multiplicator
-    using ValueRemapFunction =
-        std::function<float (float rangeStart, float rangeEnd, float valueToRemap)>;
-
-    ValueRemapFunction snapToMult = [] (float rangeStart, float rangeEnd, float valueToRemap)
-    { return std::exp2f (std::round (std::log2f (valueToRemap))); };
-
-    ValueRemapFunction remapMultTo0to1 = [] (float rangeStart, float rangeEnd, float valueToRemap)
-    {
-        return (std::log2f (valueToRemap) - std::log2f (rangeStart))
-               / (std::log2f (rangeEnd) - std::log2f (rangeStart));
-    };
-
-    ValueRemapFunction remap0to1ToMult = [] (float rangeStart, float rangeEnd, float valueToRemap)
-    {
-        return std::exp2f (valueToRemap * (std::log2f (rangeEnd) - std::log2f (rangeStart))
-                           + std::log2f (rangeStart));
-    };
-
     // add your audio parameters here
     std::vector<std::unique_ptr<juce::RangedAudioParameter>> params;
 
@@ -677,17 +658,17 @@ std::vector<std::unique_ptr<juce::RangedAudioParameter>>
         "delayMultL",
         "delay multiplicator left",
         "",
-        juce::NormalisableRange<float> (0.5f, 16.0f, remap0to1ToMult, remapMultTo0to1, snapToMult),
+        juce::NormalisableRange<float> (1.0f, 16.0f, 1.0f, 0.6f),
         1.0f,
-        [] (float value) { return juce::String ("1/") + juce::String (value * 4.0f, 0); },
+        [] (float value) { return juce::String (std::round (value), 0); },
         nullptr));
     params.push_back (OSCParameterInterface::createParameterTheOldWay (
         "delayMultR",
         "delay multiplicator right",
         "",
-        juce::NormalisableRange<float> (0.5f, 16.0f, remap0to1ToMult, remapMultTo0to1, snapToMult),
+        juce::NormalisableRange<float> (1.0f, 16.0f, 1.0f, 0.6f),
         1.0f,
-        [] (float value) { return juce::String ("1/") + juce::String (value * 4.0f, 0); },
+        [] (float value) { return juce::String (std::round (value), 0); },
         nullptr));
 
     params.push_back (OSCParameterInterface::createParameterTheOldWay (
