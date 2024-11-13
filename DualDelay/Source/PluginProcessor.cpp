@@ -85,14 +85,6 @@ DualDelayAudioProcessor::DualDelayAudioProcessor() :
         parameters.addParameterListener ("LPcutOff" + side, this);
 
         LFO[i].initialise ([] (float phi) { return std::sin (phi); });
-
-        rotator[i].updateParams (*yaw[i], *pitch[i], *roll[i], static_cast<int> (*orderSetting));
-        warp[i].updateParams (
-            AmbisonicWarp::AzimuthWarpType (juce::roundToInt (warpModeAz[i]->load())),
-            AmbisonicWarp::ElevationWarpType (juce::roundToInt (warpModeEl[i]->load())),
-            *warpFactorAz[i],
-            *warpFactorEl[i]);
-        warp[i].setWorkingOrder (static_cast<int> (*orderSetting));
     }
 
     parameters.addParameterListener ("orderSetting", this);
@@ -174,6 +166,16 @@ void DualDelayAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBl
         delayLine[i].setDelay (sampleRate * 60.0f / (*delayBPM[0] * *delayMult[0]));
 
         delayTimeInterp[i].setFrequency (0.5f, sampleRate);
+
+        auto tmp_prdersetting = orderSetting->load();
+
+        rotator[i].updateParams (*yaw[i], *pitch[i], *roll[i], static_cast<int> (*orderSetting));
+        warp[i].updateParams (
+            AmbisonicWarp::AzimuthWarpType (juce::roundToInt (warpModeAz[i]->load())),
+            AmbisonicWarp::ElevationWarpType (juce::roundToInt (warpModeEl[i]->load())),
+            *warpFactorAz[i],
+            *warpFactorEl[i]);
+        warp[i].setWorkingOrder (isqrt (numberOfOutputChannels) - 1);
     }
 }
 
@@ -230,9 +232,10 @@ void DualDelayAudioProcessor::processBlock (juce::AudioSampleBuffer& buffer,
 
         // Update rotator to current working order if it has changed
         if (rotator[i].getOrder() != workingOrder)
-        {
             rotator[i].updateParams (*yaw[i], *pitch[i], *roll[i], workingOrder);
-        }
+
+        if (warp[i].getWorkingOrder() != workingOrder)
+            warp[i].setWorkingOrder (workingOrder);
 
         // Setting up delay interpolator
         const float newDelay = fs * 60.0f / (*delayBPM[i] * *delayMult[i]);
@@ -269,7 +272,7 @@ void DualDelayAudioProcessor::processBlock (juce::AudioSampleBuffer& buffer,
         }
 
         // Rotate/warp delayed signal
-        if (*transformMode[i] > 0.5f)
+        if (*transformMode[i] < 0.5f)
             rotator[i].process (&delayBuffer[i]);
         else
             warp[i].process (&delayBuffer[i]);
@@ -432,11 +435,11 @@ void DualDelayAudioProcessor::parameterChanged (const juce::String& parameterID,
     if (parameterID == "orderSetting")
     {
         userChangedIOSettings = true;
-        rotator[0].updateParams (*yaw[0], *pitch[0], *roll[0], static_cast<int> (newValue));
-        rotator[1].updateParams (*yaw[1], *pitch[1], *roll[1], static_cast<int> (newValue));
+        rotator[0].updateParams (*yaw[0], *pitch[0], *roll[0], static_cast<int> (newValue) - 1);
+        rotator[1].updateParams (*yaw[1], *pitch[1], *roll[1], static_cast<int> (newValue) - 1);
 
-        warp[1].setWorkingOrder (static_cast<int> (newValue));
-        warp[0].setWorkingOrder (static_cast<int> (newValue));
+        warp[1].setWorkingOrder (static_cast<int> (newValue) - 1);
+        warp[0].setWorkingOrder (static_cast<int> (newValue) - 1);
     }
     const int currentOrder = static_cast<int> (*orderSetting);
 
