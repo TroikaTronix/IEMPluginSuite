@@ -25,6 +25,7 @@
 #include <JuceHeader.h>
 
 #include "../../resources/AmbisonicRotator.h"
+#include "../../resources/AmbisonicWarp.h"
 #include "../../resources/AudioProcessorBase.h"
 #include "../../resources/OnePoleFilter.h"
 #include "../../resources/ambisonicTools.h"
@@ -83,9 +84,14 @@ private:
     std::atomic<float>* delayBPM[2];
     std::atomic<float>* delayMult[2];
     std::atomic<float>* sync[2];
+    std::atomic<float>* transformMode[2];
     std::atomic<float>* yaw[2];
     std::atomic<float>* pitch[2];
     std::atomic<float>* roll[2];
+    std::atomic<float>* warpModeAz[2];
+    std::atomic<float>* warpModeEl[2];
+    std::atomic<float>* warpFactorAz[2];
+    std::atomic<float>* warpFactorEl[2];
     std::atomic<float>* LPcutOff[2];
     std::atomic<float>* HPcutOff[2];
     std::atomic<float>* feedback[2];
@@ -96,6 +102,7 @@ private:
 
     juce::dsp::Oscillator<float> LFO[2];
     AmbisonicRotator rotator[2];
+    AmbisonicWarp warp[2];
 
     juce::OwnedArray<juce::IIRFilter> lowPassFilters[2];
     juce::OwnedArray<juce::IIRFilter> highPassFilters[2];
