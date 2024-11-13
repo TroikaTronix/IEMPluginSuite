@@ -30,7 +30,7 @@ https://github.com/kronihias/ambix/
 #include "efficientSHvanilla.h"
 #include "tDesignN10.h"
 
-class AmbisonicWarp
+class AmbisonicWarp : public juce::Thread, juce::Timer
 {
 public:
     enum AzimuthWarpType
@@ -50,7 +50,8 @@ public:
                    ElevationWarpType elWarpType = ElevationWarpType::Pole,
                    float azWarpFactor = 0.0f,
                    float elWarpFactor = 0.0f,
-                   int workingOrder = 7)
+                   int workingOrder = 7) :
+        Thread ("AmbisonicWarpUpdate")
     {
         _azWarpType = azWarpType;
         _elWarpType = elWarpType;
@@ -73,6 +74,7 @@ public:
         _Y *= 1.0f / decodeCorrection (maxOrder);
 
         calculateWarpingMatrix();
+        _T = _Tnew;
 
         copyBuffer.setSize (maxChannels, maxChannels);
     }
@@ -93,7 +95,13 @@ public:
         int workingOrder = juce::jmin (isqrt (bufferChannels) - 1, _workingOrder);
         int nCh = squares[workingOrder + 1];
 
-        // // Resize copyBuffer if necessary
+        if (updateReady)
+        {
+            _T = _Tnew;
+            updateReady = false;
+        }
+
+        // Resize copyBuffer if necessary
         if ((copyBuffer.getNumChannels() != nCh) || (copyBuffer.getNumSamples() != samples))
             copyBuffer.setSize (nCh, samples);
 
@@ -112,10 +120,47 @@ public:
         }
     }
 
+    void setParameters (AzimuthWarpType azWarpType,
+                        ElevationWarpType elWarpType,
+                        float azWarpFactor,
+                        float elWarpFactor)
+    {
+        _azWarpType = azWarpType;
+        _elWarpType = elWarpType;
+
+        _azWarpFactor = azWarpFactor;
+        _elWarpFactor = elWarpFactor;
+
+        startTimer (250);
+    }
+
 private:
+    void timerCallback() override
+    {
+        DBG ("-------- time to run bigUpdate -------------");
+        stopTimer();
+        stopThread (20);
+        startThread();
+    }
+
+    void run() override
+    {
+        // ScopedLock lock (processor.getCallbackLock());
+        updateReady = false;
+
+        double timeSec;
+        DBG ("******** Running warping matrix update *****************");
+        {
+            juce::ScopedTimeMeasurement m (timeSec);
+            calculateWarpingMatrix();
+        }
+        DBG ("******** FINISHED warping matrix update in " << juce::String (timeSec, 4)
+                                                           << " seconds *****************");
+        updateReady = true;
+    }
+
     void calculateWarpingMatrix()
     {
-        // TODO: Use dsp context
         juce::dsp::Matrix<float> YH = juce::dsp::Matrix<float> (tDesignN, maxChannels);
 
         for (int p = 0; p < tDesignN; ++p)
@@ -160,7 +205,7 @@ private:
             //     YH (p, r) *= el_g * az_g;
         }
 
-        _T = _Y * YH;
+        _Tnew = _Y * YH;
     }
 
     std::tuple<float, float> warpToPole (const float angleInRad, const float alpha)
@@ -218,6 +263,8 @@ private:
 
     juce::dsp::Matrix<float> _Y = juce::dsp::Matrix<float> (maxChannels, tDesignN);
     juce::dsp::Matrix<float> _T = juce::dsp::Matrix<float> (maxChannels, maxChannels);
+    juce::dsp::Matrix<float> _Tnew = juce::dsp::Matrix<float> (maxChannels, maxChannels);
 
     juce::AudioBuffer<float> copyBuffer;
+    std::atomic<bool> updateReady = false;
 };
