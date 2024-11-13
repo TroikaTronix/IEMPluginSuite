@@ -95,12 +95,6 @@ public:
         int workingOrder = juce::jmin (isqrt (bufferChannels) - 1, _workingOrder);
         int nCh = squares[workingOrder + 1];
 
-        if (updateReady)
-        {
-            _T = _Tnew;
-            updateReady = false;
-        }
-
         // Resize copyBuffer if necessary
         if ((copyBuffer.getNumChannels() != nCh) || (copyBuffer.getNumSamples() != samples))
             copyBuffer.setSize (nCh, samples);
@@ -111,19 +105,38 @@ public:
             copyBuffer.copyFrom (ch, 0, bufferToWarp->getReadPointer (ch), samples);
             bufferToWarp->clear (ch, 0, samples);
 
-            for (int ch2 = 0; ch2 < nCh; ++ch2)
-                bufferToWarp->addFrom (ch,
-                                       0,
-                                       copyBuffer.getReadPointer (ch2),
-                                       samples,
-                                       _T (ch, ch2));
+            if (updateReady)
+            {
+                for (int ch2 = 0; ch2 < nCh; ++ch2)
+                    bufferToWarp->addFromWithRamp (ch,
+                                                   0,
+                                                   copyBuffer.getReadPointer (ch2),
+                                                   samples,
+                                                   _T (ch, ch2),
+                                                   _Tnew (ch, ch2));
+            }
+            else
+            {
+                for (int ch2 = 0; ch2 < nCh; ++ch2)
+                    bufferToWarp->addFrom (ch,
+                                           0,
+                                           copyBuffer.getReadPointer (ch2),
+                                           samples,
+                                           _T (ch, ch2));
+            }
+        }
+
+        if (updateReady)
+        {
+            _T = _Tnew;
+            updateReady = false;
         }
     }
 
-    void setParameters (AzimuthWarpType azWarpType,
-                        ElevationWarpType elWarpType,
-                        float azWarpFactor,
-                        float elWarpFactor)
+    void updateParams (AzimuthWarpType azWarpType,
+                       ElevationWarpType elWarpType,
+                       float azWarpFactor,
+                       float elWarpFactor)
     {
         _azWarpType = azWarpType;
         _elWarpType = elWarpType;
@@ -137,7 +150,7 @@ public:
 private:
     void timerCallback() override
     {
-        DBG ("-------- time to run bigUpdate -------------");
+        DBG ("-------- time to update warping matrix -------------");
         stopTimer();
         stopThread (20);
         startThread();
