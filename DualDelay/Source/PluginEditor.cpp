@@ -792,8 +792,8 @@ void DualDelayAudioProcessorEditor::resized()
     int actualWidth = tempArea.getWidth();
     int wantedWidth = 40;
     tempArea.removeFromLeft (juce::roundToInt ((actualWidth - wantedWidth) / 2));
-    tempArea.removeFromTop (35 + textHeight);
-    btTimeMode.setBounds (tempArea.removeFromLeft (wantedWidth).removeFromTop (20));
+    tempArea.removeFromTop (25 + textHeight);
+    btTimeMode.setBounds (tempArea.removeFromLeft (wantedWidth).removeFromTop (25));
     // ======== BEGIN: BPM/MS button ===========
 
     area.removeFromTop (30); // spacing
@@ -802,7 +802,7 @@ void DualDelayAudioProcessorEditor::resized()
     tempArea = area.removeFromTop (60 + textHeight);
 
     // ----- left side ------
-    groupArea = tempArea.removeFromLeft (270);
+    groupArea = tempArea.removeFromLeft (330);
     gcFiltL.setBounds (groupArea);
     groupArea.removeFromTop (30);
 
@@ -810,7 +810,7 @@ void DualDelayAudioProcessorEditor::resized()
     lbFilterL.setBounds (groupArea.reduced (9, 0));
 
     // ----- right side ------
-    groupArea = tempArea.removeFromRight (270);
+    groupArea = tempArea.removeFromRight (330);
     gcFiltR.setBounds (groupArea);
     groupArea.removeFromTop (30);
 
