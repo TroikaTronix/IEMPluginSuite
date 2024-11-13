@@ -31,6 +31,7 @@
 #include "../../resources/ambisonicTools.h"
 
 #define ProcessorClass DualDelayAudioProcessor
+#define OneOverSqrt2 0.7071067811865475f
 
 //==============================================================================
 /**

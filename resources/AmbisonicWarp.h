@@ -29,7 +29,6 @@ https://github.com/kronihias/ambix/
 #include "ambisonicTools.h"
 #include "efficientSHvanilla.h"
 #include "tDesignN10.h"
-
 class AmbisonicWarp : public juce::Thread, juce::Timer
 {
 public:
@@ -194,16 +193,18 @@ private:
             float az_warped, az_g;
             if (_azWarpType == AzimuthWarpType::OnePoint)
             {
-                auto [az_tmp, az_g] = warpToEquator (az_orig * 0.5f, -_azWarpFactor);
+                auto [az_tmp, az_g_tmp] = warpToEquator (az_orig * 0.5f, -_azWarpFactor);
                 az_warped = az_tmp * 2.0f;
+                az_g = az_g_tmp;
             }
             else
             {
                 float in_sign = (az_orig < 0.0f) ? -1.0f : 1.0f;
                 float az_in_tf = (az_orig - 0.5f * juce::MathConstants<float>::pi) * in_sign;
 
-                auto [az_tmp, az_g] = warpToEquator (az_in_tf, _azWarpFactor);
+                auto [az_tmp, az_g_tmp] = warpToEquator (az_in_tf, _azWarpFactor);
                 az_warped = az_tmp + 0.5f * juce::MathConstants<float>::pi * in_sign;
+                az_g = az_g_tmp;
             }
 
             // Get cartesian coordinates of warped direction
@@ -214,10 +215,9 @@ private:
             SHEval (maxOrder, warped_cart, YH.getRawDataPointer() + p * 64, false);
 
             // FIXME: Double-check gain
-            // for (int r = 0; r < maxOrder; ++r)
-            //     YH (p, r) *= el_g * az_g;
+            for (int r = 0; r < maxChannels; ++r)
+                YH (p, r) *= el_g * az_g;
         }
-
         _Tnew = _Y * YH;
     }
 
