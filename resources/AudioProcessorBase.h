@@ -68,6 +68,7 @@ public:
 
     ~AudioProcessorBase() override {}
 
+    VST2ClientExtensions* getVST2ClientExtensions() override { return this; }
     //======== AudioProcessor stuff  =======================================================
 
 #ifndef JucePlugin_PreferredChannelConfigurations
