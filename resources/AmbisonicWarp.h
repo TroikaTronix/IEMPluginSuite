@@ -190,9 +190,7 @@ private:
                                                       el_orig);
 
             float el_warped = el_orig;
-            float el_g = 1.0f;
             float az_warped = az_orig;
-            float az_g = 1.0f;
 
             if (std::abs (_elWarpFactor) > 0.01f)
             {
@@ -201,7 +199,6 @@ private:
                                                      ? warpToPole (el_orig, _elWarpFactor)
                                                      : warpToEquator (el_orig, _elWarpFactor);
                 el_warped = el_warped_tmp;
-                el_g = el_g_tmp;
             }
             // Use same warp functions for azimuth, just modify in/output
             if (std::abs (_azWarpFactor) > 0.01f)
@@ -210,7 +207,6 @@ private:
                 {
                     auto [az_tmp, az_g_tmp] = warpToEquator (az_orig * 0.5f, -_azWarpFactor);
                     az_warped = az_tmp * 2.0f;
-                    az_g = az_g_tmp;
                 }
                 else
                 {
@@ -219,7 +215,6 @@ private:
 
                     auto [az_tmp, az_g_tmp] = warpToEquator (az_in_tf, _azWarpFactor);
                     az_warped = az_tmp + 0.5f * juce::MathConstants<float>::pi * in_sign;
-                    az_g = az_g_tmp;
                 }
             }
 
@@ -229,23 +224,6 @@ private:
 
             // Calculate SH coefficients for warped direction
             SHEval (maxOrder, warped_cart, YH.getRawDataPointer() + p * 64, false);
-
-            if (std::abs (el_orig) < 0.01f)
-                auto foo = el_g;
-            if (std::abs (el_orig) > juce::MathConstants<float>::pi * 0.5f - 0.2f)
-            {
-                auto foo = el_g;
-                foo = el_orig;
-                foo = el_warped;
-            }
-
-            // FIXME: Double-check gain
-            for (int r = 0; r < maxChannels; ++r)
-            {
-                YH (p, r) *= el_g * az_g;
-                if (std::abs (YH (p, r)) > 5.0f)
-                    auto foo = YH (p, r);
-            }
         }
         _Tnew = _Y * YH;
     }
