@@ -78,7 +78,7 @@ DualDelayAudioProcessorEditor::DualDelayAudioProcessorEditor (
     bool leftTrMode =
         (valueTreeState.getParameter ("transformModeL")->getValue() > 0.5f) ? true : false;
 
-    SlLeftPitch.setVisible (! leftTrMode);
+    SlLeftYaw.setVisible (! leftTrMode);
     addChildComponent (&SlLeftYaw);
     SlLeftYawAttachment.reset (new SliderAttachment (valueTreeState, "yawL", SlLeftYaw));
     SlLeftYaw.setSliderStyle (juce::Slider::RotaryHorizontalVerticalDrag);
@@ -142,9 +142,9 @@ DualDelayAudioProcessorEditor::DualDelayAudioProcessorEditor (
     SlLeftWarpFactorAz.setSliderStyle (juce::Slider::RotaryHorizontalVerticalDrag);
     SlLeftWarpFactorAz.setTextValueSuffix ("");
     SlLeftWarpFactorAz.setTextBoxStyle (juce::Slider::TextBoxBelow, false, 50, 15);
-    SlLeftWarpFactorAz.setRotaryParameters (juce::MathConstants<float>::pi,
-                                            3 * juce::MathConstants<float>::pi,
-                                            false);
+    // SlLeftWarpFactorAz.setRotaryParameters (juce::MathConstants<float>::pi,
+    //                                         3 * juce::MathConstants<float>::pi,
+    //                                         false);
     SlLeftWarpFactorAz.setColour (juce::Slider::rotarySliderOutlineColourId,
                                   globalLaF.ClWidgetColours[0]);
 
@@ -155,9 +155,9 @@ DualDelayAudioProcessorEditor::DualDelayAudioProcessorEditor (
     SlLeftWarpFactorEl.setSliderStyle (juce::Slider::RotaryHorizontalVerticalDrag);
     SlLeftWarpFactorEl.setTextValueSuffix ("");
     SlLeftWarpFactorEl.setTextBoxStyle (juce::Slider::TextBoxBelow, false, 50, 15);
-    SlLeftWarpFactorEl.setRotaryParameters (juce::MathConstants<float>::pi,
-                                            3 * juce::MathConstants<float>::pi,
-                                            false);
+    // SlLeftWarpFactorEl.setRotaryParameters (juce::MathConstants<float>::pi,
+    //                                         3 * juce::MathConstants<float>::pi,
+    //                                         false);
     SlLeftWarpFactorEl.setColour (juce::Slider::rotarySliderOutlineColourId,
                                   globalLaF.ClWidgetColours[0]);
 
@@ -343,9 +343,9 @@ DualDelayAudioProcessorEditor::DualDelayAudioProcessorEditor (
     SlRightWarpFactorAz.setSliderStyle (juce::Slider::RotaryHorizontalVerticalDrag);
     SlRightWarpFactorAz.setTextValueSuffix ("");
     SlRightWarpFactorAz.setTextBoxStyle (juce::Slider::TextBoxBelow, false, 50, 15);
-    SlRightWarpFactorAz.setRotaryParameters (juce::MathConstants<float>::pi,
-                                             3 * juce::MathConstants<float>::pi,
-                                             false);
+    // SlRightWarpFactorAz.setRotaryParameters (juce::MathConstants<float>::pi,
+    //                                          3 * juce::MathConstants<float>::pi,
+    //                                          false);
     SlRightWarpFactorAz.setColour (juce::Slider::rotarySliderOutlineColourId,
                                    globalLaF.ClWidgetColours[0]);
 
@@ -356,9 +356,9 @@ DualDelayAudioProcessorEditor::DualDelayAudioProcessorEditor (
     SlRightWarpFactorEl.setSliderStyle (juce::Slider::RotaryHorizontalVerticalDrag);
     SlRightWarpFactorEl.setTextValueSuffix ("");
     SlRightWarpFactorEl.setTextBoxStyle (juce::Slider::TextBoxBelow, false, 50, 15);
-    SlRightWarpFactorEl.setRotaryParameters (juce::MathConstants<float>::pi,
-                                             3 * juce::MathConstants<float>::pi,
-                                             false);
+    // SlRightWarpFactorEl.setRotaryParameters (juce::MathConstants<float>::pi,
+    //                                          3 * juce::MathConstants<float>::pi,
+    //                                          false);
     SlRightWarpFactorEl.setColour (juce::Slider::rotarySliderOutlineColourId,
                                    globalLaF.ClWidgetColours[0]);
 

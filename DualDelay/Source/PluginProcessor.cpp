@@ -277,7 +277,7 @@ void DualDelayAudioProcessor::processBlock (juce::AudioSampleBuffer& buffer,
         else
         {
             warp[i].process (&delayBuffer[i]);
-            delayBuffer[i].applyGain (OneOverSqrt2); // Revert 3 dB gain increase
+            // delayBuffer[i].applyGain (OneOverSqrt2); // Revert 3 dB gain increase
         }
     }
 

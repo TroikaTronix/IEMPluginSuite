@@ -75,7 +75,7 @@ public:
         calculateWarpingMatrix();
         _T = _Tnew;
 
-        copyBuffer.setSize (maxChannels, maxChannels);
+        copyBuffer.setSize (1, 128);
     }
 
     void setWorkingOrder (int order)
@@ -95,34 +95,39 @@ public:
         int nCh = squares[workingOrder + 1];
 
         // Resize copyBuffer if necessary
-        if ((copyBuffer.getNumChannels() != nCh) || (copyBuffer.getNumSamples() != samples))
-            copyBuffer.setSize (nCh, samples);
+        if (copyBuffer.getNumSamples() != samples)
+            copyBuffer.setSize (1, samples);
 
         // make copy of input
         for (int ch = 0; ch < nCh; ++ch)
         {
-            copyBuffer.copyFrom (ch, 0, bufferToWarp->getReadPointer (ch), samples);
-            bufferToWarp->clear (ch, 0, samples);
+            copyBuffer.clear();
 
             if (updateReady)
             {
                 for (int ch2 = 0; ch2 < nCh; ++ch2)
-                    bufferToWarp->addFromWithRamp (ch,
-                                                   0,
-                                                   copyBuffer.getReadPointer (ch2),
-                                                   samples,
-                                                   _T (ch, ch2),
-                                                   _Tnew (ch, ch2));
+                {
+                    copyBuffer.addFromWithRamp (0,
+                                                0,
+                                                bufferToWarp->getReadPointer (ch2),
+                                                samples,
+                                                _T (ch, ch2),
+                                                _Tnew (ch, ch2));
+                }
             }
             else
             {
                 for (int ch2 = 0; ch2 < nCh; ++ch2)
-                    bufferToWarp->addFrom (ch,
-                                           0,
-                                           copyBuffer.getReadPointer (ch2),
-                                           samples,
-                                           _T (ch, ch2));
+                {
+                    copyBuffer.addFrom (0,
+                                        0,
+                                        bufferToWarp->getReadPointer (ch2),
+                                        samples,
+                                        _T (ch, ch2));
+                }
             }
+
+            bufferToWarp->copyFrom (ch, 0, copyBuffer.getReadPointer (0), samples);
         }
 
         if (updateReady)
@@ -184,27 +189,38 @@ private:
                                                       az_orig,
                                                       el_orig);
 
-            // Get warped angle and de-emphasis gain
-            auto [el_warped, el_g] = (_elWarpType == ElevationWarpType::Pole)
-                                         ? warpToPole (el_orig, _elWarpFactor)
-                                         : warpToEquator (el_orig, _elWarpFactor);
+            float el_warped = el_orig;
+            float el_g = 1.0f;
+            float az_warped = az_orig;
+            float az_g = 1.0f;
 
-            // Use same warp functions for azimuth, just modify in/output
-            float az_warped, az_g;
-            if (_azWarpType == AzimuthWarpType::OnePoint)
+            if (std::abs (_elWarpFactor) > 0.01f)
             {
-                auto [az_tmp, az_g_tmp] = warpToEquator (az_orig * 0.5f, -_azWarpFactor);
-                az_warped = az_tmp * 2.0f;
-                az_g = az_g_tmp;
+                // Get warped angle and de-emphasis gain
+                auto [el_warped_tmp, el_g_tmp] = (_elWarpType == ElevationWarpType::Pole)
+                                                     ? warpToPole (el_orig, _elWarpFactor)
+                                                     : warpToEquator (el_orig, _elWarpFactor);
+                el_warped = el_warped_tmp;
+                el_g = el_g_tmp;
             }
-            else
+            // Use same warp functions for azimuth, just modify in/output
+            if (std::abs (_azWarpFactor) > 0.01f)
             {
-                float in_sign = (az_orig < 0.0f) ? -1.0f : 1.0f;
-                float az_in_tf = (az_orig - 0.5f * juce::MathConstants<float>::pi) * in_sign;
+                if (_azWarpType == AzimuthWarpType::OnePoint)
+                {
+                    auto [az_tmp, az_g_tmp] = warpToEquator (az_orig * 0.5f, -_azWarpFactor);
+                    az_warped = az_tmp * 2.0f;
+                    az_g = az_g_tmp;
+                }
+                else
+                {
+                    float in_sign = (az_orig < 0.0f) ? -1.0f : 1.0f;
+                    float az_in_tf = (az_orig - 0.5f * juce::MathConstants<float>::pi) * in_sign;
 
-                auto [az_tmp, az_g_tmp] = warpToEquator (az_in_tf, _azWarpFactor);
-                az_warped = az_tmp + 0.5f * juce::MathConstants<float>::pi * in_sign;
-                az_g = az_g_tmp;
+                    auto [az_tmp, az_g_tmp] = warpToEquator (az_in_tf, _azWarpFactor);
+                    az_warped = az_tmp + 0.5f * juce::MathConstants<float>::pi * in_sign;
+                    az_g = az_g_tmp;
+                }
             }
 
             // Get cartesian coordinates of warped direction
@@ -214,9 +230,22 @@ private:
             // Calculate SH coefficients for warped direction
             SHEval (maxOrder, warped_cart, YH.getRawDataPointer() + p * 64, false);
 
+            if (std::abs (el_orig) < 0.01f)
+                auto foo = el_g;
+            if (std::abs (el_orig) > juce::MathConstants<float>::pi * 0.5f - 0.2f)
+            {
+                auto foo = el_g;
+                foo = el_orig;
+                foo = el_warped;
+            }
+
             // FIXME: Double-check gain
             for (int r = 0; r < maxChannels; ++r)
+            {
                 YH (p, r) *= el_g * az_g;
+                if (std::abs (YH (p, r)) > 5.0f)
+                    auto foo = YH (p, r);
+            }
         }
         _Tnew = _Y * YH;
     }
@@ -226,7 +255,7 @@ private:
         float mu = std::sin (angleInRad);
 
         float warpedAngle = std::asin ((mu - alpha) / (1.0f - alpha * mu));
-        float gain = (1.0f - alpha * mu) / std::sqrt (1.0f - alpha * alpha);
+        float gain = (1.0f + alpha * mu) / std::sqrt (1.0f - alpha * alpha);
 
         return { warpedAngle, gain };
     }
@@ -238,13 +267,13 @@ private:
 
         float warpedAngle;
 
-        if (alpha == 0.0f)
+        if (std::abs (alpha) < 0.01f)
             warpedAngle = angleInRad;
 
         else
         {
             float absalpha = std::abs (alpha);
-            g = ((1.0f - absalpha * mu * mu)
+            g = ((1.0f + absalpha * mu * mu)
                  / std::sqrt ((1.0f - absalpha) * (1.0f + absalpha * mu * mu)));
 
             if (alpha < 0.0f)
