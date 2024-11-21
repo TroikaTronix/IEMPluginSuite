@@ -970,27 +970,33 @@ void DualDelayAudioProcessorEditor::sliderValueChanged (juce::Slider* slider)
 {
     if (slider == &SlLeftDelayMS)
     {
-        auto [bpm, mult] = processor.msToBPM (SlLeftDelayMS.getValue());
-        SlLeftDelay.setValue (bpm, juce::sendNotification);
-        SlLeftDelayMult.setValue (mult, juce::sendNotification);
+        if (~btTimeMode.getToggleState())
+        {
+            auto [bpm, mult] = processor.msToBPM (SlLeftDelayMS.getValue());
+            SlLeftDelay.setValue (bpm, juce::sendNotification);
+            SlLeftDelayMult.setValue (mult, juce::sendNotification);
+        }
     }
     else if (slider == &SlRightDelayMS)
     {
-        auto [bpm, mult] = processor.msToBPM (SlRightDelayMS.getValue());
-        SlRightDelay.setValue (bpm, juce::sendNotification);
-        SlRightDelayMult.setValue (mult, juce::sendNotification);
+        if (~btTimeMode.getToggleState())
+        {
+            auto [bpm, mult] = processor.msToBPM (SlLeftDelayMS.getValue());
+            SlLeftDelay.setValue (bpm, juce::sendNotification);
+            SlLeftDelayMult.setValue (mult, juce::sendNotification);
+        }
     }
     else if (slider == &SlLeftDelay)
     {
         float ms = (60000.0f / SlLeftDelay.getValue())
                    / *valueTreeState.getRawParameterValue ("delayMultL");
-        SlLeftDelayMS.setValue (ms, juce::sendNotification);
+        SlLeftDelayMS.setValue (ms, juce::dontSendNotification);
     }
     else if (slider == &SlRightDelay)
     {
         float ms = (60000.0f / SlRightDelay.getValue())
                    / *valueTreeState.getRawParameterValue ("delayMultR");
-        SlRightDelayMS.setValue (ms, juce::sendNotification);
+        SlRightDelayMS.setValue (ms, juce::dontSendNotification);
     }
     else if (slider == &SlLeftDelayMult)
     {
