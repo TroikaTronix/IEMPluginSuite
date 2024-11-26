@@ -62,7 +62,7 @@ variables:
     - echo "Using ${NUM_JOBS} jobs"
   
   script:
-    - cmake -B build -DIEM_BUILD_VST3=ON -DIEM_BUILD_VST2=ON -DVST2SDKPATH=src/VST_SDK/VST2_SDK/ -DIEM_BUILD_LV2=ON -DIEM_BUILD_STANDALONE=ON
+    - cmake -B build -DIEM_BUILD_VST3=ON -DIEM_BUILD_VST2=ON -DVST2SDKPATH=src/VST_SDK/VST2_SDK/ -DIEM_BUILD_LV2=ON -DIEM_BUILD_STANDALONE=ON -DIEM_POST_BUILD_INSTALL=NO
     - cmake --build build --config Release -- -j ${NUM_JOBS}
 
 # collect binaries for artifacts
@@ -78,7 +78,8 @@ variables:
 .build:macos:
   stage: build
   tags:
-    - macos11.4
+    - tart
+  image: registry.git.iem.at/devtools/docker/tart/macos-sonoma-xcode:latest
   variables:
     JACK_VERSION: v1.9.22
     MAX_JOBS: 8
@@ -106,7 +107,7 @@ variables:
 
   script:
 # using xcode as generator seems to produce smaller binaries
-    - cmake -B build -G Xcode -DIEM_BUILD_VST3=ON -DIEM_BUILD_VST2=ON -DVST2SDKPATH=src/VST_SDK/VST2_SDK/ -DIEM_BUILD_LV2=ON -DIEM_BUILD_STANDALONE=ON
+    - cmake -B build -G Xcode -DIEM_BUILD_VST3=ON -DIEM_BUILD_VST2=ON -DVST2SDKPATH=src/VST_SDK/VST2_SDK/ -DIEM_BUILD_LV2=ON -DIEM_BUILD_STANDALONE=ON -DIEM_POST_BUILD_INSTALL=NO
     - cmake --build build --config Release -- -jobs ${NUM_JOBS}
 
 # collect binaries for artifacts
@@ -280,7 +281,7 @@ macos:
     - .run_selected
   allow_failure: true
   variables:
-    PLUGINVAL_ARGS: --validate-in-process --strictness-level 10 --repeat 3 # --vst3validator vst3sdk/cmake-build/bin/Debug/validator
+    PLUGINVAL_ARGS: --validate-in-process --strictness-level 10 --repeat 3 --timeout-ms 300000 # --vst3validator vst3sdk/cmake-build/bin/Debug/validator
     PLUGINVAL_ARGS_GUI: --skip-gui-tests
     PLUGINVAL: ./pluginval
   artifacts:
@@ -347,7 +348,8 @@ macos-pluginval:
   extends:
     - .pluginval
   tags:
-    - macos11.4
+    - tart
+  image: registry.git.iem.at/devtools/docker/tart/macos-sonoma-xcode:latest
   dependencies:
     - macos
   needs:
