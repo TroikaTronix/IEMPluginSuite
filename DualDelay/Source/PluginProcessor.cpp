@@ -58,9 +58,14 @@ DualDelayAudioProcessor::DualDelayAudioProcessor() :
         delayBPM[i] = parameters.getRawParameterValue ("delayBPM" + side);
         delayMult[i] = parameters.getRawParameterValue ("delayMult" + side);
         sync[i] = parameters.getRawParameterValue ("sync" + side);
+        transformMode[i] = parameters.getRawParameterValue ("transformMode" + side);
         yaw[i] = parameters.getRawParameterValue ("yaw" + side);
         pitch[i] = parameters.getRawParameterValue ("pitch" + side);
         roll[i] = parameters.getRawParameterValue ("roll" + side);
+        warpModeAz[i] = parameters.getRawParameterValue ("warpModeAz" + side);
+        warpModeEl[i] = parameters.getRawParameterValue ("warpModeEl" + side);
+        warpFactorAz[i] = parameters.getRawParameterValue ("warpFactorAz" + side);
+        warpFactorEl[i] = parameters.getRawParameterValue ("warpFactorEl" + side);
         HPcutOff[i] = parameters.getRawParameterValue ("HPcutOff" + side);
         LPcutOff[i] = parameters.getRawParameterValue ("LPcutOff" + side);
         feedback[i] = parameters.getRawParameterValue ("feedback" + side);
@@ -71,13 +76,15 @@ DualDelayAudioProcessor::DualDelayAudioProcessor() :
         parameters.addParameterListener ("yaw" + side, this);
         parameters.addParameterListener ("pitch" + side, this);
         parameters.addParameterListener ("roll" + side, this);
+        parameters.addParameterListener ("warpModeAz" + side, this);
+        parameters.addParameterListener ("warpModeEl" + side, this);
+        parameters.addParameterListener ("warpFactorAz" + side, this);
+        parameters.addParameterListener ("warpFactorEl" + side, this);
         parameters.addParameterListener ("lfoRate" + side, this);
         parameters.addParameterListener ("HPcutOff" + side, this);
         parameters.addParameterListener ("LPcutOff" + side, this);
 
         LFO[i].initialise ([] (float phi) { return std::sin (phi); });
-
-        rotator[i].updateParams (*yaw[i], *pitch[i], *roll[i], static_cast<int> (*orderSetting));
     }
 
     parameters.addParameterListener ("orderSetting", this);
@@ -159,6 +166,16 @@ void DualDelayAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBl
         delayLine[i].setDelay (sampleRate * 60.0f / (*delayBPM[0] * *delayMult[0]));
 
         delayTimeInterp[i].setFrequency (0.5f, sampleRate);
+
+        auto tmp_prdersetting = orderSetting->load();
+
+        rotator[i].updateParams (*yaw[i], *pitch[i], *roll[i], static_cast<int> (*orderSetting));
+        warp[i].updateParams (
+            AmbisonicWarp::AzimuthWarpType (juce::roundToInt (warpModeAz[i]->load())),
+            AmbisonicWarp::ElevationWarpType (juce::roundToInt (warpModeEl[i]->load())),
+            *warpFactorAz[i],
+            *warpFactorEl[i]);
+        warp[i].setWorkingOrder (isqrt (numberOfOutputChannels) - 1);
     }
 }
 
@@ -215,9 +232,10 @@ void DualDelayAudioProcessor::processBlock (juce::AudioSampleBuffer& buffer,
 
         // Update rotator to current working order if it has changed
         if (rotator[i].getOrder() != workingOrder)
-        {
             rotator[i].updateParams (*yaw[i], *pitch[i], *roll[i], workingOrder);
-        }
+
+        if (warp[i].getWorkingOrder() != workingOrder)
+            warp[i].setWorkingOrder (workingOrder);
 
         // Setting up delay interpolator
         const float newDelay = fs * 60.0f / (*delayBPM[i] * *delayMult[i]);
@@ -253,8 +271,11 @@ void DualDelayAudioProcessor::processBlock (juce::AudioSampleBuffer& buffer,
                                                          spb);
         }
 
-        // Rotate delayed signal
-        rotator[i].process (&delayBuffer[i]);
+        // Rotate/warp delayed signal
+        if (*transformMode[i] < 0.5f)
+            rotator[i].process (&delayBuffer[i]);
+        else
+            warp[i].process (&delayBuffer[i]);
     }
 
     // ========== Add and get samples from delay line ==========
@@ -414,8 +435,11 @@ void DualDelayAudioProcessor::parameterChanged (const juce::String& parameterID,
     if (parameterID == "orderSetting")
     {
         userChangedIOSettings = true;
-        rotator[0].updateParams (*yaw[0], *pitch[0], *roll[0], static_cast<int> (newValue));
-        rotator[1].updateParams (*yaw[1], *pitch[1], *roll[1], static_cast<int> (newValue));
+        rotator[0].updateParams (*yaw[0], *pitch[0], *roll[0], static_cast<int> (newValue) - 1);
+        rotator[1].updateParams (*yaw[1], *pitch[1], *roll[1], static_cast<int> (newValue) - 1);
+
+        warp[1].setWorkingOrder (static_cast<int> (newValue) - 1);
+        warp[0].setWorkingOrder (static_cast<int> (newValue) - 1);
     }
     const int currentOrder = static_cast<int> (*orderSetting);
 
@@ -429,7 +453,15 @@ void DualDelayAudioProcessor::parameterChanged (const juce::String& parameterID,
                                        *roll[sideIdx],
                                        currentOrder);
 
-    if (parameterID.startsWith ("HPcutOff") || parameterID.startsWith ("LPcutOff"))
+    else if (parameterID == "warpModeAz" + side || parameterID == "warpModeEl" + side
+             || parameterID == "warpFactorAz" + side || parameterID == "warpFactorEl" + side)
+        warp[sideIdx].updateParams (
+            AmbisonicWarp::AzimuthWarpType (juce::roundToInt (warpModeAz[sideIdx]->load())),
+            AmbisonicWarp::ElevationWarpType (juce::roundToInt (warpModeEl[sideIdx]->load())),
+            *warpFactorAz[sideIdx],
+            *warpFactorEl[sideIdx]);
+
+    else if (parameterID.startsWith ("HPcutOff") || parameterID.startsWith ("LPcutOff"))
     {
         updateFilters (sideIdx);
     }
@@ -536,25 +568,6 @@ std::tuple<float, float> DualDelayAudioProcessor::msToBPM (const float ms)
 std::vector<std::unique_ptr<juce::RangedAudioParameter>>
     DualDelayAudioProcessor::createParameterLayout()
 {
-    // Remaping functions for delay multiplicator
-    using ValueRemapFunction =
-        std::function<float (float rangeStart, float rangeEnd, float valueToRemap)>;
-
-    ValueRemapFunction snapToMult = [] (float rangeStart, float rangeEnd, float valueToRemap)
-    { return std::exp2f (std::round (std::log2f (valueToRemap))); };
-
-    ValueRemapFunction remapMultTo0to1 = [] (float rangeStart, float rangeEnd, float valueToRemap)
-    {
-        return (std::log2f (valueToRemap) - std::log2f (rangeStart))
-               / (std::log2f (rangeEnd) - std::log2f (rangeStart));
-    };
-
-    ValueRemapFunction remap0to1ToMult = [] (float rangeStart, float rangeEnd, float valueToRemap)
-    {
-        return std::exp2f (valueToRemap * (std::log2f (rangeEnd) - std::log2f (rangeStart))
-                           + std::log2f (rangeStart));
-    };
-
     // add your audio parameters here
     std::vector<std::unique_ptr<juce::RangedAudioParameter>> params;
 
@@ -648,17 +661,17 @@ std::vector<std::unique_ptr<juce::RangedAudioParameter>>
         "delayMultL",
         "delay multiplicator left",
         "",
-        juce::NormalisableRange<float> (0.5f, 16.0f, remap0to1ToMult, remapMultTo0to1, snapToMult),
+        juce::NormalisableRange<float> (1.0f, 16.0f, 1.0f, 0.6f),
         1.0f,
-        [] (float value) { return juce::String ("1/") + juce::String (value * 4.0f, 0); },
+        [] (float value) { return juce::String (std::round (value), 0); },
         nullptr));
     params.push_back (OSCParameterInterface::createParameterTheOldWay (
         "delayMultR",
         "delay multiplicator right",
         "",
-        juce::NormalisableRange<float> (0.5f, 16.0f, remap0to1ToMult, remapMultTo0to1, snapToMult),
+        juce::NormalisableRange<float> (1.0f, 16.0f, 1.0f, 0.6f),
         1.0f,
-        [] (float value) { return juce::String ("1/") + juce::String (value * 4.0f, 0); },
+        [] (float value) { return juce::String (std::round (value), 0); },
         nullptr));
 
     params.push_back (OSCParameterInterface::createParameterTheOldWay (
@@ -677,6 +690,23 @@ std::vector<std::unique_ptr<juce::RangedAudioParameter>>
         juce::NormalisableRange<float> (0.0f, 1.0f, 1.0f),
         0.0f,
         [] (float value) { return (value >= 0.5f) ? "on" : "off"; },
+        nullptr));
+
+    params.push_back (OSCParameterInterface::createParameterTheOldWay (
+        "transformModeL",
+        "transform mode left",
+        "",
+        juce::NormalisableRange<float> (0.0f, 1.0f, 1.0f),
+        0.0f,
+        [] (float value) { return (value > 0.5f) ? "warp" : "rotate"; },
+        nullptr));
+    params.push_back (OSCParameterInterface::createParameterTheOldWay (
+        "transformModeR",
+        "transform mode right",
+        "",
+        juce::NormalisableRange<float> (0.0f, 1.0f, 1.0f),
+        0.0f,
+        [] (float value) { return (value > 0.5f) ? "warp" : "rotate"; },
         nullptr));
 
     params.push_back (OSCParameterInterface::createParameterTheOldWay (
@@ -728,6 +758,74 @@ std::vector<std::unique_ptr<juce::RangedAudioParameter>>
         juce::NormalisableRange<float> (-180.0f, 180.0f, 0.1f),
         0.0f,
         [] (float value) { return juce::String (value, 1); },
+        nullptr));
+
+    params.push_back (OSCParameterInterface::createParameterTheOldWay (
+        "warpModeAzL",
+        "Warp mode azimuth left",
+        "",
+        juce::NormalisableRange<float> (0.0f, 1.0f, 1.0f),
+        0.0f,
+        [] (float value) { return (value > 0.5f) ? "One Point" : "Two Point"; },
+        nullptr));
+    params.push_back (OSCParameterInterface::createParameterTheOldWay (
+        "warpModeElL",
+        "warp mode elevation left",
+        "",
+        juce::NormalisableRange<float> (0.0f, 1.0f, 1.0f),
+        0.0f,
+        [] (float value) { return (value > 0.5f) ? "Pole" : "Equator"; },
+        nullptr));
+
+    params.push_back (OSCParameterInterface::createParameterTheOldWay (
+        "warpModeAzR",
+        "Warp mode azimuth right",
+        "",
+        juce::NormalisableRange<float> (0.0f, 1.0f, 1.0f),
+        0.0f,
+        [] (float value) { return (value > 0.5f) ? "One Point" : "Two Point"; },
+        nullptr));
+    params.push_back (OSCParameterInterface::createParameterTheOldWay (
+        "warpModeElR",
+        "warp mode elevation right",
+        "",
+        juce::NormalisableRange<float> (0.0f, 1.0f, 1.0f),
+        0.0f,
+        [] (float value) { return (value > 0.5f) ? "Pole" : "Equator"; },
+        nullptr));
+
+    params.push_back (OSCParameterInterface::createParameterTheOldWay (
+        "warpFactorAzL",
+        "warp factor azimuth left",
+        "",
+        juce::NormalisableRange<float> (-0.9f, 0.9f, 0.01f),
+        0.0f,
+        [] (float value) { return juce::String (value, 2); },
+        nullptr));
+    params.push_back (OSCParameterInterface::createParameterTheOldWay (
+        "warpFactorElL",
+        "warp factor elevation left",
+        "",
+        juce::NormalisableRange<float> (-0.9f, 0.9f, 0.01f),
+        0.0f,
+        [] (float value) { return juce::String (value, 2); },
+        nullptr));
+
+    params.push_back (OSCParameterInterface::createParameterTheOldWay (
+        "warpFactorAzR",
+        "warp factor azimuth right",
+        "",
+        juce::NormalisableRange<float> (-0.9f, 0.9f, 0.01f),
+        0.0f,
+        [] (float value) { return juce::String (value, 2); },
+        nullptr));
+    params.push_back (OSCParameterInterface::createParameterTheOldWay (
+        "warpFactorElR",
+        "warp factor elevation right",
+        "",
+        juce::NormalisableRange<float> (-0.9f, 0.9f, 0.01f),
+        0.0f,
+        [] (float value) { return juce::String (value, 2); },
         nullptr));
 
     params.push_back (OSCParameterInterface::createParameterTheOldWay (

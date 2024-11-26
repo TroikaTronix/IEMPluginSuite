@@ -20,6 +20,7 @@
  ==============================================================================
  */
 
+#include <JuceHeader.h>
 #pragma once
 
 template <typename Type>

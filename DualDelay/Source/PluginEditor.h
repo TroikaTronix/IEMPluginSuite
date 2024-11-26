@@ -57,11 +57,11 @@ public:
     void sliderValueChanged (juce::Slider* slider) override;
     void comboBoxChanged (juce::ComboBox* comboBox) override;
 
-    void updateDelayUnit (bool isBPM);
-
 private:
     LaF globalLaF;
 
+    void updateDelayUnit (bool isBPM);
+    void updateTransformMode (bool side);
     void timerCallback() override;
 
     DualDelayAudioProcessor& processor;
@@ -80,43 +80,52 @@ private:
     // elements for left side
     DoubleSlider dblSlLeftFilter;
     ReverseSlider SlLeftYaw, SlLeftPitch, SlLeftRoll;
-    ReverseSlider SlLeftDelay, SlLeftDelayMS, SlLeftLfoRate, SlLeftLfoDepth, SlLeftFb,
-        SlLeftCrossFb, SlLeftGain;
-    juce::ComboBox cbLeftDelayMult;
+    ReverseSlider SlLeftWarpFactorAz, SlLeftWarpFactorEl;
+    ReverseSlider SlLeftDelay, SlLeftDelayMS, SlLeftDelayMult, SlLeftLfoRate, SlLeftLfoDepth,
+        SlLeftFb, SlLeftCrossFb, SlLeftGain;
+    juce::ComboBox cbLeftTransfromMode, cbLeftWarpTypeAz, cbLeftWarpTypeEl;
     juce::ToggleButton tbLeftSync;
     juce::TextButton btLeftTap;
 
     std::unique_ptr<SliderAttachment> dblSlLeftFilterHpAttachment, dblSlLeftFilterLpAttachment;
     std::unique_ptr<SliderAttachment> SlLeftYawAttachment, SlLeftPitchAttachment,
         SlLeftRollAttachment;
-    std::unique_ptr<SliderAttachment> SlLeftDelayAttachment, SlLeftLfoRateAttachment,
-        SlLeftLfoDepthAttachment, SlLeftFbAttachment, SlLeftCrossFbAttachment, SlLeftGainAttachment;
-    std::unique_ptr<ComboBoxAttachment> cbLeftDelayMultAttachment;
+    std::unique_ptr<SliderAttachment> SlLeftWarpFactorAzAttachment, SlLeftWarpFactorElAttachment;
+    std::unique_ptr<SliderAttachment> SlLeftDelayAttachment, SlLeftDelayMultAttachment,
+        SlLeftLfoRateAttachment, SlLeftLfoDepthAttachment, SlLeftFbAttachment,
+        SlLeftCrossFbAttachment, SlLeftGainAttachment;
+    std::unique_ptr<ComboBoxAttachment> cbLeftTransfromModeAttachment, cbLeftWarpTypeAzAttachment,
+        cbLeftWarpTypeElAttachment;
     std::unique_ptr<ButtonAttachment> btLeftSyncAttachment;
 
     // elements for right side
     DoubleSlider dblSlRightFilter;
     ReverseSlider SlRightYaw, SlRightPitch, SlRightRoll;
-    ReverseSlider SlRightDelay, SlRightDelayMS, SlRightLfoRate, SlRightLfoDepth, SlRightFb,
-        SlRightCrossFb, SlRightGain;
-    juce::ComboBox cbRightDelayMult;
+    ReverseSlider SlRightWarpFactorAz, SlRightWarpFactorEl;
+    ReverseSlider SlRightDelay, SlRightDelayMS, SlRightDelayMult, SlRightLfoRate, SlRightLfoDepth,
+        SlRightFb, SlRightCrossFb, SlRightGain;
+    juce::ComboBox cbRightTransfromMode, cbRightWarpTypeAz, cbRightWarpTypeEl;
     juce::ToggleButton tbRightSync;
     juce::TextButton btRightTap;
 
     std::unique_ptr<SliderAttachment> dblSlRightFilterHpAttachment, dblSlRightFilterLpAttachment;
     std::unique_ptr<SliderAttachment> SlRightYawAttachment, SlRightPitchAttachment,
         SlRightRollAttachment;
-    std::unique_ptr<SliderAttachment> SlRightDelayAttachment, SlRightLfoRateAttachment,
-        SlRightLfoDepthAttachment, SlRightFbAttachment, SlRightCrossFbAttachment,
-        SlRightGainAttachment;
-    std::unique_ptr<ComboBoxAttachment> cbRightDelayMultAttachment;
+    std::unique_ptr<SliderAttachment> SlRightWarpFactorAzAttachment, SlRightWarpFactorElAttachment;
+    std::unique_ptr<SliderAttachment> SlRightDelayAttachment, SlRightDelayMultAttachment,
+        SlRightLfoRateAttachment, SlRightLfoDepthAttachment, SlRightFbAttachment,
+        SlRightCrossFbAttachment, SlRightGainAttachment;
+    std::unique_ptr<ComboBoxAttachment> cbRightTransfromModeAttachment, cbRightWarpTypeAzAttachment,
+        cbRightWarpTypeElAttachment;
     std::unique_ptr<ButtonAttachment> btRightSyncAttachment;
 
     juce::TextButton btTimeMode;
 
     // labels and groups
-    SimpleLabel lbYawL, lbPitchL, lbRollL, lbDelL, lbFbL, lbXFbL;
-    SimpleLabel lbYawR, lbPitchR, lbRollR, lbDelR, lbFbR, lbXFbR;
+    SimpleLabel lbYawL, lbPitchL, lbRollL, lbDelL, lbDelMultL, lbFbL, lbXFbL, lbWarpFactorAzL,
+        lbAzModeL, lbElModeL, lbWarpFactorElL;
+    SimpleLabel lbYawR, lbPitchR, lbRollR, lbDelR, lbDelMultR, lbFbR, lbXFbR, lbWarpFactorAzR,
+        lbAzModeR, lbElModeR, lbWarpFactorElR;
     SimpleLabel lbGainL, lbGainR, lbGainDry;
     TripleLabel lbLfoL, lbLfoR, lbFilterL, lbFilterR;
 
