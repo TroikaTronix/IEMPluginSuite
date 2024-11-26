@@ -13,7 +13,7 @@ if (IEM_FORMATS)
         LV2URI "http://plugins.iem.at/CoordinateConverter"
         VST2_CATEGORY kPlugSurroundFx
         VST3_CATEGORIES Spatial Surround Tools
-        AAX_CATEGORY AAX_ePlugInCategory_SoundField)
+        AAX_CATEGORY SoundField)
 
     list (APPEND PLUGIN_TARGET CoordinateConverter)
 endif()

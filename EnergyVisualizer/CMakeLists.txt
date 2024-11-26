@@ -13,7 +13,7 @@ juce_add_plugin (EnergyVisualizer
     LV2URI "http://plugins.iem.at/EnergyVisualizer"
     VST2_CATEGORY kPlugSurroundFx kPlugCategSpacializer kPlugCategAnalysis
     VST3_CATEGORIES Spatial Surround Analyzer Tools
-    AAX_CATEGORY AAX_ePlugInCategory_SoundField)
+    AAX_CATEGORY SoundField)
 
     list (APPEND PLUGIN_TARGET EnergyVisualizer)
 endif()

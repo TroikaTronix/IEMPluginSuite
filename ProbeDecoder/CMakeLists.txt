@@ -13,7 +13,7 @@ if (IEM_FORMATS)
         LV2URI "http://plugins.iem.at/ProbeDecoder"
         VST2_CATEGORY kPlugSurroundFx kPlugCategSpacializer
         VST3_CATEGORIES Spatial Surround Up-Downmix
-        AAX_CATEGORY AAX_ePlugInCategory_SoundField)
+        AAX_CATEGORY SoundField)
 
     list (APPEND PLUGIN_TARGET ProbeDecoder)
 endif()

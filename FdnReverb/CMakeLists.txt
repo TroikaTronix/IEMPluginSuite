@@ -13,7 +13,7 @@ if (IEM_FORMATS)
         LV2URI "http://plugins.iem.at/FdnReverb"
         VST2_CATEGORY kPlugSurroundFx kPlugCategSpacializer kPlugCategRoomFx
         VST3_CATEGORIES Spatial Surround Reverb Fx
-        AAX_CATEGORY "AAX_ePlugInCategory_SoundField | AAX_ePlugInCategory_Reverb")
+        AAX_CATEGORY SoundField Reverb)
 
     list (APPEND PLUGIN_TARGET FdnReverb)
 endif()

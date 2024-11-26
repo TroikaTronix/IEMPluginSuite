@@ -13,7 +13,7 @@ if (IEM_FORMATS)
         LV2URI "http://plugins.iem.at/MultiEQ"
         VST2_CATEGORY kPlugSurroundFx kPlugCategSpacializer kPlugCategEffect
         VST3_CATEGORIES Spatial Surround Fx EQ Filter
-        AAX_CATEGORY "AAX_ePlugInCategory_SoundField | AAX_ePlugInCategory_EQ")
+        AAX_CATEGORY SoundField EQ)
 
     list (APPEND PLUGIN_TARGET MultiEQ)
 endif()
