@@ -14,7 +14,7 @@ if (IEM_FORMATS)
         LV2URI "http://plugins.iem.at/DistanceCompensator"
         VST2_CATEGORY kPlugSurroundFx kPlugCategSpacializer
         VST3_CATEGORIES Spatial Surround Delay Tools
-        AAX_CATEGORY AAX_ePlugInCategory_SoundField)
+        AAX_CATEGORY SoundField)
 
     list (APPEND PLUGIN_TARGET DistanceCompensator)
 endif()

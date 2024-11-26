@@ -13,7 +13,7 @@ if (IEM_FORMATS)
         LV2URI "http://plugins.iem.at/MatrixMultiplier"
         VST2_CATEGORY kPlugCategUnknown
         VST3_CATEGORIES Tools
-        AAX_CATEGORY AAX_ePlugInCategory_SoundField)
+        AAX_CATEGORY SoundField)
 
     list (APPEND PLUGIN_TARGET MatrixMultiplier)
 endif()

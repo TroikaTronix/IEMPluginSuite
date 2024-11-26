@@ -13,7 +13,7 @@ if (IEM_FORMATS)
         LV2URI "http://plugins.iem.at/MultiBandCompressor"
         VST2_CATEGORY kPlugSurroundFx kPlugCategSpacializer kPlugCategEffect
         VST3_CATEGORIES Spatial Surround Dynamics EQ Filter Fx
-        AAX_CATEGORY "AAX_ePlugInCategory_SoundField | AAX_ePlugInCategory_Dynamics")
+        AAX_CATEGORY SoundField Dynamics)
 
     list (APPEND PLUGIN_TARGET MultiBandCompressor)
 endif()

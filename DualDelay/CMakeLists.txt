@@ -13,7 +13,7 @@ if (IEM_FORMATS)
         LV2URI "http://plugins.iem.at/DualDelay"
         VST2_CATEGORY kPlugSurroundFx kPlugCategSpacializer kPlugCategEffect
         VST3_CATEGORIES Spatial Surround Delay Fx
-        AAX_CATEGORY "AAX_ePlugInCategory_SoundField | AAX_ePlugInCategory_Delay")
+        AAX_CATEGORY SoundField Delay)
 
     list (APPEND PLUGIN_TARGET DualDelay)
 endif()

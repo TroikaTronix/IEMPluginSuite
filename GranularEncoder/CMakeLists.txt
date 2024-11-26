@@ -13,7 +13,7 @@ if (IEM_FORMATS)
         LV2URI "http://plugins.iem.at/GranularEncoder"
         VST2_CATEGORY kPlugSurroundFx kPlugCategSpacializer kPlugCategEffect kPlugCategRoomFx kPlugCategSynth
         VST3_CATEGORIES Spatial Surround Up-Downmix Synth
-        AAX_CATEGORY AAX_ePlugInCategory_SoundField)
+        AAX_CATEGORY SoundField)
 
     list (APPEND PLUGIN_TARGET GranularEncoder)
 endif()

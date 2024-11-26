@@ -13,7 +13,7 @@ if (IEM_FORMATS)
         LV2URI "http://plugins.iem.at/ToolBox"
         VST2_CATEGORY kPlugSurroundFx kPlugCategSpacializer
         VST3_CATEGORIES Spatial Surround Tools
-        AAX_CATEGORY AAX_ePlugInCategory_SoundField)
+        AAX_CATEGORY SoundField)
 
     list (APPEND PLUGIN_TARGET ToolBox)
 endif()
