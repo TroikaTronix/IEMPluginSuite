@@ -193,7 +193,7 @@ DualDelayAudioProcessorEditor::DualDelayAudioProcessorEditor (
     btLeftTap.addListener (this);
 
     addAndMakeVisible (&SlLeftDelayMult);
-    SlLeftDelayAttachment.reset (
+    SlLeftDelayMultAttachment.reset (
         new SliderAttachment (valueTreeState, "delayMultL", SlLeftDelayMult));
     SlLeftDelayMult.setSliderStyle (juce::Slider::RotaryHorizontalVerticalDrag);
     SlLeftDelayMult.setTextValueSuffix ("");
@@ -396,7 +396,7 @@ DualDelayAudioProcessorEditor::DualDelayAudioProcessorEditor (
     btRightTap.addListener (this);
 
     addAndMakeVisible (&SlRightDelayMult);
-    SlRightDelayAttachment.reset (
+    SlRightDelayMultAttachment.reset (
         new SliderAttachment (valueTreeState, "delayMultR", SlRightDelayMult));
     SlRightDelayMult.setSliderStyle (juce::Slider::RotaryHorizontalVerticalDrag);
     SlRightDelayMult.setTextValueSuffix ("");
@@ -934,6 +934,7 @@ void DualDelayAudioProcessorEditor::buttonClicked (juce::Button* button)
     {
         if (tbLeftSync.getToggleState())
         {
+            // Disable slider when using host BPM
             SlLeftDelayMS.setVisible (false);
             SlLeftDelay.setVisible (false);
             SlLeftDelayMult.setVisible (true);
@@ -941,16 +942,15 @@ void DualDelayAudioProcessorEditor::buttonClicked (juce::Button* button)
         }
         else
         {
-            SlLeftDelayMS.setVisible (false);
-            SlLeftDelay.setVisible (true);
-            SlLeftDelayMult.setVisible (true);
-            lbDelL.setVisible (true);
+            // Restore default controls
+            updateDelayUnit (! btTimeMode.getToggleState());
         }
     }
     else if (button == &tbRightSync)
     {
         if (tbRightSync.getToggleState())
         {
+            // Disable slider when using host BPM
             SlRightDelayMS.setVisible (false);
             SlRightDelay.setVisible (false);
             SlRightDelayMult.setVisible (true);
@@ -958,10 +958,8 @@ void DualDelayAudioProcessorEditor::buttonClicked (juce::Button* button)
         }
         else
         {
-            SlRightDelayMS.setVisible (false);
-            SlRightDelay.setVisible (true);
-            SlRightDelayMult.setVisible (true);
-            lbDelR.setVisible (true);
+            // Restore default controls
+            updateDelayUnit (! btTimeMode.getToggleState());
         }
     }
 }

@@ -275,10 +275,7 @@ void DualDelayAudioProcessor::processBlock (juce::AudioSampleBuffer& buffer,
         if (*transformMode[i] < 0.5f)
             rotator[i].process (&delayBuffer[i]);
         else
-        {
             warp[i].process (&delayBuffer[i]);
-            // delayBuffer[i].applyGain (OneOverSqrt2); // Revert 3 dB gain increase
-        }
     }
 
     // ========== Add and get samples from delay line ==========

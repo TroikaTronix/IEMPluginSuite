@@ -91,7 +91,7 @@ private:
     std::unique_ptr<SliderAttachment> SlLeftYawAttachment, SlLeftPitchAttachment,
         SlLeftRollAttachment;
     std::unique_ptr<SliderAttachment> SlLeftWarpFactorAzAttachment, SlLeftWarpFactorElAttachment;
-    std::unique_ptr<SliderAttachment> SlLeftDelayAttachment, SbLeftDelayMultAttachment,
+    std::unique_ptr<SliderAttachment> SlLeftDelayAttachment, SlLeftDelayMultAttachment,
         SlLeftLfoRateAttachment, SlLeftLfoDepthAttachment, SlLeftFbAttachment,
         SlLeftCrossFbAttachment, SlLeftGainAttachment;
     std::unique_ptr<ComboBoxAttachment> cbLeftTransfromModeAttachment, cbLeftWarpTypeAzAttachment,
