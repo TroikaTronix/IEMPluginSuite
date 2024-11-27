@@ -410,31 +410,40 @@ void OSCStatus::paint (juce::Graphics& g)
     area.removeFromLeft (2);
 
     g.setColour (juce::Colours::white.withAlpha (mouseOver ? 1.0f : 0.5f));
-    g.setFont (getLookAndFeel().getTypefaceForFont (juce::Font (12.0f, 0)));
-    g.setFont (14.0f);
+    auto currentFont =
+        juce::FontOptions (getLookAndFeel().getTypefaceForFont (juce::FontOptions (14.0f, 0)));
+    g.setFont (currentFont);
 
-    juce::String text = "OSC";
+    juce::AttributedString text;
+    text.setText ("OSC");
     if (oscReceiver.isConnected() || oscSender.isConnected())
     {
-        text += " (";
+        text.append (" (");
         if (oscReceiver.isConnected())
-            text += "IN: " + juce::String (oscReceiver.getPortNumber());
+            text.append ("IN: " + juce::String (oscReceiver.getPortNumber()));
 
         if (oscReceiver.isConnected() && oscSender.isConnected())
-            text += " - ";
+            text.append (" - ");
 
         if (oscSender.isConnected())
-            text +=
-                "OUT: " + oscSender.getHostName() + ":" + juce::String (oscSender.getPortNumber());
+            text.append ("OUT: " + oscSender.getHostName() + ":"
+                         + juce::String (oscSender.getPortNumber()));
 
-        text += ")";
+        text.append (")");
     }
+    text.setFont (currentFont);
+    text.setColour (juce::Colours::white.withAlpha (mouseOver ? 1.0f : 0.5f));
+    text.setJustification (juce::Justification::bottomLeft);
 
-    auto textWidth = juce::roundToInt (g.getCurrentFont().getStringWidthFloat (text));
+    auto maxWidth = area.getWidth();
+    juce::TextLayout layout;
+    layout.createLayout (text, maxWidth);
+    auto textWidth = static_cast<int> (std::ceil (layout.getWidth()));
 
     const int targetSize = 12 + 2 + textWidth + 2 + 12;
 
     bounds = getLocalBounds().removeFromLeft (targetSize);
 
-    g.drawText (text, area.withWidth (textWidth), juce::Justification::bottomLeft, true);
+    juce::Rectangle<float> areaFl = area.toFloat();
+    layout.draw (g, area.toFloat().withWidth (textWidth));
 }
