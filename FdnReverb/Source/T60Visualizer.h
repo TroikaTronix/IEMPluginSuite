@@ -55,7 +55,8 @@ public:
 
         //int width = getWidth();
 
-        g.setFont (getLookAndFeel().getTypefaceForFont (juce::Font (12.0f, 2)));
+        g.setFont (
+            juce::FontOptions (getLookAndFeel().getTypefaceForFont (juce::FontOptions (12.0f, 2))));
         g.setFont (12.0f);
 
         // time labels
