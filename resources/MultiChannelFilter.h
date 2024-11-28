@@ -25,6 +25,28 @@
 
 #include <JuceHeader.h>
 
+enum FilterType
+{
+    FirstOrderHighPass,
+    SecondOrderHighPass,
+    LinkwitzRileyHighPass,
+    LowShelf,
+    PeakFilter,
+    HighShelf,
+    FirstOrderLowPass,
+    SecondOrderLowPass,
+    LinkwitzRileyLowPass,
+    AllPass
+};
+
+struct FilterParameters
+{
+    FilterType type = AllPass;
+    float frequency = 1000.0f;
+    float linearGain = 1.0f;
+    float q = 0.707f;
+};
+
 template <int numFilterBands, int maxChannels>
 class MultiChannelFilter
 {
@@ -39,28 +61,6 @@ class MultiChannelFilter
 #endif /* JUCE_USE_SIMD */
 
 public:
-    enum FilterType
-    {
-        FirstOrderHighPass,
-        SecondOrderHighPass,
-        LinkwitzRileyHighPass,
-        LowShelf,
-        PeakFilter,
-        HighShelf,
-        FirstOrderLowPass,
-        SecondOrderLowPass,
-        LinkwitzRileyLowPass,
-        AllPass
-    };
-
-    struct FilterParameters
-    {
-        FilterType type = AllPass;
-        float frequency = 1000.0f;
-        float linearGain = 1.0f;
-        float q = 0.707f;
-    };
-
     MultiChannelFilter()
     {
         // Create dummy filter coeffs
@@ -98,7 +98,7 @@ public:
     }
     ~MultiChannelFilter() {}
 
-    void prepare (const juce::dsp::ProcessSpec spec, *FilterParameters params)
+    void prepare (const juce::dsp::ProcessSpec spec, FilterParameters& params)
     {
         for (int f = 0; f < numFilterBands; ++f)
             updateFilterParams (params[f], f);
@@ -136,7 +136,7 @@ public:
         zero.clear();
     }
 
-    void processInternal (const ProcessContext& context) noexcept
+    void process (const ProcessContext& context) noexcept
     {
         check();
 
@@ -399,8 +399,8 @@ private:
         jassert (additionalProcessorCoefficients[1] != nullptr);
     }
 
-    static juce::Array<type> cascadeSecondOrderCoefficients (juce::Array<type>& c0,
-                                                             juce::Array<type>& c1)
+    static juce::Array<float> cascadeSecondOrderCoefficients (juce::Array<float>& c0,
+                                                              juce::Array<float>& c1)
     {
         juce::Array<type> c12;
         c12.resize (9);
