@@ -142,7 +142,7 @@ public:
     {
         check();
 
-        auto&& inputBlock = context.getInputBlock();
+        const auto& inputBlock = context.getInputBlock();
         auto&& outputBlock = context.getOutputBlock();
 
         const int L = inputBlock.getNumSamples();
@@ -165,48 +165,16 @@ public:
             juce::AudioData::Format<juce::AudioData::Float32, juce::AudioData::NativeEndian>;
 
         //interleave input data
-        int partial = maxNChIn % IIRfloat_elements;
-        if (partial == 0)
+        for (int i = 0; i < nSIMDFilters; ++i)
         {
-            for (int i = 0; i < nSIMDFilters; ++i)
-            {
-                juce::AudioData::interleaveSamples (
-                    juce::AudioData::NonInterleavedSource<Format> {
-                        inputBlock.getArrayOfReadPointers() + i * IIRfloat_elements,
-                        IIRfloat_elements },
-                    juce::AudioData::InterleavedDest<Format> {
-                        reinterpret_cast<float*> (interleavedData[i]->getChannelPointer (0)),
-                        IIRfloat_elements },
-                    L);
-            }
-        }
-        else
-        {
-            int i;
-            for (i = 0; i < nSIMDFilters - 1; ++i)
-            {
-                juce::AudioData::interleaveSamples (
-                    juce::AudioData::NonInterleavedSource<Format> {
-                        inputBlock.getArrayOfReadPointers() + i * IIRfloat_elements,
-                        IIRfloat_elements },
-                    juce::AudioData::InterleavedDest<Format> {
-                        reinterpret_cast<float*> (interleavedData[i]->getChannelPointer (0)),
-                        IIRfloat_elements },
-                    L);
-            }
+            const auto& subInputBlock =
+                inputBlock.getSubsetChannelBlock (i * IIRfloat_elements, IIRfloat_elements);
 
-            const float* addr[IIRfloat_elements];
-            int ch;
-            for (ch = 0; ch < partial; ++ch)
-            {
-                addr[ch] = inputBlock.getReadPointer (i * IIRfloat_elements + ch);
-            }
-            for (; ch < IIRfloat_elements; ++ch)
-            {
-                addr[ch] = zero.getChannelPointer (ch);
-            }
+            auto inChannels = prepareChannelPointers (subInputBlock);
+
             juce::AudioData::interleaveSamples (
-                juce::AudioData::NonInterleavedSource<Format> { addr, IIRfloat_elements },
+                juce::AudioData::NonInterleavedSource<Format> { inChannels.data(),
+                                                                IIRfloat_elements },
                 juce::AudioData::InterleavedDest<Format> {
                     reinterpret_cast<float*> (interleavedData[i]->getChannelPointer (0)),
                     IIRfloat_elements },
@@ -529,6 +497,18 @@ private:
             juce::FloatVectorOperations::clear (
                 reinterpret_cast<float*> (ab.getChannelPointer (ch)),
                 N);
+    }
+
+    template <typename SampleType>
+    auto prepareChannelPointers (const juce::dsp::AudioBlock<SampleType>& block)
+    {
+        std::array<SampleType*, IIRfloat_elements> result {};
+
+        for (size_t ch = 0; ch < result.size(); ++ch)
+            result[ch] = (ch < block.getNumChannels() ? block.getChannelPointer (ch)
+                                                      : zero.getChannelPointer (ch));
+
+        return result;
     }
 
     double sampleRate { 0.0f };
