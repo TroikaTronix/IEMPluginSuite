@@ -31,11 +31,11 @@ class MultiChannelFilter
 #if JUCE_USE_SIMD
     using IIRfloat = juce::dsp::SIMDRegister<float>;
     static constexpr int IIRfloat_elements = juce::dsp::SIMDRegister<float>::size();
-    static constexpr int nSIMDFilters = std::ceil (maxChannels / IIRfloat_elements);
+    static constexpr int nMaxSIMDFilters = std::ceil (maxChannels / IIRfloat_elements);
 #else /* !JUCE_USE_SIMD */
     using IIRfloat = float;
     static constexpr int IIRfloat_elements = 1;
-    static constexpr int nSIMDFilters = maxChannels;
+    static constexpr int nMaxSIMDFilters = maxChannels;
 #endif /* JUCE_USE_SIMD */
 
 public:
@@ -61,24 +61,21 @@ public:
         float q = 0.707f;
     };
 
-    MultiChannelFilter() {}
-    ~MultiChannelFilter() {}
-
-    void prepare (const juce::dsp::ProcessSpec spec)
+    MultiChannelFilter()
     {
-        sampleRate = spec.sampleRate;
-
+        // Create dummy filter coeffs
         for (int i = 0; i < 2; ++i)
         {
             additionalTempCoefficients[i] =
-                juce::dsp::IIR::Coefficients<float>::makeAllPass (sampleRate, 20.0f);
+                juce::dsp::IIR::Coefficients<float>::makeAllPass (48000.0f, 20.0f);
             additionalProcessorCoefficients[i] =
-                juce::dsp::IIR::Coefficients<float>::makeAllPass (sampleRate, 20.0f);
+                juce::dsp::IIR::Coefficients<float>::makeAllPass (48000.0f, 20.0f);
         }
 
         for (int i = 0; i < numFilterBands; ++i)
         {
-            processorCoefficients[i] = IIR::Coefficients<float>::makeAllPass (48000.0, 20.0f);
+            processorCoefficients[i] =
+                juce::dsp::IIR::Coefficients<float>::makeAllPass (48000.0, 20.0f);
         }
 
         copyFilterCoefficientsToProcessor();
@@ -86,21 +83,443 @@ public:
         for (int i = 0; i < numFilterBands; ++i)
         {
             filterArrays[i].clear();
-            for (int ch = 0; ch < nSIMDFilters; ++ch)
-                filterArrays[i].add (new IIR::Filter<IIRfloat> (processorCoefficients[i]));
+            for (int ch = 0; ch < nMaxSIMDFilters; ++ch)
+                filterArrays[i].add (
+                    new juce::dsp::IIR::Filter<IIRfloat> (processorCoefficients[i]));
         }
 
         for (int i = 0; i < 2; ++i)
         {
             additionalFilterArrays[i].clear();
-            for (int ch = 0; ch < nSIMDFilters; ++ch)
+            for (int ch = 0; ch < nMaxSIMDFilters; ++ch)
                 additionalFilterArrays[i].add (
-                    new IIR::Filter<IIRfloat> (additionalProcessorCoefficients[0]));
+                    new juce::dsp::IIR::Filter<IIRfloat> (additionalProcessorCoefficients[0]));
+        }
+    }
+    ~MultiChannelFilter() {}
+
+    void prepare (const juce::dsp::ProcessSpec spec, *FilterParameters params)
+    {
+        for (int f = 0; f < numFilterBands; ++f)
+            updateFilterParams (params[f], f);
+
+        prepare (spec);
+    }
+
+    void prepare (const juce::dsp::ProcessSpec spec)
+    {
+        sampleRate = spec.sampleRate;
+        maxBlockSize = spec.maximumBlockSize;
+
+        for (int f = 0; f < numFilterBands; ++f)
+        {
+            createFilterCoefficients (f, sampleRate);
+        }
+        copyFilterCoefficientsToProcessor();
+
+        interleavedData.clear();
+
+        for (int i = 0; i < nMaxSIMDFilters; ++i)
+        {
+            // reset filters
+            for (int f = 0; f < numFilterBands; ++f)
+            {
+                filterArrays[f][i]->reset (IIRfloat (0.0f));
+            }
+
+            interleavedData.add (
+                new juce::dsp::AudioBlock<IIRfloat> (interleavedBlockData[i], 1, samplesPerBlock));
+            clear (*interleavedData.getLast());
+        }
+
+        zero = juce::dsp::AudioBlock<float> (zeroData, IIRfloat_elements, samplesPerBlock);
+        zero.clear();
+    }
+
+    void processInternal (const ProcessContext& context) noexcept
+    {
+        check();
+
+        auto&& inputBlock = context.getInputBlock();
+        auto&& outputBlock = context.getOutputBlock();
+
+        const int L = inputBlock.getNumSamples();
+
+        const int maxNChIn =
+            juce::jmin (inputBlock.getNumChannels(), outputBlock.getNumChannels(), maxChannels);
+        if (maxNChIn < 1)
+            return;
+
+        const int nSIMDFilters = 1 + (maxNChIn - 1) / IIRfloat_elements;
+
+        // update iir filter coefficients
+        if (userHasChangedFilterSettings.get())
+            copyFilterCoefficientsToProcessor();
+
+        using Format =
+            juce::AudioData::Format<juce::AudioData::Float32, juce::AudioData::NativeEndian>;
+
+        //interleave input data
+        int partial = maxNChIn % IIRfloat_elements;
+        if (partial == 0)
+        {
+            for (int i = 0; i < nSIMDFilters; ++i)
+            {
+                juce::AudioData::interleaveSamples (
+                    juce::AudioData::NonInterleavedSource<Format> {
+                        inputBlock.getArrayOfReadPointers() + i * IIRfloat_elements,
+                        IIRfloat_elements },
+                    juce::AudioData::InterleavedDest<Format> {
+                        reinterpret_cast<float*> (interleavedData[i]->getChannelPointer (0)),
+                        IIRfloat_elements },
+                    L);
+            }
+        }
+        else
+        {
+            int i;
+            for (i = 0; i < nSIMDFilters - 1; ++i)
+            {
+                juce::AudioData::interleaveSamples (
+                    juce::AudioData::NonInterleavedSource<Format> {
+                        inputBlock.getArrayOfReadPointers() + i * IIRfloat_elements,
+                        IIRfloat_elements },
+                    juce::AudioData::InterleavedDest<Format> {
+                        reinterpret_cast<float*> (interleavedData[i]->getChannelPointer (0)),
+                        IIRfloat_elements },
+                    L);
+            }
+
+            const float* addr[IIRfloat_elements];
+            int ch;
+            for (ch = 0; ch < partial; ++ch)
+            {
+                addr[ch] = inputBlock.getReadPointer (i * IIRfloat_elements + ch);
+            }
+            for (; ch < IIRfloat_elements; ++ch)
+            {
+                addr[ch] = zero.getChannelPointer (ch);
+            }
+            juce::AudioData::interleaveSamples (
+                juce::AudioData::NonInterleavedSource<Format> { addr, IIRfloat_elements },
+                juce::AudioData::InterleavedDest<Format> {
+                    reinterpret_cast<float*> (interleavedData[i]->getChannelPointer (0)),
+                    IIRfloat_elements },
+                L);
+        }
+
+        // apply filters
+        for (int f = 0; f < numFilterBands; ++f)
+        {
+            if (*filterEnabled[f] > 0.5f)
+            {
+                for (int i = 0; i < nSIMDFilters; ++i)
+                {
+                    const IIRfloat* chPtr[1] = { interleavedData[i]->getChannelPointer (0) };
+                    juce::dsp::AudioBlock<IIRfloat> ab (const_cast<IIRfloat**> (chPtr), 1, L);
+                    juce::dsp::ProcessContextReplacing<IIRfloat> context (ab);
+                    filterArrays[f][i]->process (context);
+                }
+            }
+        }
+
+        // check and apply additional filters (Linkwitz Riley -> two BiQuads)
+        if (static_cast<int> (*filterType[0]) == 2 && *filterEnabled[0] > 0.5f)
+        {
+            for (int i = 0; i < nSIMDFilters; ++i)
+            {
+                const IIRfloat* chPtr[1] = { chPtr[0] = interleavedData[i]->getChannelPointer (0) };
+                juce::dsp::AudioBlock<IIRfloat> ab (const_cast<IIRfloat**> (chPtr), 1, L);
+                juce::dsp::ProcessContextReplacing<IIRfloat> context (ab);
+                additionalFilterArrays[0][i]->process (context);
+            }
+        }
+        if (static_cast<int> (*filterType[numFilterBands - 1]) == 2
+            && *filterEnabled[numFilterBands - 1] > 0.5f)
+        {
+            for (int i = 0; i < nSIMDFilters; ++i)
+            {
+                const IIRfloat* chPtr[1] = { interleavedData[i]->getChannelPointer (0) };
+                juce::dsp::AudioBlock<IIRfloat> ab (const_cast<IIRfloat**> (chPtr), 1, L);
+                juce::dsp::ProcessContextReplacing<IIRfloat> context (ab);
+                additionalFilterArrays[1][i]->process (context);
+            }
+        }
+
+        // deinterleave
+        if (partial == 0)
+        {
+            for (int i = 0; i < nSIMDFilters; ++i)
+            {
+                juce::AudioData::deinterleaveSamples (
+                    juce::AudioData::InterleavedSource<Format> {
+                        reinterpret_cast<float*> (interleavedData[i]->getChannelPointer (0)),
+                        IIRfloat_elements },
+                    juce::AudioData::NonInterleavedDest<Format> {
+                        outputBlock.getArrayOfWritePointers() + i * IIRfloat_elements,
+                        IIRfloat_elements },
+                    L);
+            }
+        }
+        else
+        {
+            int i;
+            for (i = 0; i < nSIMDFilters - 1; ++i)
+            {
+                juce::AudioData::deinterleaveSamples (
+                    juce::AudioData::InterleavedSource<Format> {
+                        reinterpret_cast<float*> (interleavedData[i]->getChannelPointer (0)),
+                        IIRfloat_elements },
+                    juce::AudioData::NonInterleavedDest<Format> {
+                        outputBlock.getArrayOfWritePointers() + i * IIRfloat_elements,
+                        IIRfloat_elements },
+                    L);
+            }
+
+            float* addr[IIRfloat_elements];
+            int ch;
+            for (ch = 0; ch < partial; ++ch)
+            {
+                addr[ch] = outputBlock.getWritePointer (i * IIRfloat_elements + ch);
+            }
+            for (; ch < IIRfloat_elements; ++ch)
+            {
+                addr[ch] = zero.getChannelPointer (ch);
+            }
+            juce::AudioData::deinterleaveSamples (
+                juce::AudioData::InterleavedSource<Format> {
+                    reinterpret_cast<float*> (interleavedData[i]->getChannelPointer (0)),
+                    IIRfloat_elements },
+                juce::AudioData::NonInterleavedDest<Format> { addr, IIRfloat_elements },
+                L);
+            zero.clear();
+        }
+    }
+
+    void updateFilterParams (FilterParameters newParams, int filterIndex)
+    {
+        filterParameters[filterIndex] = newParams;
+        userHasChangedFilterSettings = true;
+    }
+
+    void updateGuiCoefficients()
+    {
+        for (int f = 0; f < numFilterBands - 1; ++f)
+        {
+            const auto frequency =
+                juce::jmin (static_cast<float> (0.5 * sampleRate), filterParameters[f].frequency);
+
+            switch (filterParameters[f].type)
+            {
+                case FilterType::FirstOrderHighPass:
+                    guiCoefficients[f] =
+                        juce::dsp::IIR::Coefficients<double>::makeFirstOrderHighPass (sampleRate,
+                                                                                      frequency);
+                    break;
+                case FilterType::SecondOrderHighPass:
+                    guiCoefficients[f] =
+                        juce::dsp::IIR::Coefficients<double>::makeHighPass (sampleRate,
+                                                                            frequency,
+                                                                            filterParameters[f].q);
+                    break;
+                case FilterType::LinkwitzRileyHighPass:
+                {
+                    auto coeffs = IIR::Coefficients<double>::makeHighPass (sampleRate, frequency);
+                    coeffs->coefficients =
+                        FilterVisualizerHelper<double>::cascadeSecondOrderCoefficients (
+                            coeffs->coefficients,
+                            coeffs->coefficients);
+                    guiCoefficients[f] = coeffs;
+                    break;
+                }
+                case FilterType::LowShelf:
+                    guiCoefficients[f] = juce::dsp::IIR::Coefficients<double>::makeLowShelf (
+                        sampleRate,
+                        frequency,
+                        filterParameters[f].q,
+                        filterParameters[f].linearGain);
+                    break;
+                case FilterType::PeakFilter:
+                    guiCoefficients[f] =
+                        IIR::Coefficients<double>::makePeakFilter (sampleRate,
+                                                                   frequency,
+                                                                   filterParameters[f].q,
+                                                                   filterParameters[f].linearGain);
+                    break;
+                case FilterType::HighShelf:
+                    guiCoefficients[f] =
+                        IIR::Coefficients<double>::makeHighShelf (sampleRate,
+                                                                  frequency,
+                                                                  filterParameters[f].q,
+                                                                  filterParameters[f].linearGain);
+                    break;
+                case FilterType::FirstOrderLowPass:
+                    guiCoefficients[f] =
+                        juce::dsp::IIR::Coefficients<double>::makeFirstOrderLowPass (sampleRate,
+                                                                                     frequency);
+                    break;
+                case FilterType::SecondOrderLowPass:
+                    guiCoefficients[f] =
+                        juce::dsp::IIR::Coefficients<double>::makeLowPass (sampleRate,
+                                                                           frequency,
+                                                                           filterParameters[f].q);
+                    break;
+                case FilterType::LinkwitzRileyLowPass:
+                {
+                    auto coeffs = IIR::Coefficients<double>::makeLowPass (sampleRate, frequency);
+                    coeffs->coefficients =
+                        FilterVisualizerHelper<double>::cascadeSecondOrderCoefficients (
+                            coeffs->coefficients,
+                            coeffs->coefficients);
+                    guiCoefficients[f] = coeffs;
+                    break;
+                }
+                case FilterType::AllPass:
+                    guiCoefficients[f] =
+                        juce::dsp::IIR::Coefficients<double>::makeAllPass (sampleRate, frequency);
+                    break;
+                default:
+                    break;
+            }
         }
     }
 
 private:
-    float sampleRate { 0.0f };
+    void check()
+    {
+        for (int band = 0; band < numFilterBands; ++band)
+            jassert (processorCoefficients[band] != nullptr);
+
+        jassert (additionalProcessorCoefficients[0] != nullptr);
+        jassert (additionalProcessorCoefficients[1] != nullptr);
+    }
+
+    static juce::Array<type> cascadeSecondOrderCoefficients (juce::Array<type>& c0,
+                                                             juce::Array<type>& c1)
+    {
+        juce::Array<type> c12;
+        c12.resize (9);
+        const int o = 2;
+
+        c12.setUnchecked (0, c0[0] * c1[0]);
+        c12.setUnchecked (1, c0[0] * c1[1] + c0[1] * c1[0]);
+        c12.setUnchecked (2, c0[0] * c1[2] + c0[1] * c1[1] + c0[2] * c1[0]);
+        c12.setUnchecked (3, c0[1] * c1[2] + c0[2] * c1[1]);
+        c12.setUnchecked (4, c0[2] * c1[2]);
+
+        c12.setUnchecked (5, c1[1 + o] + c0[1 + o]);
+        c12.setUnchecked (6, c1[2 + o] + c0[1 + o] * c1[1 + o] + c0[2 + o]);
+        c12.setUnchecked (7, c0[1 + o] * c1[2 + o] + c0[2 + o] * c1[1 + o]);
+        c12.setUnchecked (8, c0[2 + o] * c1[2 + o]);
+
+        return c12;
+    }
+
+    inline juce::dsp::IIR::Coefficients<float>::Ptr
+        createFilterCoefficients (const RegularFilterType type,
+                                  const float frequency,
+                                  const float Q,
+                                  const float gain)
+    {
+        const auto f = juce::jmin (static_cast<float> (0.5 * sampleRate), frequency);
+        switch (type)
+        {
+            case FilterType::FirstOrderHighPass:
+                return juce::dsp::IIR::Coefficients<float>::makeFirstOrderHighPass (sampleRate, f);
+                break;
+            case FilterType::SecondOrderHighPass:
+                return juce::dsp::IIR::Coefficients<float>::makeHighPass (sampleRate, f, Q);
+                break;
+            case FilterType::LowShelf:
+                return juce::dsp::IIR::Coefficients<float>::makeLowShelf (sampleRate, f, Q, gain);
+                break;
+            case FilterType::PeakFilter:
+                return juce::dsp::IIR::Coefficients<float>::makePeakFilter (sampleRate, f, Q, gain);
+                break;
+            case FilterType::HighShelf:
+                return juce::dsp::IIR::Coefficients<float>::makeHighShelf (sampleRate, f, Q, gain);
+                break;
+            case FilterType::FirstOrderLowPass:
+                return juce::dsp::IIR::Coefficients<float>::makeFirstOrderLowPass (sampleRate, f);
+                break;
+            case FilterType::SecondOrderLowPass:
+                return juce::dsp::IIR::Coefficients<float>::makeLowPass (sampleRate, f, Q);
+                break;
+            default:
+                return juce::dsp::IIR::Coefficients<float>::makeAllPass (sampleRate, f, Q);
+                break;
+        }
+    }
+
+    void createLinkwitzRileyFilter (const bool isUpperBand)
+    {
+        if (isUpperBand)
+        {
+            const auto frequency = juce::jmin (static_cast<float> (0.5 * sampleRate),
+                                               filterParameters[numFilterBands - 1].frequency);
+            tempCoefficients[numFilterBands - 1] =
+                juce::dsp::IIR::Coefficients<float>::makeLowPass (
+                    sampleRate,
+                    frequency,
+                    filterParameters[numFilterBands - 1].q);
+            additionalTempCoefficients[1] = processorCoefficients[numFilterBands - 1];
+        }
+        else
+        {
+            const auto frequency =
+                juce::jmin (static_cast<float> (0.5 * sampleRate), filterParameters[0].frequency);
+            tempCoefficients[0] =
+                juce::dsp::IIR::Coefficients<float>::makeHighPass (sampleRate,
+                                                                   frequency,
+                                                                   filterParameters[0].q);
+            additionalTempCoefficients[0] = processorCoefficients[0];
+        }
+    }
+
+    void createFilterCoefficients (const int filterIndex)
+    {
+        if (filterIndex == 0 && type == FilterType::LinkwitzRileyHighPass)
+        {
+            createLinkwitzRileyFilter (false);
+        }
+        else if (filterIndex == 0 && type == FilterType::LinkwitzRileyLowPass)
+        {
+            createLinkwitzRileyFilter (true);
+        }
+        else
+        {
+            tempCoefficients[filterIndex] =
+                createFilterCoefficients (filterParameters[filterIndex].type,
+                                          filterParameters[filterIndex].frequency,
+                                          filterParameters[filterIndex].q,
+                                          filterParameters[filterIndex].linearGain);
+        }
+    }
+
+    void copyFilterCoefficientsToProcessor()
+    {
+        for (int b = 0; b < numFilterBands; ++b)
+            *processorCoefficients[b] = *tempCoefficients[b];
+
+        *additionalProcessorCoefficients[0] = *additionalTempCoefficients[0];
+        *additionalProcessorCoefficients[1] = *additionalTempCoefficients[1];
+
+        userHasChangedFilterSettings = false;
+    }
+
+    inline clear (juce::dsp::AudioBlock<IIRfloat>& ab)
+    {
+        const int N = static_cast<int> (ab.getNumSamples()) * IIRfloat_elements;
+        const int nCh = static_cast<int> (ab.getNumChannels());
+
+        for (int ch = 0; ch < nCh; ++ch)
+            juce::FloatVectorOperations::clear (
+                reinterpret_cast<float*> (ab.getChannelPointer (ch)),
+                N);
+    }
+
+    double sampleRate { 0.0f };
+    uint32_t maxBlockSize { 0 };
 
     // filter dummy for GUI
     juce::dsp::IIR::Coefficients<double>::Ptr guiCoefficients[numFilterBands];
@@ -112,7 +531,7 @@ private:
     juce::dsp::IIR::Coefficients<float>::Ptr additionalTempCoefficients[2];
 
     // data for interleaving audio
-    juce::HeapBlock<char> interleavedBlockData[nSIMDFilters], zeroData;
+    juce::HeapBlock<char> interleavedBlockData[nMaxSIMDFilters], zeroData;
     juce::OwnedArray<juce::dsp::AudioBlock<IIRfloat>> interleavedData;
     juce::dsp::AudioBlock<float> zero;
 
@@ -122,5 +541,5 @@ private:
     juce::OwnedArray<juce::dsp::IIR::Filter<IIRfloat>> filterArrays[numFilterBands];
     juce::OwnedArray<juce::dsp::IIR::Filter<IIRfloat>> additionalFilterArrays[2];
 
-    juce::Atomic<bool> userHasChangedFilterSettings = true;
+    juce::Atomic<bool> userHasChangedFilterSettings { true };
 };
