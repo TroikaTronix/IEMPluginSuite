@@ -45,6 +45,7 @@ struct FilterParameters
     float frequency = 1000.0f;
     float linearGain = 1.0f;
     float q = 0.707f;
+    bool enabled = false;
 };
 
 template <int numFilterBands, int maxChannels>
@@ -98,7 +99,7 @@ public:
     }
     ~MultiChannelFilter() {}
 
-    void prepare (const juce::dsp::ProcessSpec spec, FilterParameters& params)
+    void prepare (const juce::dsp::ProcessSpec spec, FilterParameters params[])
     {
         for (int f = 0; f < numFilterBands; ++f)
             updateFilterParams (params[f], f);
@@ -113,7 +114,7 @@ public:
 
         for (int f = 0; f < numFilterBands; ++f)
         {
-            createFilterCoefficients (f, sampleRate);
+            createFilterCoefficients (f);
         }
         copyFilterCoefficientsToProcessor();
 
@@ -128,14 +129,15 @@ public:
             }
 
             interleavedData.add (
-                new juce::dsp::AudioBlock<IIRfloat> (interleavedBlockData[i], 1, samplesPerBlock));
+                new juce::dsp::AudioBlock<IIRfloat> (interleavedBlockData[i], 1, maxBlockSize));
             clear (*interleavedData.getLast());
         }
 
-        zero = juce::dsp::AudioBlock<float> (zeroData, IIRfloat_elements, samplesPerBlock);
+        zero = juce::dsp::AudioBlock<float> (zeroData, IIRfloat_elements, maxBlockSize);
         zero.clear();
     }
 
+    template <typename ProcessContext>
     void process (const ProcessContext& context) noexcept
     {
         check();
@@ -145,8 +147,11 @@ public:
 
         const int L = inputBlock.getNumSamples();
 
-        const int maxNChIn =
-            juce::jmin (inputBlock.getNumChannels(), outputBlock.getNumChannels(), maxChannels);
+        int nInSamples = inputBlock.getNumSamples();
+        int nOutSamples = outputBlock.getNumSamples();
+
+        const int maxNChIn = juce::jmin (juce::jmin (nInSamples, nOutSamples), maxChannels);
+
         if (maxNChIn < 1)
             return;
 
@@ -211,7 +216,7 @@ public:
         // apply filters
         for (int f = 0; f < numFilterBands; ++f)
         {
-            if (*filterEnabled[f] > 0.5f)
+            if (filterParameters[f].enabled)
             {
                 for (int i = 0; i < nSIMDFilters; ++i)
                 {
@@ -224,7 +229,8 @@ public:
         }
 
         // check and apply additional filters (Linkwitz Riley -> two BiQuads)
-        if (static_cast<int> (*filterType[0]) == 2 && *filterEnabled[0] > 0.5f)
+        if (filterParameters[0].type == FilterType::LinkwitzRileyHighPass
+            && filterParameters[0].enabled)
         {
             for (int i = 0; i < nSIMDFilters; ++i)
             {
@@ -234,8 +240,8 @@ public:
                 additionalFilterArrays[0][i]->process (context);
             }
         }
-        if (static_cast<int> (*filterType[numFilterBands - 1]) == 2
-            && *filterEnabled[numFilterBands - 1] > 0.5f)
+        if (filterParameters[numFilterBands - 1].type == FilterType::LinkwitzRileyLowPass
+            && filterParameters[numFilterBands - 1].enabled)
         {
             for (int i = 0; i < nSIMDFilters; ++i)
             {
@@ -329,7 +335,8 @@ public:
                     break;
                 case FilterType::LinkwitzRileyHighPass:
                 {
-                    auto coeffs = IIR::Coefficients<double>::makeHighPass (sampleRate, frequency);
+                    auto coeffs =
+                        juce::dsp::IIR::Coefficients<double>::makeHighPass (sampleRate, frequency);
                     coeffs->coefficients =
                         FilterVisualizerHelper<double>::cascadeSecondOrderCoefficients (
                             coeffs->coefficients,
@@ -345,18 +352,18 @@ public:
                         filterParameters[f].linearGain);
                     break;
                 case FilterType::PeakFilter:
-                    guiCoefficients[f] =
-                        IIR::Coefficients<double>::makePeakFilter (sampleRate,
-                                                                   frequency,
-                                                                   filterParameters[f].q,
-                                                                   filterParameters[f].linearGain);
+                    guiCoefficients[f] = juce::dsp::IIR::Coefficients<double>::makePeakFilter (
+                        sampleRate,
+                        frequency,
+                        filterParameters[f].q,
+                        filterParameters[f].linearGain);
                     break;
                 case FilterType::HighShelf:
-                    guiCoefficients[f] =
-                        IIR::Coefficients<double>::makeHighShelf (sampleRate,
-                                                                  frequency,
-                                                                  filterParameters[f].q,
-                                                                  filterParameters[f].linearGain);
+                    guiCoefficients[f] = juce::dsp::IIR::Coefficients<double>::makeHighShelf (
+                        sampleRate,
+                        frequency,
+                        filterParameters[f].q,
+                        filterParameters[f].linearGain);
                     break;
                 case FilterType::FirstOrderLowPass:
                     guiCoefficients[f] =
@@ -371,7 +378,8 @@ public:
                     break;
                 case FilterType::LinkwitzRileyLowPass:
                 {
-                    auto coeffs = IIR::Coefficients<double>::makeLowPass (sampleRate, frequency);
+                    auto coeffs =
+                        juce::dsp::IIR::Coefficients<double>::makeLowPass (sampleRate, frequency);
                     coeffs->coefficients =
                         FilterVisualizerHelper<double>::cascadeSecondOrderCoefficients (
                             coeffs->coefficients,
@@ -402,7 +410,7 @@ private:
     static juce::Array<float> cascadeSecondOrderCoefficients (juce::Array<float>& c0,
                                                               juce::Array<float>& c1)
     {
-        juce::Array<type> c12;
+        juce::Array<float> c12;
         c12.resize (9);
         const int o = 2;
 
@@ -482,11 +490,12 @@ private:
 
     void createFilterCoefficients (const int filterIndex)
     {
-        if (filterIndex == 0 && type == FilterType::LinkwitzRileyHighPass)
+        if (filterIndex == 0 && filterParameters[0].type == FilterType::LinkwitzRileyHighPass)
         {
             createLinkwitzRileyFilter (false);
         }
-        else if (filterIndex == 0 && type == FilterType::LinkwitzRileyLowPass)
+        else if (filterIndex == 0
+                 && filterParameters[numFilterBands - 1].type == FilterType::LinkwitzRileyLowPass)
         {
             createLinkwitzRileyFilter (true);
         }
@@ -511,7 +520,7 @@ private:
         userHasChangedFilterSettings = false;
     }
 
-    inline clear (juce::dsp::AudioBlock<IIRfloat>& ab)
+    inline void clear (juce::dsp::AudioBlock<IIRfloat>& ab)
     {
         const int N = static_cast<int> (ab.getNumSamples()) * IIRfloat_elements;
         const int nCh = static_cast<int> (ab.getNumChannels());

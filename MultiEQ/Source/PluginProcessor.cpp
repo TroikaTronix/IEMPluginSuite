@@ -113,6 +113,7 @@ void MultiEQAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBloc
         filterParameters[f].frequency = filterFrequency[f]->load();
         filterParameters[f].q = filterQ[f]->load();
         filterParameters[f].linearGain = juce::Decibels::decibelsToGain (filterGain[f]->load());
+        filterParameters[f].enabled = filterEnabled[f]->load() > 0.5f;
     }
 
     juce::dsp::ProcessSpec spec;
@@ -136,7 +137,7 @@ void MultiEQAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     juce::ScopedNoDenormals noDenormals;
 
     juce::dsp::AudioBlock<float> ab (buffer);
-    juce::dsp::ProcessContextReplacing context (ab);
+    juce::dsp::ProcessContextReplacing<float> context (ab);
 
     MCFilter.process (context);
 }
@@ -200,6 +201,7 @@ void MultiEQAudioProcessor::parameterChanged (const juce::String& parameterID, f
         filterParameters[i].frequency = filterFrequency[i]->load();
         filterParameters[i].q = filterQ[i]->load();
         filterParameters[i].linearGain = juce::Decibels::decibelsToGain (filterGain[i]->load());
+        filterParameters[i].enabled = filterEnabled[i]->load() > 0.5f;
 
         MCFilter.updateFilterParams (filterParameters[i], i);
 
