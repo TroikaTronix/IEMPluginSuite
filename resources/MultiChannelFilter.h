@@ -39,7 +39,7 @@ class MultiChannelFilter
 #endif /* JUCE_USE_SIMD */
 
 public:
-    enum RegularFilterType
+    enum FilterType
     {
         FirstOrderHighPass,
         SecondOrderHighPass,
@@ -55,7 +55,7 @@ public:
 
     struct FilterParameters
     {
-        RegularFilterType type = AllPass;
+        FilterType type = AllPass;
         float frequency = 1000.0f;
         float linearGain = 1.0f;
         float q = 0.707f;
@@ -302,6 +302,11 @@ public:
         userHasChangedFilterSettings = true;
     }
 
+    juce::dsp::IIR::Coefficients<double>::Ptr getCoefficientsForGui (const int filterIndex)
+    {
+        return guiCoefficients[filterIndex];
+    };
+
     void updateGuiCoefficients()
     {
         for (int f = 0; f < numFilterBands - 1; ++f)
@@ -415,11 +420,10 @@ private:
         return c12;
     }
 
-    inline juce::dsp::IIR::Coefficients<float>::Ptr
-        createFilterCoefficients (const RegularFilterType type,
-                                  const float frequency,
-                                  const float Q,
-                                  const float gain)
+    inline juce::dsp::IIR::Coefficients<float>::Ptr createFilterCoefficients (const FilterType type,
+                                                                              const float frequency,
+                                                                              const float Q,
+                                                                              const float gain)
     {
         const auto f = juce::jmin (static_cast<float> (0.5 * sampleRate), frequency);
         switch (type)
