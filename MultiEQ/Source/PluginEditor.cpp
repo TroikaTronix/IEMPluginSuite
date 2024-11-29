@@ -88,13 +88,17 @@ MultiEQAudioProcessorEditor::MultiEQAudioProcessorEditor (MultiEQAudioProcessor&
             qEnabled[numFilterBands - 1] = false;
     }
 
+    auto filterPtr = processor.getFilter();
+
     addAndMakeVisible (fv);
-    for (int f = 0; f < numFilterBands; ++f)
-        fv.addCoefficients (processor.getCoefficientsForGui (f),
-                            colours[f],
-                            &slFilterFrequency[f],
-                            &slFilterGain[f],
-                            &slFilterQ[f]);
+
+    if (filterPtr != nullptr)
+        for (int f = 0; f < numFilterBands; ++f)
+            fv.addCoefficients (filterPtr->getCoefficientsForGui (f),
+                                colours[f],
+                                &slFilterFrequency[f],
+                                &slFilterGain[f],
+                                &slFilterQ[f]);
 
     fv.enableFilter (2, false);
 
@@ -236,10 +240,16 @@ void MultiEQAudioProcessorEditor::resized()
 
 void MultiEQAudioProcessorEditor::updateFilterVisualizer()
 {
-    processor.updateGuiCoefficients();
-    fv.setSampleRate (processor.getSampleRate());
-    for (int f = 0; f < numFilterBands; ++f)
-        fv.replaceCoefficients (f, processor.getCoefficientsForGui (f));
+    auto filterPtr = processor.getFilter();
+
+    if (filterPtr != nullptr)
+    {
+        filterPtr->updateGuiCoefficients();
+
+        fv.setSampleRate (processor.getSampleRate());
+        for (int f = 0; f < numFilterBands; ++f)
+            fv.replaceCoefficients (f, filterPtr->getCoefficientsForGui (f));
+    }
 }
 
 void MultiEQAudioProcessorEditor::timerCallback()

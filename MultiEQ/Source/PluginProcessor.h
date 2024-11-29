@@ -79,10 +79,8 @@ public:
     //======= Parameters ===========================================================
     std::vector<std::unique_ptr<juce::RangedAudioParameter>> createParameterLayout();
     //==============================================================================
-    IIR::Coefficients<double>::Ptr getCoefficientsForGui (const int filterIndex)
-    {
-        return MCFilter.getCoefficientsForGui (filterIndex);
-    };
+
+    MultiChannelFilter<numFilterBands, numberOfInputChannels>* getFilter() { return &MCFilter; }
 
     // FV repaint flag
     juce::Atomic<bool> repaintFV = true;

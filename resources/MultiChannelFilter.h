@@ -79,8 +79,6 @@ public:
                 juce::dsp::IIR::Coefficients<float>::makeAllPass (48000.0, 20.0f);
         }
 
-        copyFilterCoefficientsToProcessor();
-
         for (int i = 0; i < numFilterBands; ++i)
         {
             filterArrays[i].clear();
@@ -221,50 +219,18 @@ public:
         }
 
         // deinterleave
-        if (partial == 0)
+        for (int i = 0; i < nSIMDFilters; ++i)
         {
-            for (int i = 0; i < nSIMDFilters; ++i)
-            {
-                juce::AudioData::deinterleaveSamples (
-                    juce::AudioData::InterleavedSource<Format> {
-                        reinterpret_cast<float*> (interleavedData[i]->getChannelPointer (0)),
-                        IIRfloat_elements },
-                    juce::AudioData::NonInterleavedDest<Format> {
-                        outputBlock.getArrayOfWritePointers() + i * IIRfloat_elements,
-                        IIRfloat_elements },
-                    L);
-            }
-        }
-        else
-        {
-            int i;
-            for (i = 0; i < nSIMDFilters - 1; ++i)
-            {
-                juce::AudioData::deinterleaveSamples (
-                    juce::AudioData::InterleavedSource<Format> {
-                        reinterpret_cast<float*> (interleavedData[i]->getChannelPointer (0)),
-                        IIRfloat_elements },
-                    juce::AudioData::NonInterleavedDest<Format> {
-                        outputBlock.getArrayOfWritePointers() + i * IIRfloat_elements,
-                        IIRfloat_elements },
-                    L);
-            }
+            auto subOutBlock =
+                outputBlock.getSubsetChannelBlock (i * IIRfloat_elements, IIRfloat_elements);
+            auto outChannels = prepareChannelPointers (subOutBlock);
 
-            float* addr[IIRfloat_elements];
-            int ch;
-            for (ch = 0; ch < partial; ++ch)
-            {
-                addr[ch] = outputBlock.getWritePointer (i * IIRfloat_elements + ch);
-            }
-            for (; ch < IIRfloat_elements; ++ch)
-            {
-                addr[ch] = zero.getChannelPointer (ch);
-            }
             juce::AudioData::deinterleaveSamples (
                 juce::AudioData::InterleavedSource<Format> {
                     reinterpret_cast<float*> (interleavedData[i]->getChannelPointer (0)),
                     IIRfloat_elements },
-                juce::AudioData::NonInterleavedDest<Format> { addr, IIRfloat_elements },
+                juce::AudioData::NonInterleavedDest<Format> { outChannels.data(),
+                                                              IIRfloat_elements },
                 L);
             zero.clear();
         }
@@ -276,7 +242,7 @@ public:
         userHasChangedFilterSettings = true;
     }
 
-    juce::dsp::IIR::Coefficients<double>::Ptr getCoefficientsForGui (const int filterIndex)
+    juce::dsp::IIR::Coefficients<double>::Ptr getCoefficientsForGui (const int filterIndex) const
     {
         return guiCoefficients[filterIndex];
     };
