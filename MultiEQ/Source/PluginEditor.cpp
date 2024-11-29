@@ -124,10 +124,10 @@ MultiEQAudioProcessorEditor::MultiEQAudioProcessorEditor (MultiEQAudioProcessor&
         }
         else if (i == numFilterBands - 1)
         {
-            cbFilterType[i].addItem ("LP (6dB/oct)", 1);
-            cbFilterType[i].addItem ("LP (12dB/oct)", 2);
-            cbFilterType[i].addItem ("LP (24dB/oct)", 3);
-            cbFilterType[i].addItem ("High-shelf", 4);
+            cbFilterType[i].addItem ("LP (6dB/oct)", 2);
+            cbFilterType[i].addItem ("LP (12dB/oct)", 3);
+            cbFilterType[i].addItem ("LP (24dB/oct)", 4);
+            cbFilterType[i].addItem ("High-shelf", 1);
         }
         else
         {
