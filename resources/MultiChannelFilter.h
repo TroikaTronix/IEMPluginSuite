@@ -145,10 +145,10 @@ public:
 
         const int L = inputBlock.getNumSamples();
 
-        int nInSamples = inputBlock.getNumSamples();
-        int nOutSamples = outputBlock.getNumSamples();
+        int nInChannels = inputBlock.getNumChannels();
+        int nOutChannels = outputBlock.getNumChannels();
 
-        const int maxNChIn = juce::jmin (juce::jmin (nInSamples, nOutSamples), maxChannels);
+        const int maxNChIn = juce::jmin (nInChannels, nOutChannels, maxChannels);
 
         if (maxNChIn < 1)
             return;
