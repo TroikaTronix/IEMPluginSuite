@@ -232,7 +232,8 @@ public:
         if (! selectable)
         {
             g.setColour ((juce::Colours::white).withMultipliedAlpha (0.5));
-            g.setFont (getLookAndFeel().getTypefaceForFont (juce::Font (12.0f, 1)));
+            g.setFont (juce::FontOptions (
+                getLookAndFeel().getTypefaceForFont (juce::FontOptions (12.0f, 1))));
             g.setFont (15.0f);
             g.drawFittedText (displayTextIfNotSelectable,
                               35,
