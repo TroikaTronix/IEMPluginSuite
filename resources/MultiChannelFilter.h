@@ -54,7 +54,10 @@ class MultiChannelFilter
 #if JUCE_USE_SIMD
     using IIRfloat = juce::dsp::SIMDRegister<float>;
     static constexpr int IIRfloat_elements = juce::dsp::SIMDRegister<float>::size();
-    static constexpr int nMaxSIMDFilters = std::ceil (maxChannels / IIRfloat_elements);
+    static constexpr int nMaxSIMDFilters =
+        ((maxChannels % IIRfloat_elements) == 0)
+            ? (static_cast<int> (maxChannels / IIRfloat_elements))
+            : (static_cast<int> (maxChannels / IIRfloat_elements) + 1);
 #else /* !JUCE_USE_SIMD */
     using IIRfloat = float;
     static constexpr int IIRfloat_elements = 1;
