@@ -80,6 +80,7 @@ public:
         {
             processorCoefficients[i] =
                 juce::dsp::IIR::Coefficients<float>::makeAllPass (48000.0, 20.0f);
+            tempCoefficients[i] = juce::dsp::IIR::Coefficients<float>::makeAllPass (48000.0, 20.0f);
         }
 
         for (int i = 0; i < numFilterBands; ++i)
