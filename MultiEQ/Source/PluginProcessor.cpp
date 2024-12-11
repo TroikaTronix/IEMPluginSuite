@@ -184,6 +184,39 @@ void MultiEQAudioProcessor::setStateInformation (const void* data, int sizeInByt
             auto oscConfig = parameters.state.getChildWithName ("OSCConfig");
             if (oscConfig.isValid())
                 oscParameterInterface.setConfig (oscConfig);
+
+            // Add compatibility layer for old delay parameters
+            auto paramToTest = xmlState->getChildByAttribute ("id", "filterType1");
+            if ((paramToTest != nullptr)
+                && (paramToTest->getStringAttribute ("value").getFloatValue() < 3.0f))
+            {
+                for (int i = 1; i < numFilterBands - 1; ++i)
+                {
+                    float loadedType =
+                        xmlState->getChildByAttribute ("id", "filterType" + juce::String (i))
+                            ->getStringAttribute ("value")
+                            .getFloatValue();
+
+                    loadedType += 3.0f; // shift to new filter types
+                    parameters.getParameter ("filterType" + juce::String (i))
+                        ->setValue (loadedType);
+                }
+
+                float loadedType =
+                    xmlState
+                        ->getChildByAttribute ("id",
+                                               "filterType" + juce::String (numFilterBands - 1))
+                        ->getStringAttribute ("value")
+                        .getFloatValue();
+
+                if (loadedType > 2.5f)
+                    loadedType = 5.0f;
+                else
+                    loadedType += 6.0f;
+
+                parameters.getParameter ("filterType" + juce::String (numFilterBands - 1))
+                    ->setValue (loadedType);
+            }
         }
 }
 
