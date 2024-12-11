@@ -22,23 +22,16 @@
 
 #pragma once
 
+#include <JuceHeader.h>
+
 #include "../../resources/AudioProcessorBase.h"
 #include "../../resources/FilterVisualizerHelper.h"
 #include "../../resources/MultiChannelFilter.h"
-#include <JuceHeader.h>
+
+#define ProcessorClass MultiEQAudioProcessor
 
 #define numFilterBands 6
 using namespace juce::dsp;
-
-#if JUCE_USE_SIMD
-using IIRfloat = juce::dsp::SIMDRegister<float>;
-static constexpr int IIRfloat_elements = juce::dsp::SIMDRegister<float>::size();
-#else /* !JUCE_USE_SIMD */
-using IIRfloat = float;
-static constexpr int IIRfloat_elements = 1;
-#endif /* JUCE_USE_SIMD */
-
-#define ProcessorClass MultiEQAudioProcessor
 
 //==============================================================================
 class MultiEQAudioProcessor
