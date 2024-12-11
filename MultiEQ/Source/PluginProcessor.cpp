@@ -197,9 +197,16 @@ void MultiEQAudioProcessor::setStateInformation (const void* data, int sizeInByt
                             ->getStringAttribute ("value")
                             .getFloatValue();
 
-                    loadedType += 3.0f; // shift to new filter types
-                    parameters.getParameter ("filterType" + juce::String (i))
-                        ->setValue (loadedType);
+                    loadedType += 3.0;
+
+                    auto parameterState =
+                        parameters.state.getChildWithProperty ("id",
+                                                               "filterType" + juce::String (i));
+
+                    if (parameterState.isValid())
+                    {
+                        parameterState.setProperty ("value", loadedType, nullptr);
+                    }
                 }
 
                 float loadedType =
@@ -214,8 +221,14 @@ void MultiEQAudioProcessor::setStateInformation (const void* data, int sizeInByt
                 else
                     loadedType += 6.0f;
 
-                parameters.getParameter ("filterType" + juce::String (numFilterBands - 1))
-                    ->setValue (loadedType);
+                auto parameterState = parameters.state.getChildWithProperty (
+                    "id",
+                    "filterType" + juce::String (numFilterBands - 1));
+
+                if (parameterState.isValid())
+                {
+                    parameterState.setProperty ("value", loadedType, nullptr);
+                }
             }
         }
 }
