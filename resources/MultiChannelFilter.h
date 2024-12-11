@@ -168,8 +168,10 @@ public:
         //interleave input data
         for (int i = 0; i < nSIMDFilters; ++i)
         {
+            int nSubChannels = juce::jmin (IIRfloat_elements, maxNChIn - i * IIRfloat_elements);
+
             const auto& subInputBlock =
-                inputBlock.getSubsetChannelBlock (i * IIRfloat_elements, IIRfloat_elements);
+                inputBlock.getSubsetChannelBlock (i * IIRfloat_elements, nSubChannels);
 
             auto inChannels = prepareChannelPointers (subInputBlock);
 
@@ -224,8 +226,10 @@ public:
         // deinterleave
         for (int i = 0; i < nSIMDFilters; ++i)
         {
+            int nSubChannels = juce::jmin (IIRfloat_elements, maxNChIn - i * IIRfloat_elements);
+
             auto subOutBlock =
-                outputBlock.getSubsetChannelBlock (i * IIRfloat_elements, IIRfloat_elements);
+                outputBlock.getSubsetChannelBlock (i * IIRfloat_elements, nSubChannels);
             auto outChannels = prepareChannelPointers (subOutBlock);
 
             juce::AudioData::deinterleaveSamples (
