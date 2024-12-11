@@ -243,10 +243,17 @@ public:
         }
     }
 
-    void updateFilterParams (FilterParameters newParams, int filterIndex)
+    void updateFilterParams (FilterParameters newParams,
+                             int filterIndex,
+                             bool recalculateCoeffs = true)
     {
         filterParameters[filterIndex] = newParams;
-        userHasChangedFilterSettings = true;
+
+        if (recalculateCoeffs)
+        {
+            createFilterCoefficients (filterIndex);
+            userHasChangedFilterSettings = true;
+        }
     }
 
     juce::dsp::IIR::Coefficients<double>::Ptr getCoefficientsForGui (const int filterIndex) const
@@ -256,7 +263,7 @@ public:
 
     void updateGuiCoefficients()
     {
-        for (int f = 0; f < numFilterBands - 1; ++f)
+        for (int f = 0; f < numFilterBands; ++f)
         {
             const auto frequency =
                 juce::jmin (static_cast<float> (0.5 * sampleRate), filterParameters[f].frequency);
@@ -484,8 +491,8 @@ private:
         return result;
     }
 
-    double sampleRate { 0.0f };
-    uint32_t maxBlockSize { 0 };
+    double sampleRate { 48000.0f };
+    uint32_t maxBlockSize { 64 };
 
     // filter dummy for GUI
     juce::dsp::IIR::Coefficients<double>::Ptr guiCoefficients[numFilterBands];

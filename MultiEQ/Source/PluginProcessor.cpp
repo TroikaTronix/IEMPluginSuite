@@ -66,6 +66,7 @@ MultiEQAudioProcessor::MultiEQAudioProcessor() :
         filterQ[i] = parameters.getRawParameterValue ("filterQ" + juce::String (i));
         filterGain[i] = parameters.getRawParameterValue ("filterGain" + juce::String (i));
 
+        parameters.addParameterListener ("filterEnabled" + juce::String (i), this);
         parameters.addParameterListener ("filterType" + juce::String (i), this);
         parameters.addParameterListener ("filterFrequency" + juce::String (i), this);
         parameters.addParameterListener ("filterQ" + juce::String (i), this);
@@ -203,7 +204,10 @@ void MultiEQAudioProcessor::parameterChanged (const juce::String& parameterID, f
         filterParameters[i].linearGain = juce::Decibels::decibelsToGain (filterGain[i]->load());
         filterParameters[i].enabled = filterEnabled[i]->load() > 0.5f;
 
-        MCFilter.updateFilterParams (filterParameters[i], i);
+        if (parameterID.startsWith ("filterEnabled"))
+            MCFilter.updateFilterParams (filterParameters[i], i, false);
+        else
+            MCFilter.updateFilterParams (filterParameters[i], i, true);
 
         repaintFV = true;
         userHasChangedFilterSettings = true;
