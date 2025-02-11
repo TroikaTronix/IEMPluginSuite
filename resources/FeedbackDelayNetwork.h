@@ -442,7 +442,7 @@ private:
             if (is_prime)
                 series.push_back (range);
 
-            range++;
+            range += 2;
         }
         return series;
     }
