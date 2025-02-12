@@ -42,7 +42,8 @@ typedef juce::AudioProcessorValueTreeState::ButtonAttachment ButtonAttachment;
 class FdnReverbAudioProcessorEditor : public juce::AudioProcessorEditor,
                                       private juce::Timer,
                                       private juce::Button::Listener,
-                                      private juce::Slider::Listener
+                                      private juce::Slider::Listener,
+                                      private juce::ComboBox::Listener
 {
 public:
     FdnReverbAudioProcessorEditor (FdnReverbAudioProcessor&, juce::AudioProcessorValueTreeState&);
@@ -54,6 +55,7 @@ public:
 
     void buttonClicked (juce::Button* button) override;
     void sliderValueChanged (juce::Slider* slider) override;
+    void comboBoxChanged (juce::ComboBox* comboBox) override;
 
 private:
     LaF globalLaF;
@@ -68,7 +70,7 @@ private:
     void timerCallback() override;
 
     SimpleLabel lbDelay, lbTime, lbDryWet, lbHighCutoff, lbHighQ, lbHighGain, lbLowCutoff, lbLowQ,
-        lbLowGain;
+        lbLowGain, lbHpCutoff, lbHpQ;
     SimpleLabel fdnLbTime, fdnSize;
     // Functional stuff (sliders, Indicators, OpenGL Voodoo magic, etc.)
     // Groups
@@ -76,16 +78,17 @@ private:
 
     // juce::Sliders
     ReverseSlider delayLengthSlider, revTimeSlider, fadeInSlider, dryWetSlider, highCutoffSlider,
-        highQSlider, highGainSlider, lowCutoffSlider, lowQSlider, lowGainSlider;
+        highQSlider, highGainSlider, lowCutoffSlider, lowQSlider, lowGainSlider, hpCutoffSlider,
+        hpQSlider;
 
     // ComboBox
-    juce::ComboBox cbFdnSize;
+    juce::ComboBox cbFdnSize, cbHpMode;
 
     // juce::Pointers for value tree state
     std::unique_ptr<SliderAttachment> delayAttachment, feedbackAttachment, fadeInAttachment,
         dryWetAttachment, highCutoffAttachment, highQAttachment, highGainAttachment,
-        lowCutoffAttachment, lowQAttachment, lowGainAttachment;
-    std::unique_ptr<ComboBoxAttachment> cbFdnSizeAttachment;
+        lowCutoffAttachment, lowQAttachment, lowGainAttachment, hpCutoffAttachment, hpQAttachment;
+    std::unique_ptr<ComboBoxAttachment> cbFdnSizeAttachment, cbHpModeAttachment;
 
     // juce::Buttons
     juce::ToggleButton networkOrder, freezeMode;
@@ -95,6 +98,8 @@ private:
     T60Visualizer tv;
     FilterVisualizer<float> fv;
 
+    IIR::Coefficients<float>::Ptr hpCoeffs;
+    IIR::Coefficients<float>::Ptr addHpCoeffs;
     IIR::Coefficients<float>::Ptr highpassCoeffs;
     IIR::Coefficients<float>::Ptr lowpassCoeffs;
 

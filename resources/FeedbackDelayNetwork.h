@@ -326,6 +326,21 @@ public:
                                                     numSamples,
                                                     spec.sampleRate);
 
+        if (hpFilterParameters.mode > 0)
+        {
+            hpCoefficients->getMagnitudeForFrequencyArray (frequencies,
+                                                           &temp[0],
+                                                           numSamples,
+                                                           spec.sampleRate);
+        }
+        if (hpFilterParameters.mode == 3)
+        {
+            additionalHpCoefficients->getMagnitudeForFrequencyArray (frequencies,
+                                                                     &temp[0],
+                                                                     numSamples,
+                                                                     spec.sampleRate);
+        }
+
         juce::FloatVectorOperations::multiply (&temp[0], t60Data, static_cast<int> (numSamples));
         juce::FloatVectorOperations::multiply (&temp[0],
                                                overallGain,

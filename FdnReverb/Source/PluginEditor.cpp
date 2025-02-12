@@ -37,7 +37,7 @@ FdnReverbAudioProcessorEditor::FdnReverbAudioProcessorEditor (
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
 
-    setResizeLimits (600, 480, 1000, 950);
+    setResizeLimits (750, 480, 1000, 950);
     setResizable (true, true);
     setLookAndFeel (&globalLaF);
 
@@ -149,6 +149,38 @@ FdnReverbAudioProcessorEditor::FdnReverbAudioProcessorEditor (
     highGainSlider.setTooltip ("High Shelf Gain");
     highGainSlider.addListener (this);
 
+    addAndMakeVisible (&hpCutoffSlider);
+    hpCutoffAttachment.reset (new SliderAttachment (valueTreeState, "hpFrequency", hpCutoffSlider));
+    hpCutoffSlider.setSliderStyle (juce::Slider::RotaryHorizontalVerticalDrag);
+    hpCutoffSlider.setTextBoxStyle (juce::Slider::TextBoxBelow, false, 50, 15);
+    hpCutoffSlider.setColour (juce::Slider::rotarySliderOutlineColourId,
+                              globalLaF.ClWidgetColours[2]);
+    hpCutoffSlider.setTooltip ("Highpass Cutoff Freq");
+    hpCutoffSlider.addListener (this);
+
+    addAndMakeVisible (&hpQSlider);
+    hpQAttachment.reset (new SliderAttachment (valueTreeState, "hpQ", hpQSlider));
+    hpQSlider.setSliderStyle (juce::Slider::RotaryHorizontalVerticalDrag);
+    hpQSlider.setTextBoxStyle (juce::Slider::TextBoxBelow, false, 50, 15);
+    hpQSlider.setColour (juce::Slider::rotarySliderOutlineColourId, globalLaF.ClWidgetColours[2]);
+    hpQSlider.setTooltip ("Highpass Q");
+    hpQSlider.addListener (this);
+
+    addAndMakeVisible (cbHpMode);
+    cbHpMode.addSectionHeading ("HP Mode");
+    cbHpMode.addItem ("off", 1);
+    cbHpMode.addItem ("6 dB/oct", 2);
+    cbHpMode.addItem ("12 dB/oct", 3);
+    cbHpMode.addItem ("24 dB/oct", 4);
+    cbHpMode.setJustificationType (juce::Justification::centred);
+    cbHpModeAttachment.reset (new ComboBoxAttachment (valueTreeState, "hpOrder", cbHpMode));
+    cbHpMode.addListener (this);
+
+    if (cbHpMode.getSelectedId() > 2)
+        hpQSlider.setEnabled (true);
+    else
+        hpQSlider.setEnabled (false);
+
     addAndMakeVisible (cbFdnSize);
     cbFdnSize.addSectionHeading ("Fdn Size");
     cbFdnSize.addItem ("16", 1);
@@ -177,6 +209,10 @@ FdnReverbAudioProcessorEditor::FdnReverbAudioProcessorEditor (
     lbLowQ.setText ("Q");
     addAndMakeVisible (&lbLowGain);
     lbLowGain.setText ("Gain");
+    addAndMakeVisible (&lbHpCutoff);
+    lbHpCutoff.setText ("Freq.");
+    addAndMakeVisible (&lbHpQ);
+    lbHpQ.setText ("Q");
     addAndMakeVisible (fdnSize);
     fdnSize.setText ("Fdn Size");
     addAndMakeVisible (&fdnLbTime);
@@ -274,6 +310,17 @@ void FdnReverbAudioProcessorEditor::sliderValueChanged (juce::Slider* slider)
     }
 }
 
+void FdnReverbAudioProcessorEditor::comboBoxChanged (juce::ComboBox* comboBox)
+{
+    if (comboBox == &cbHpMode)
+    {
+        if (cbHpMode.getSelectedId() > 2)
+            hpQSlider.setEnabled (true);
+        else
+            hpQSlider.setEnabled (false);
+    }
+}
+
 void FdnReverbAudioProcessorEditor::resized()
 {
     // This is generally where you'll want to lay out the positions of any
@@ -344,36 +391,55 @@ void FdnReverbAudioProcessorEditor::resized()
 
     { //====================== FILTER GROUP ==================================
         const int rotSliderWidth = 40;
+        const int filterSliderHeight = rotSliderHeight - 5;
         juce::Rectangle<int> filterArea (area);
         filterGroup.setBounds (filterArea);
         filterArea.removeFromTop (25);
 
+        juce::FlexBox flexboxUI;
+
+        juce::Array<juce::FlexItem> uiItems;
+        juce::Array<juce::FlexItem> lbItems;
+
+        flexboxUI.flexDirection = juce::FlexBox::Direction::row;
+        flexboxUI.flexWrap = juce::FlexBox::Wrap::noWrap;
+        flexboxUI.alignContent = juce::FlexBox::AlignContent::center;
+        flexboxUI.justifyContent = juce::FlexBox::JustifyContent::spaceBetween;
+        flexboxUI.alignItems = juce::FlexBox::AlignItems::center;
+
+        juce::FlexBox flexboxLb = flexboxUI;
+
+        uiItems.add (juce::FlexItem (rotSliderWidth, filterSliderHeight, hpCutoffSlider));
+        uiItems.add (juce::FlexItem (rotSliderWidth, filterSliderHeight, hpQSlider));
+        uiItems.add (juce::FlexItem ((int) rotSliderWidth * 2, 24, cbHpMode));
+        uiItems.add (juce::FlexItem ((int) rotSliderWidth / 2, filterSliderHeight));
+        uiItems.add (juce::FlexItem (rotSliderWidth, filterSliderHeight, lowCutoffSlider));
+        uiItems.add (juce::FlexItem (rotSliderWidth, filterSliderHeight, lowQSlider));
+        uiItems.add (juce::FlexItem (rotSliderWidth, filterSliderHeight, lowGainSlider));
+        uiItems.add (juce::FlexItem ((int) rotSliderWidth / 2, filterSliderHeight));
+        uiItems.add (juce::FlexItem (rotSliderWidth, filterSliderHeight, highCutoffSlider));
+        uiItems.add (juce::FlexItem (rotSliderWidth, filterSliderHeight, highQSlider));
+        uiItems.add (juce::FlexItem (rotSliderWidth, filterSliderHeight, highGainSlider));
+
+        lbItems.add (juce::FlexItem (rotSliderWidth, labelHeight, lbHpCutoff));
+        lbItems.add (juce::FlexItem (rotSliderWidth, labelHeight, lbHpQ));
+        lbItems.add (juce::FlexItem ((int) rotSliderWidth * 2, labelHeight));
+        lbItems.add (juce::FlexItem ((int) rotSliderWidth / 2, labelHeight));
+        lbItems.add (juce::FlexItem (rotSliderWidth, labelHeight, lbLowCutoff));
+        lbItems.add (juce::FlexItem (rotSliderWidth, labelHeight, lbLowQ));
+        lbItems.add (juce::FlexItem (rotSliderWidth, labelHeight, lbLowGain));
+        lbItems.add (juce::FlexItem ((int) rotSliderWidth / 2, labelHeight));
+        lbItems.add (juce::FlexItem (rotSliderWidth, labelHeight, lbHighCutoff));
+        lbItems.add (juce::FlexItem (rotSliderWidth, labelHeight, lbHighQ));
+        lbItems.add (juce::FlexItem (rotSliderWidth, labelHeight, lbHighGain));
+
         juce::Rectangle<int> sliderRow (filterArea.removeFromBottom (labelHeight));
-        lbLowCutoff.setBounds (sliderRow.removeFromLeft (rotSliderWidth));
-        sliderRow.removeFromLeft (rotSliderSpacing);
-        lbLowQ.setBounds (sliderRow.removeFromLeft (rotSliderWidth));
-        sliderRow.removeFromLeft (rotSliderSpacing);
-        lbLowGain.setBounds (sliderRow.removeFromLeft (rotSliderWidth + 5));
+        flexboxLb.items = lbItems;
+        flexboxLb.performLayout (sliderRow);
 
-        lbHighGain.setBounds (sliderRow.removeFromRight (rotSliderWidth + 5));
-        sliderRow.removeFromRight (rotSliderSpacing);
-        lbHighQ.setBounds (sliderRow.removeFromRight (rotSliderWidth));
-        sliderRow.removeFromRight (rotSliderSpacing);
-        lbHighCutoff.setBounds (sliderRow.removeFromRight (rotSliderWidth));
-
-        sliderRow = filterArea.removeFromBottom (rotSliderHeight - 10);
-
-        lowCutoffSlider.setBounds (sliderRow.removeFromLeft (rotSliderWidth));
-        sliderRow.removeFromLeft (rotSliderSpacing);
-        lowQSlider.setBounds (sliderRow.removeFromLeft (rotSliderWidth));
-        sliderRow.removeFromLeft (rotSliderSpacing);
-        lowGainSlider.setBounds (sliderRow.removeFromLeft (rotSliderWidth + 5));
-
-        highGainSlider.setBounds (sliderRow.removeFromRight (rotSliderWidth + 5));
-        sliderRow.removeFromRight (rotSliderSpacing);
-        highQSlider.setBounds (sliderRow.removeFromRight (rotSliderWidth));
-        sliderRow.removeFromRight (rotSliderSpacing);
-        highCutoffSlider.setBounds (sliderRow.removeFromRight (rotSliderWidth));
+        sliderRow = filterArea.removeFromBottom (rotSliderHeight);
+        flexboxUI.items = uiItems;
+        flexboxUI.performLayout (sliderRow);
 
         fv.setBounds (filterArea);
     }
