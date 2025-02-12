@@ -58,6 +58,9 @@ FdnReverbAudioProcessor::FdnReverbAudioProcessor() :
     parameters.addParameterListener ("lowCutoff", this);
     parameters.addParameterListener ("lowQ", this);
     parameters.addParameterListener ("lowGain", this);
+    parameters.addParameterListener ("hpOrder", this);
+    parameters.addParameterListener ("hpFrequency", this);
+    parameters.addParameterListener ("hpQ", this);
     parameters.addParameterListener ("dryWet", this);
     parameters.addParameterListener ("fdnSize", this);
 
@@ -70,6 +73,9 @@ FdnReverbAudioProcessor::FdnReverbAudioProcessor() :
     lowCutoff = parameters.getRawParameterValue ("lowCutoff");
     lowQ = parameters.getRawParameterValue ("lowQ");
     lowGain = parameters.getRawParameterValue ("lowGain");
+    hpOrder = parameters.getRawParameterValue ("hpOrder");
+    hpFrequency = parameters.getRawParameterValue ("hpFrequency");
+    hpQ = parameters.getRawParameterValue ("hpQ");
     wet = parameters.getRawParameterValue ("dryWet");
 
     fdn.setFdnSize (FeedbackDelayNetwork::big);
@@ -363,6 +369,43 @@ std::vector<std::unique_ptr<juce::RangedAudioParameter>>
         juce::NormalisableRange<float> (-80.0f, 4.0f, 0.1f),
         -10.f,
         [] (float value) { return juce::String (value, 1); },
+        nullptr));
+
+    params.push_back (OSCParameterInterface::createParameterTheOldWay (
+        "hpOrder",
+        "Highpass Slope",
+        "",
+        juce::NormalisableRange<float> (0.0f, 3.0f, 0.0f),
+        0.0f,
+        [] (float value)
+        {
+            if (value == 0.0f)
+                return "disabled";
+            else if (value >= 0.5f && value < 1.5f)
+                return "6 dB/oct";
+            else if (value >= 1.5f && value < 2.5f)
+                return "12 dB/oct";
+            else
+                return "24 dB/oct";
+        },
+        nullptr));
+
+    params.push_back (OSCParameterInterface::createParameterTheOldWay (
+        "hpFrequency",
+        "Highpass Cutoff Frequency",
+        "Hz",
+        juce::NormalisableRange<float> (20.0f, 20000.0f, 1.0f, 0.4f),
+        20.0f,
+        [] (float value) { return juce::String (value, 0); },
+        nullptr));
+
+    params.push_back (OSCParameterInterface::createParameterTheOldWay (
+        "hpQ",
+        "Highpass Q Factor",
+        "",
+        juce::NormalisableRange<float> (0.05f, 8.0f, 0.05f),
+        0.7f,
+        [] (float value) { return juce::String (value, 2); },
         nullptr));
 
     params.push_back (OSCParameterInterface::createParameterTheOldWay (

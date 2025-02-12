@@ -88,6 +88,10 @@ private:
     std::atomic<float>* lowCutoff;
     std::atomic<float>* lowQ;
     std::atomic<float>* lowGain;
+    std::atomic<float>* hpOrder;
+    std::atomic<float>* hpFrequency;
+    std::atomic<float>* hpQ;
+
     std::atomic<float>* wet;
 
     FeedbackDelayNetwork fdn, fdnFade;
