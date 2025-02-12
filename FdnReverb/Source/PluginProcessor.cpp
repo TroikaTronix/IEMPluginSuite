@@ -153,6 +153,7 @@ void FdnReverbAudioProcessor::updateFilterParameters()
 {
     FeedbackDelayNetwork::FilterParameter lowShelf;
     FeedbackDelayNetwork::FilterParameter highShelf;
+    FeedbackDelayNetwork::HPFilterParameter hpFilter;
 
     lowShelf.frequency = *lowCutoff;
     lowShelf.q = *lowQ;
@@ -162,8 +163,12 @@ void FdnReverbAudioProcessor::updateFilterParameters()
     highShelf.q = *highQ;
     highShelf.linearGain = juce::Decibels::decibelsToGain (highGain->load());
 
-    fdn.setFilterParameter (lowShelf, highShelf);
-    fdnFade.setFilterParameter (lowShelf, highShelf);
+    hpFilter.frequency = *hpFrequency;
+    hpFilter.q = *hpQ;
+    hpFilter.mode = static_cast<int> (hpOrder->load());
+
+    fdn.setFilterParameter (lowShelf, highShelf, hpFilter);
+    fdnFade.setFilterParameter (lowShelf, highShelf, hpFilter);
 }
 //==============================================================================
 void FdnReverbAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
@@ -375,11 +380,11 @@ std::vector<std::unique_ptr<juce::RangedAudioParameter>>
         "hpOrder",
         "Highpass Slope",
         "",
-        juce::NormalisableRange<float> (0.0f, 3.0f, 0.0f),
+        juce::NormalisableRange<float> (0.0f, 3.0f, 1.0f),
         0.0f,
         [] (float value)
         {
-            if (value == 0.0f)
+            if (value < 0.5f)
                 return "disabled";
             else if (value >= 0.5f && value < 1.5f)
                 return "6 dB/oct";
@@ -403,7 +408,7 @@ std::vector<std::unique_ptr<juce::RangedAudioParameter>>
         "hpQ",
         "Highpass Q Factor",
         "",
-        juce::NormalisableRange<float> (0.05f, 8.0f, 0.05f),
+        juce::NormalisableRange<float> (0.01f, 0.9f, 0.01f),
         0.7f,
         [] (float value) { return juce::String (value, 2); },
         nullptr));

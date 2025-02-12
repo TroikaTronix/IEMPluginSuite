@@ -48,6 +48,13 @@ public:
         float q = 0.707f;
     };
 
+    struct HPFilterParameter
+    {
+        int mode = 0;
+        float frequency = 20.0f;
+        float q = 0.707f;
+    };
+
     FeedbackDelayNetwork (FdnSize size = big)
     {
         updateFdnSize (size);
@@ -82,6 +89,9 @@ public:
             delayBufferVector[ch]->clear();
             lowShelfFilters[ch]->reset();
             highShelfFilters[ch]->reset();
+
+            hpFilters[ch]->reset (0.0f);
+            additionalHpFilters[ch]->reset (0.0f);
         }
     }
 
@@ -100,6 +110,7 @@ public:
         {
             lowShelfParameters = params.newLowShelfParams;
             highShelfParameters = params.newHighShelfParams;
+            hpFilterParameters = params.newHPFilterParams;
             params.needParameterUpdate = true;
             params.filterParametersChanged = false;
         }
@@ -188,6 +199,14 @@ public:
 
                 if (! freeze)
                 {
+                    // Apply highpass filter
+                    if (hpFilterParameters.mode != 0)
+                        delayData[delayPos] =
+                            hpFilters[channel]->processSample (delayData[delayPos]);
+
+                    if (hpFilterParameters.mode == 3)
+                        delayData[delayPos] =
+                            additionalHpFilters[channel]->processSample (delayData[delayPos]);
                     // apply shelving filters
                     delayData[delayPos] =
                         highShelfFilters[channel]->processSingleSampleRaw (delayData[delayPos]);
@@ -256,10 +275,13 @@ public:
     }
 
     void reset() override {}
-    void setFilterParameter (FilterParameter lowShelf, FilterParameter highShelf)
+    void setFilterParameter (FilterParameter lowShelf,
+                             FilterParameter highShelf,
+                             HPFilterParameter hp)
     {
         params.newLowShelfParams = lowShelf;
         params.newHighShelfParams = highShelf;
+        params.newHPFilterParams = hp;
         params.filterParametersChanged = true;
     }
 
@@ -340,6 +362,16 @@ private:
     juce::OwnedArray<juce::AudioBuffer<float>> delayBufferVector;
     juce::OwnedArray<juce::IIRFilter> highShelfFilters;
     juce::OwnedArray<juce::IIRFilter> lowShelfFilters;
+
+    juce::dsp::IIR::Coefficients<float>::Ptr hpCoefficients =
+        juce::dsp::IIR::Coefficients<float>::makeAllPass (48000.0, 20.0f);
+
+    juce::dsp::IIR::Coefficients<float>::Ptr additionalHpCoefficients =
+        juce::dsp::IIR::Coefficients<float>::makeAllPass (48000.0, 20.0f);
+
+    juce::OwnedArray<juce::dsp::IIR::Filter<float>> hpFilters;
+    juce::OwnedArray<juce::dsp::IIR::Filter<float>> additionalHpFilters;
+
     juce::Array<int> delayPositionVector;
     juce::Array<float> feedbackGainVector;
     juce::Array<float> transferVector;
@@ -348,6 +380,7 @@ private:
     std::vector<int> indices;
 
     FilterParameter lowShelfParameters, highShelfParameters;
+    HPFilterParameter hpFilterParameters;
     float dryWet;
     float delayLength = 20;
     float overallGain;
@@ -363,6 +396,7 @@ private:
         bool filterParametersChanged = false;
         FilterParameter newLowShelfParams;
         FilterParameter newHighShelfParams;
+        HPFilterParameter newHPFilterParams;
 
         bool delayLengthChanged = false;
         int newDelayLength = 20;
@@ -493,6 +527,46 @@ private:
                     highShelfParameters.q,
                     channelGainConversion (channel, highShelfParameters.linearGain)));
             }
+
+            juce::dsp::IIR::Coefficients<float>::Ptr tmpCoeffs;
+
+            switch (hpFilterParameters.mode)
+            {
+                case 1:
+                    tmpCoeffs = juce::dsp::IIR::Coefficients<float>::makeFirstOrderHighPass (
+                        spec.sampleRate,
+                        juce::jmin (0.5 * spec.sampleRate,
+                                    static_cast<double> (hpFilterParameters.frequency)));
+
+                    *hpCoefficients = *tmpCoeffs;
+                    break;
+                case 2:
+                    tmpCoeffs = juce::dsp::IIR::Coefficients<float>::makeHighPass (
+                        spec.sampleRate,
+                        juce::jmin (0.5 * spec.sampleRate,
+                                    static_cast<double> (hpFilterParameters.frequency)),
+                        hpFilterParameters.q);
+
+                    *hpCoefficients = *tmpCoeffs;
+                    break;
+
+                case 3:
+                    tmpCoeffs = juce::dsp::IIR::Coefficients<float>::makeHighPass (
+                        spec.sampleRate,
+                        juce::jmin (0.5 * spec.sampleRate,
+                                    static_cast<double> (hpFilterParameters.frequency)),
+                        hpFilterParameters.q);
+                    *hpCoefficients = *tmpCoeffs;
+                    break;
+
+                default:
+                    tmpCoeffs = juce::dsp::IIR::Coefficients<float>::makeAllPass (
+                        spec.sampleRate,
+                        juce::jmin (0.5 * spec.sampleRate,
+                                    static_cast<double> (hpFilterParameters.frequency)));
+
+                    *hpCoefficients = *tmpCoeffs;
+            }
         }
     }
 
@@ -508,6 +582,8 @@ private:
                     delayBufferVector.add (new juce::AudioBuffer<float>());
                     highShelfFilters.add (new juce::IIRFilter());
                     lowShelfFilters.add (new juce::IIRFilter());
+                    hpFilters.add (new juce::dsp::IIR::Filter<float> (hpCoefficients));
+                    additionalHpFilters.add (new juce::dsp::IIR::Filter<float> (hpCoefficients));
                 }
             }
             else
@@ -516,6 +592,8 @@ private:
                 delayBufferVector.removeLast (diff);
                 highShelfFilters.removeLast (diff);
                 lowShelfFilters.removeLast (diff);
+                hpFilters.removeLast (diff);
+                additionalHpFilters.removeLast (diff);
             }
         }
         delayPositionVector.resize (newSize);
