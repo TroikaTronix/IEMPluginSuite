@@ -133,10 +133,14 @@ void FdnReverbAudioProcessor::parameterChanged (const juce::String& parameterID,
     else if (parameterID == "fdnSize")
     {
         FeedbackDelayNetwork::FdnSize size { FeedbackDelayNetwork::FdnSize::big };
-        if (newValue == 0.0f)
+        if (newValue < 0.5f)
             size = FeedbackDelayNetwork::FdnSize::tiny;
-        else if (newValue == 1.0f)
+        else if (newValue >= 0.5f && newValue < 1.5f)
             size = FeedbackDelayNetwork::FdnSize::small;
+        else if (newValue >= 2.5f && newValue < 3.5f)
+            size = FeedbackDelayNetwork::FdnSize::huge;
+        else if (newValue >= 3.5f && newValue < 4.5f)
+            size = FeedbackDelayNetwork::FdnSize::giant;
 
         fdn.setFdnSize (size);
         fdnFade.setFdnSize (size);
@@ -439,16 +443,20 @@ std::vector<std::unique_ptr<juce::RangedAudioParameter>>
         "fdnSize",
         "Fdn Size (internal)",
         "",
-        juce::NormalisableRange<float> (0.0f, 2.0f, 1.0f),
+        juce::NormalisableRange<float> (0.0f, 4.0f, 1.0f),
         2.0f,
         [] (float value)
         {
-            if (value == 0.0f)
+            if (value < 0.5f)
                 return "16";
-            else if (value == 1.0f)
+            else if (value >= 0.5 && value < 1.5f)
                 return "32";
-            else
+            else if (value >= 1.5 && value < 2.5f)
                 return "64";
+            else if (value >= 2.5 && value < 3.5f)
+                return "128";
+            else
+                return "256";
         },
         nullptr));
 

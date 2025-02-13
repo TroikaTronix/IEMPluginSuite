@@ -180,6 +180,8 @@ FdnReverbAudioProcessorEditor::FdnReverbAudioProcessorEditor (
     cbFdnSize.addItem ("16", 1);
     cbFdnSize.addItem ("32", 2);
     cbFdnSize.addItem ("64", 3);
+    cbFdnSize.addItem ("128", 4);
+    cbFdnSize.addItem ("256", 5);
     cbFdnSize.setJustificationType (juce::Justification::centred);
     cbFdnSizeAttachment.reset (new ComboBoxAttachment (valueTreeState, "fdnSize", cbFdnSize));
 

@@ -39,7 +39,9 @@ public:
         nano = 8,
         tiny = 16,
         small = 32,
-        big = 64
+        big = 64,
+        huge = 128,
+        giant = 256
     };
 
     struct FilterParameter
@@ -119,10 +121,9 @@ public:
 
         if (params.networkSizeChanged)
         {
-            fdnSize = params.newNetworkSize;
             params.needParameterUpdate = true;
             params.networkSizeChanged = false;
-            updateFdnSize (fdnSize);
+            updateFdnSize (params.newNetworkSize);
         }
 
         if (params.delayLengthChanged)
@@ -637,7 +638,7 @@ private:
             {
                 for (int i = 0; i < diff; i++)
                 {
-                    delayBufferVector.add (new juce::AudioBuffer<float>());
+                    delayBufferVector.add (new juce::AudioBuffer<float> (1, 1));
                     highShelfFilters.add (new juce::IIRFilter());
                     lowShelfFilters.add (new juce::IIRFilter());
                     hpFilters.add (new juce::dsp::IIR::Filter<float> (hpCoefficients));
