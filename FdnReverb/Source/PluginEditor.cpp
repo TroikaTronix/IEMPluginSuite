@@ -281,10 +281,6 @@ void FdnReverbAudioProcessorEditor::timerCallback()
     }
 }
 
-void FdnReverbAudioProcessorEditor::buttonClicked (juce::Button* button)
-{
-}
-
 void FdnReverbAudioProcessorEditor::sliderValueChanged (juce::Slider* slider)
 {
     if (slider == &revTimeSlider)
