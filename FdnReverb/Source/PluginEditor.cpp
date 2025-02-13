@@ -259,6 +259,8 @@ FdnReverbAudioProcessorEditor::FdnReverbAudioProcessorEditor (
     float gain = pow (10.0, -3.0 / revTimeSlider.getValue());
     tv.setOverallGain (gain);
     fv.setOverallGain (gain);
+
+    startTimer (20);
 }
 
 FdnReverbAudioProcessorEditor::~FdnReverbAudioProcessorEditor()
@@ -275,8 +277,11 @@ void FdnReverbAudioProcessorEditor::paint (juce::Graphics& g)
 
 void FdnReverbAudioProcessorEditor::timerCallback()
 {
-    updateVisualizers();
-    stopTimer();
+    if (processor.repaintFV.get())
+    {
+        processor.repaintFV = false;
+        updateVisualizers();
+    }
 }
 
 void FdnReverbAudioProcessorEditor::buttonClicked (juce::Button* button)
@@ -316,8 +321,6 @@ void FdnReverbAudioProcessorEditor::comboBoxChanged (juce::ComboBox* comboBox)
             hpQSlider.setEnabled (true);
         else
             hpQSlider.setEnabled (false);
-
-        startTimer (100);
     }
 }
 
@@ -465,6 +468,4 @@ void FdnReverbAudioProcessorEditor::resized()
 
         fv.setBounds (filterArea);
     }
-
-    startTimer (100);
 }

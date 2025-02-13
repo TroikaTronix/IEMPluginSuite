@@ -146,6 +146,7 @@ void FdnReverbAudioProcessor::parameterChanged (const juce::String& parameterID,
     else
     {
         updateFilterParameters();
+        repaintFV = true;
     }
 }
 
