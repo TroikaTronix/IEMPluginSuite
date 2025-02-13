@@ -37,7 +37,7 @@ FdnReverbAudioProcessorEditor::FdnReverbAudioProcessorEditor (
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
 
-    setResizeLimits (750, 480, 1000, 950);
+    setResizeLimits (650, 480, 1000, 950);
     setResizable (true, true);
     setLookAndFeel (&globalLaF);
 
@@ -353,7 +353,8 @@ void FdnReverbAudioProcessorEditor::resized()
     { //====================== DELAY SETTINGS GROUP ==================================
         const int rotSliderWidth = 55;
 
-        juce::Rectangle<int> settingsArea (area.removeFromRight (185));
+        juce::Rectangle<int> settingsArea (
+            area.removeFromRight (2 * rotSliderWidth + rotSliderSpacing));
         delayGroup.setBounds (settingsArea);
         settingsArea.removeFromTop (25); //for box headline
 
@@ -363,27 +364,34 @@ void FdnReverbAudioProcessorEditor::resized()
         sliderRow.removeFromLeft (rotSliderSpacing);
         revTimeSlider.setBounds (sliderRow.removeFromLeft (rotSliderWidth));
         sliderRow.removeFromLeft (rotSliderSpacing);
-        dryWetSlider.setBounds (sliderRow.removeFromLeft (rotSliderWidth));
 
         sliderRow = settingsArea.removeFromTop (labelHeight);
         lbDelay.setBounds (sliderRow.removeFromLeft (rotSliderWidth));
         sliderRow.removeFromLeft (rotSliderSpacing);
         lbTime.setBounds (sliderRow.removeFromLeft (rotSliderWidth));
-        sliderRow.removeFromLeft (rotSliderSpacing);
-        sliderRow.removeFromLeft (rotSliderSpacing);
-        lbDryWet.setBounds (sliderRow.removeFromLeft (rotSliderWidth));
+
+        settingsArea.removeFromTop (25);
 
         sliderRow = settingsArea.removeFromTop (rotSliderHeight);
-        cbFdnSize.setBounds (sliderRow.removeFromLeft (rotSliderWidth).removeFromBottom (18));
+        auto cbArea = sliderRow.removeFromLeft (rotSliderWidth);
+        cbFdnSize.setBounds (cbArea.removeFromBottom (24));
+        cbArea.removeFromBottom (5);
+        freezeMode.setBounds (cbArea.removeFromBottom (24));
         sliderRow.removeFromLeft (rotSliderSpacing);
         fadeInSlider.setBounds (sliderRow.removeFromLeft (rotSliderWidth));
         sliderRow.removeFromLeft (rotSliderSpacing);
-        freezeMode.setBounds (sliderRow.removeFromLeft (rotSliderWidth));
 
         sliderRow = settingsArea.removeFromTop (labelHeight);
         fdnSize.setBounds (sliderRow.removeFromLeft (rotSliderWidth));
         sliderRow.removeFromLeft (rotSliderSpacing);
         fdnLbTime.setBounds (sliderRow.removeFromLeft (rotSliderWidth));
+
+        settingsArea.removeFromTop (25);
+
+        sliderRow = settingsArea.removeFromTop (rotSliderHeight);
+        dryWetSlider.setBounds (sliderRow.removeFromRight (rotSliderWidth));
+        sliderRow = settingsArea.removeFromTop (labelHeight);
+        lbDryWet.setBounds (sliderRow.removeFromRight (rotSliderWidth));
     }
 
     area.removeFromRight (10); //spacing
