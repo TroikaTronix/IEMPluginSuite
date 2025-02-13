@@ -63,6 +63,7 @@ FdnReverbAudioProcessor::FdnReverbAudioProcessor() :
     parameters.addParameterListener ("hpQ", this);
     parameters.addParameterListener ("dryWet", this);
     parameters.addParameterListener ("fdnSize", this);
+    parameters.addParameterListener ("freeze", this);
 
     delayLength = parameters.getRawParameterValue ("delayLength");
     revTime = parameters.getRawParameterValue ("revTime");
@@ -77,10 +78,14 @@ FdnReverbAudioProcessor::FdnReverbAudioProcessor() :
     hpFrequency = parameters.getRawParameterValue ("hpFrequency");
     hpQ = parameters.getRawParameterValue ("hpQ");
     wet = parameters.getRawParameterValue ("dryWet");
+    freeze = parameters.getRawParameterValue ("freeze");
 
     fdn.setFdnSize (FeedbackDelayNetwork::big);
     fdnFade.setFdnSize (FeedbackDelayNetwork::big);
     fdnFade.setDryWet (1.0f);
+
+    fdn.setFreeze (static_cast<bool> (*freeze));
+    fdnFade.setFreeze (static_cast<bool> (*freeze));
 }
 
 FdnReverbAudioProcessor::~FdnReverbAudioProcessor()
@@ -142,6 +147,11 @@ void FdnReverbAudioProcessor::parameterChanged (const juce::String& parameterID,
         spec.numChannels = 64;
         fdn.prepare (spec);
         fdnFade.prepare (spec);
+    }
+    else if (parameterID == "freeze")
+    {
+        fdn.setFreeze (static_cast<bool> (*freeze));
+        fdnFade.setFreeze (static_cast<bool> (*freeze));
     }
     else
     {
@@ -239,12 +249,6 @@ void FdnReverbAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
         for (int ch = fdnSize; ch < nChannels; ++ch)
             buffer.clear (ch, 0, nSamples);
     }
-}
-
-//------------------------------------------------------------------------------
-void FdnReverbAudioProcessor::setFreezeMode (bool freezeState)
-{
-    fdn.setFreeze (freezeState);
 }
 
 void FdnReverbAudioProcessor::getT60ForFrequencyArray (double* frequencies,
@@ -446,6 +450,15 @@ std::vector<std::unique_ptr<juce::RangedAudioParameter>>
             else
                 return "64";
         },
+        nullptr));
+
+    params.push_back (OSCParameterInterface::createParameterTheOldWay (
+        "freeze",
+        "Freeze",
+        "",
+        juce::NormalisableRange<float> (0.0f, 1.0f, 1.0f),
+        0.0f,
+        [] (float value) { return value < 0.5 ? "off" : "on"; },
         nullptr));
 
     return params;

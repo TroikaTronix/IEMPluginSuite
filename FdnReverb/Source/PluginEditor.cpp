@@ -41,7 +41,9 @@ FdnReverbAudioProcessorEditor::FdnReverbAudioProcessorEditor (
     setResizable (true, true);
     setLookAndFeel (&globalLaF);
 
-    freezeMode.addListener (this);
+    addAndMakeVisible (&freezeMode);
+    freezeAttachment.reset (new ButtonAttachment (valueTreeState, "freeze", freezeMode));
+    freezeMode.setButtonText ("freeze");
 
     addAndMakeVisible (&title);
     title.setTitle (juce::String ("FDN"), juce::String ("Reverb"));
@@ -279,13 +281,6 @@ void FdnReverbAudioProcessorEditor::timerCallback()
 
 void FdnReverbAudioProcessorEditor::buttonClicked (juce::Button* button)
 {
-    if (button == &freezeMode)
-    {
-        if (freezeMode.getToggleState())
-            processor.setFreezeMode (true);
-        else
-            processor.setFreezeMode (false);
-    }
 }
 
 void FdnReverbAudioProcessorEditor::sliderValueChanged (juce::Slider* slider)
@@ -382,6 +377,8 @@ void FdnReverbAudioProcessorEditor::resized()
         cbFdnSize.setBounds (sliderRow.removeFromLeft (rotSliderWidth).removeFromBottom (18));
         sliderRow.removeFromLeft (rotSliderSpacing);
         fadeInSlider.setBounds (sliderRow.removeFromLeft (rotSliderWidth));
+        sliderRow.removeFromLeft (rotSliderSpacing);
+        freezeMode.setBounds (sliderRow.removeFromLeft (rotSliderWidth));
 
         sliderRow = settingsArea.removeFromTop (labelHeight);
         fdnSize.setBounds (sliderRow.removeFromLeft (rotSliderWidth));

@@ -94,7 +94,7 @@ private:
 
     // juce::Buttons
     juce::ToggleButton networkOrder, freezeMode;
-    std::unique_ptr<ButtonAttachment> networkOrderAttachment;
+    std::unique_ptr<ButtonAttachment> networkOrderAttachment, freezeAttachment;
 
     // filter visualization
     T60Visualizer<double> tv;

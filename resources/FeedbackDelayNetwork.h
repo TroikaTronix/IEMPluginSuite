@@ -173,11 +173,7 @@ public:
         //            }
         //        }
 
-        float dryGain;
-        if (freeze)
-            dryGain = dryWet;
-        else
-            dryGain = 1.0f - dryWet;
+        float dryGain = 1.0f - dryWet;
 
         for (int i = 0; i < numSamples; ++i)
         {
