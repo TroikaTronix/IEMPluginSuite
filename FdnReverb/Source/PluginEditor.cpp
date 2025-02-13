@@ -102,7 +102,6 @@ FdnReverbAudioProcessorEditor::FdnReverbAudioProcessorEditor (
     lowCutoffSlider.setColour (juce::Slider::rotarySliderOutlineColourId,
                                globalLaF.ClWidgetColours[3]);
     lowCutoffSlider.setTooltip ("Low Shelf Cutoff Freq");
-    lowCutoffSlider.addListener (this);
 
     addAndMakeVisible (&lowQSlider);
     lowQAttachment.reset (new SliderAttachment (valueTreeState, "lowQ", lowQSlider));
@@ -110,7 +109,6 @@ FdnReverbAudioProcessorEditor::FdnReverbAudioProcessorEditor (
     lowQSlider.setTextBoxStyle (juce::Slider::TextBoxBelow, false, 50, 15);
     lowQSlider.setColour (juce::Slider::rotarySliderOutlineColourId, globalLaF.ClWidgetColours[3]);
     lowQSlider.setTooltip ("Low Shelf Q");
-    lowQSlider.addListener (this);
 
     addAndMakeVisible (&lowGainSlider);
     lowGainAttachment.reset (new SliderAttachment (valueTreeState, "lowGain", lowGainSlider));
@@ -119,7 +117,6 @@ FdnReverbAudioProcessorEditor::FdnReverbAudioProcessorEditor (
     lowGainSlider.setColour (juce::Slider::rotarySliderOutlineColourId,
                              globalLaF.ClWidgetColours[3]);
     lowGainSlider.setTooltip ("Low Shelf Gain");
-    lowGainSlider.addListener (this);
 
     addAndMakeVisible (&highCutoffSlider);
     highCutoffAttachment.reset (
@@ -130,7 +127,6 @@ FdnReverbAudioProcessorEditor::FdnReverbAudioProcessorEditor (
                                 globalLaF.ClWidgetColours[0]);
     ;
     highCutoffSlider.setTooltip ("High Shelf Cutoff Freq");
-    highCutoffSlider.addListener (this);
 
     addAndMakeVisible (&highQSlider);
     highQAttachment.reset (new SliderAttachment (valueTreeState, "highQ", highQSlider));
@@ -138,7 +134,6 @@ FdnReverbAudioProcessorEditor::FdnReverbAudioProcessorEditor (
     highQSlider.setTextBoxStyle (juce::Slider::TextBoxBelow, false, 50, 15);
     highQSlider.setColour (juce::Slider::rotarySliderOutlineColourId, globalLaF.ClWidgetColours[0]);
     highQSlider.setTooltip ("High Shelf Q");
-    highQSlider.addListener (this);
 
     addAndMakeVisible (&highGainSlider);
     highGainAttachment.reset (new SliderAttachment (valueTreeState, "highGain", highGainSlider));
@@ -147,7 +142,6 @@ FdnReverbAudioProcessorEditor::FdnReverbAudioProcessorEditor (
     highGainSlider.setColour (juce::Slider::rotarySliderOutlineColourId,
                               globalLaF.ClWidgetColours[0]);
     highGainSlider.setTooltip ("High Shelf Gain");
-    highGainSlider.addListener (this);
 
     addAndMakeVisible (&hpCutoffSlider);
     hpCutoffAttachment.reset (new SliderAttachment (valueTreeState, "hpFrequency", hpCutoffSlider));
@@ -156,7 +150,6 @@ FdnReverbAudioProcessorEditor::FdnReverbAudioProcessorEditor (
     hpCutoffSlider.setColour (juce::Slider::rotarySliderOutlineColourId,
                               globalLaF.ClWidgetColours[2]);
     hpCutoffSlider.setTooltip ("Highpass Cutoff Freq");
-    hpCutoffSlider.addListener (this);
 
     addAndMakeVisible (&hpQSlider);
     hpQAttachment.reset (new SliderAttachment (valueTreeState, "hpQ", hpQSlider));
@@ -164,7 +157,6 @@ FdnReverbAudioProcessorEditor::FdnReverbAudioProcessorEditor (
     hpQSlider.setTextBoxStyle (juce::Slider::TextBoxBelow, false, 50, 15);
     hpQSlider.setColour (juce::Slider::rotarySliderOutlineColourId, globalLaF.ClWidgetColours[2]);
     hpQSlider.setTooltip ("Highpass Q");
-    hpQSlider.addListener (this);
 
     addAndMakeVisible (cbHpMode);
     cbHpMode.addSectionHeading ("HP Mode");
@@ -277,10 +269,11 @@ void FdnReverbAudioProcessorEditor::paint (juce::Graphics& g)
 
 void FdnReverbAudioProcessorEditor::timerCallback()
 {
-    if (processor.repaintFV.get())
+    auto fdnPtr = processor.getFdnPtr();
+    if (fdnPtr != nullptr && fdnPtr->repaintFV)
     {
-        processor.repaintFV = false;
         updateVisualizers();
+        fdnPtr->repaintFV = false;
     }
 }
 
@@ -297,13 +290,7 @@ void FdnReverbAudioProcessorEditor::buttonClicked (juce::Button* button)
 
 void FdnReverbAudioProcessorEditor::sliderValueChanged (juce::Slider* slider)
 {
-    if (slider == &highCutoffSlider || slider == &highQSlider || slider == &highGainSlider
-        || slider == &lowCutoffSlider || slider == &lowQSlider || slider == &lowGainSlider
-        || slider == &hpCutoffSlider || slider == &hpQSlider)
-    {
-        updateVisualizers();
-    }
-    else if (slider == &revTimeSlider)
+    if (slider == &revTimeSlider)
     {
         float gain = pow (10.0, -3.0 / revTimeSlider.getValue());
         fv.setOverallGain (gain);

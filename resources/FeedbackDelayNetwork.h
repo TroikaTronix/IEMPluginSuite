@@ -363,6 +363,8 @@ public:
             juce::jmin (0.5 * spec.sampleRate, static_cast<double> (highShelfParameters.frequency)),
             highShelfParameters.q,
             highShelfParameters.linearGain);
+
+        repaintFV = true;
     }
 
     void getT60ForFrequencyArray (double* frequencies, double* t60Data, size_t numSamples)
@@ -410,6 +412,7 @@ public:
     }
 
     const FdnSize getFdnSize() { return params.newNetworkSize; }
+    std::atomic<bool> repaintFV = true;
 
 private:
     //==============================================================================
@@ -624,6 +627,8 @@ private:
 
                     *hpCoefficients = *tmpCoeffs;
             }
+
+            updateGuiCoefficients();
         }
     }
 

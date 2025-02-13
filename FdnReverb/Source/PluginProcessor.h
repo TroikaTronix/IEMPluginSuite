@@ -74,8 +74,6 @@ public:
     void getT60ForFrequencyArray (double* frequencies, double* t60Data, size_t numSamples);
     FeedbackDelayNetwork* getFdnPtr() { return &fdn; };
 
-    juce::Atomic<bool> repaintFV = true;
-
 private:
     //==============================================================================
     juce::AudioBuffer<float> copyBuffer;
