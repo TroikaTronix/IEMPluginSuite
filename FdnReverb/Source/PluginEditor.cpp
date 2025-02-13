@@ -176,7 +176,7 @@ FdnReverbAudioProcessorEditor::FdnReverbAudioProcessorEditor (
     cbHpModeAttachment.reset (new ComboBoxAttachment (valueTreeState, "hpOrder", cbHpMode));
     cbHpMode.addListener (this);
 
-    if (cbHpMode.getSelectedId() > 2)
+    if (cbHpMode.getSelectedId() == 3)
         hpQSlider.setEnabled (true);
     else
         hpQSlider.setEnabled (false);
@@ -317,7 +317,7 @@ void FdnReverbAudioProcessorEditor::comboBoxChanged (juce::ComboBox* comboBox)
 {
     if (comboBox == &cbHpMode)
     {
-        if (cbHpMode.getSelectedId() > 2)
+        if (cbHpMode.getSelectedId() == 3)
             hpQSlider.setEnabled (true);
         else
             hpQSlider.setEnabled (false);

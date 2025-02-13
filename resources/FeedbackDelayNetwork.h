@@ -46,14 +46,14 @@ public:
     {
         float frequency = 1000.0f;
         float linearGain = 1.0f;
-        float q = 0.707f;
+        float q = 0.7071f;
     };
 
     struct HPFilterParameter
     {
         int mode = 0;
         float frequency = 20.0f;
-        float q = 0.707f;
+        float q = 0.7071f;
     };
 
     FeedbackDelayNetwork (FdnSize size = big)
@@ -612,8 +612,7 @@ private:
                     tmpCoeffs = juce::dsp::IIR::Coefficients<float>::makeHighPass (
                         spec.sampleRate,
                         juce::jmin (0.5 * spec.sampleRate,
-                                    static_cast<double> (hpFilterParameters.frequency)),
-                        hpFilterParameters.q);
+                                    static_cast<double> (hpFilterParameters.frequency)));
                     *hpCoefficients = *tmpCoeffs;
                     break;
 

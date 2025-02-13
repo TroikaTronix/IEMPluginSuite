@@ -419,10 +419,7 @@ private:
             const auto frequency = juce::jmin (static_cast<float> (0.5 * sampleRate),
                                                filterParameters[numFilterBands - 1].frequency);
             tempCoefficients[numFilterBands - 1] =
-                juce::dsp::IIR::Coefficients<float>::makeLowPass (
-                    sampleRate,
-                    frequency,
-                    filterParameters[numFilterBands - 1].q);
+                juce::dsp::IIR::Coefficients<float>::makeLowPass (sampleRate, frequency, 0.7071f);
             additionalTempCoefficients[1] = processorCoefficients[numFilterBands - 1];
         }
         else
@@ -430,9 +427,7 @@ private:
             const auto frequency =
                 juce::jmin (static_cast<float> (0.5 * sampleRate), filterParameters[0].frequency);
             tempCoefficients[0] =
-                juce::dsp::IIR::Coefficients<float>::makeHighPass (sampleRate,
-                                                                   frequency,
-                                                                   filterParameters[0].q);
+                juce::dsp::IIR::Coefficients<float>::makeHighPass (sampleRate, frequency, 0.7071f);
             additionalTempCoefficients[0] = processorCoefficients[0];
         }
     }
