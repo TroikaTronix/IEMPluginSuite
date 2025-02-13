@@ -22,22 +22,16 @@
 
 #pragma once
 
+#include <JuceHeader.h>
+
 #include "../../resources/AudioProcessorBase.h"
 #include "../../resources/FilterVisualizerHelper.h"
-#include "../JuceLibraryCode/JuceHeader.h"
+#include "../../resources/MultiChannelFilter.h"
+
+#define ProcessorClass MultiEQAudioProcessor
 
 #define numFilterBands 6
 using namespace juce::dsp;
-
-#if JUCE_USE_SIMD
-using IIRfloat = juce::dsp::SIMDRegister<float>;
-static constexpr int IIRfloat_elements = juce::dsp::SIMDRegister<float>::size();
-#else /* !JUCE_USE_SIMD */
-using IIRfloat = float;
-static constexpr int IIRfloat_elements = 1;
-#endif /* JUCE_USE_SIMD */
-
-#define ProcessorClass MultiEQAudioProcessor
 
 //==============================================================================
 class MultiEQAudioProcessor
@@ -54,7 +48,7 @@ public:
     void prepareToPlay (double sampleRate, int samplesPerBlock) override;
     void releaseResources() override;
 
-    void processBlock (juce::AudioSampleBuffer&, juce::MidiBuffer&) override;
+    void processBlock (juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
 
     //==============================================================================
     juce::AudioProcessorEditor* createEditor() override;
@@ -79,76 +73,12 @@ public:
     std::vector<std::unique_ptr<juce::RangedAudioParameter>> createParameterLayout();
     //==============================================================================
 
-    void updateFilterCoefficients (double sampleRate);
-    void copyFilterCoefficientsToProcessor();
-
-    IIR::Coefficients<double>::Ptr getCoefficientsForGui (const int filterIndex)
-    {
-        return guiCoefficients[filterIndex];
-    };
-    void updateGuiCoefficients();
+    MultiChannelFilter<numFilterBands, numberOfInputChannels>* getFilter() { return &MCFilter; }
 
     // FV repaint flag
     juce::Atomic<bool> repaintFV = true;
 
 private:
-    enum class RegularFilterType
-    {
-        FirstOrderHighPass,
-        SecondOrderHighPass,
-        LowShelf,
-        PeakFilter,
-        HighShelf,
-        FirstOrderLowPass,
-        SecondOrderLowPass,
-        NothingToDo
-    };
-
-    enum class SpecialFilterType
-    {
-        FirstOrderHighPass,
-        SecondOrderHighPass,
-        LinkwitzRileyHighPass,
-        LowShelf,
-        FirstOrderLowPass,
-        SecondOrderLowPass,
-        LinkwitzRileyLowPass,
-        HighShelf
-    };
-
-    void createLinkwitzRileyFilter (const bool isUpperBand);
-    void createFilterCoefficients (const int filterIndex, const double sampleRate);
-
-    inline void clear (juce::dsp::AudioBlock<IIRfloat>& ab);
-
-    inline juce::dsp::IIR::Coefficients<float>::Ptr
-        createFilterCoefficients (const RegularFilterType type,
-                                  const double sampleRate,
-                                  const float frequency,
-                                  const float Q,
-                                  const float gain);
-
-    inline juce::dsp::IIR::Coefficients<double>::Ptr
-        createFilterCoefficientsForGui (const RegularFilterType type,
-                                        const double sampleRate,
-                                        const float frequency,
-                                        const float Q,
-                                        const float gain);
-
-    // filter dummy for GUI
-    IIR::Coefficients<double>::Ptr guiCoefficients[numFilterBands];
-
-    IIR::Coefficients<float>::Ptr processorCoefficients[numFilterBands];
-    IIR::Coefficients<float>::Ptr additionalProcessorCoefficients[2];
-
-    IIR::Coefficients<float>::Ptr tempCoefficients[numFilterBands];
-    IIR::Coefficients<float>::Ptr additionalTempCoefficients[2];
-
-    // data for interleaving audio
-    juce::HeapBlock<char> interleavedBlockData[16], zeroData; //todo: dynamically?
-    juce::OwnedArray<juce::dsp::AudioBlock<IIRfloat>> interleavedData;
-    juce::dsp::AudioBlock<float> zero;
-
     // list of used audio parameters
     std::atomic<float>* inputChannelsSetting;
     std::atomic<float>* filterEnabled[numFilterBands];
@@ -157,11 +87,10 @@ private:
     std::atomic<float>* filterQ[numFilterBands];
     std::atomic<float>* filterGain[numFilterBands];
 
-    // filters for processing
-    juce::OwnedArray<IIR::Filter<IIRfloat>> filterArrays[numFilterBands];
-    juce::OwnedArray<IIR::Filter<IIRfloat>> additionalFilterArrays[2];
-
     juce::Atomic<bool> userHasChangedFilterSettings = true;
+
+    MultiChannelFilter<numFilterBands, numberOfInputChannels> MCFilter;
+    FilterParameters filterParameters[numFilterBands];
 
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MultiEQAudioProcessor)

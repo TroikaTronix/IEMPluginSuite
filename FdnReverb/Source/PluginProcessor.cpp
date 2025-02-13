@@ -58,8 +58,12 @@ FdnReverbAudioProcessor::FdnReverbAudioProcessor() :
     parameters.addParameterListener ("lowCutoff", this);
     parameters.addParameterListener ("lowQ", this);
     parameters.addParameterListener ("lowGain", this);
+    parameters.addParameterListener ("hpOrder", this);
+    parameters.addParameterListener ("hpFrequency", this);
+    parameters.addParameterListener ("hpQ", this);
     parameters.addParameterListener ("dryWet", this);
     parameters.addParameterListener ("fdnSize", this);
+    parameters.addParameterListener ("freeze", this);
 
     delayLength = parameters.getRawParameterValue ("delayLength");
     revTime = parameters.getRawParameterValue ("revTime");
@@ -70,11 +74,18 @@ FdnReverbAudioProcessor::FdnReverbAudioProcessor() :
     lowCutoff = parameters.getRawParameterValue ("lowCutoff");
     lowQ = parameters.getRawParameterValue ("lowQ");
     lowGain = parameters.getRawParameterValue ("lowGain");
+    hpOrder = parameters.getRawParameterValue ("hpOrder");
+    hpFrequency = parameters.getRawParameterValue ("hpFrequency");
+    hpQ = parameters.getRawParameterValue ("hpQ");
     wet = parameters.getRawParameterValue ("dryWet");
+    freeze = parameters.getRawParameterValue ("freeze");
 
     fdn.setFdnSize (FeedbackDelayNetwork::big);
     fdnFade.setFdnSize (FeedbackDelayNetwork::big);
     fdnFade.setDryWet (1.0f);
+
+    fdn.setFreeze (static_cast<bool> (*freeze));
+    fdnFade.setFreeze (static_cast<bool> (*freeze));
 }
 
 FdnReverbAudioProcessor::~FdnReverbAudioProcessor()
@@ -122,10 +133,14 @@ void FdnReverbAudioProcessor::parameterChanged (const juce::String& parameterID,
     else if (parameterID == "fdnSize")
     {
         FeedbackDelayNetwork::FdnSize size { FeedbackDelayNetwork::FdnSize::big };
-        if (newValue == 0.0f)
+        if (newValue < 0.5f)
             size = FeedbackDelayNetwork::FdnSize::tiny;
-        else if (newValue == 1.0f)
+        else if (newValue >= 0.5f && newValue < 1.5f)
             size = FeedbackDelayNetwork::FdnSize::small;
+        else if (newValue >= 2.5f && newValue < 3.5f)
+            size = FeedbackDelayNetwork::FdnSize::huge;
+        else if (newValue >= 3.5f && newValue < 4.5f)
+            size = FeedbackDelayNetwork::FdnSize::giant;
 
         fdn.setFdnSize (size);
         fdnFade.setFdnSize (size);
@@ -137,6 +152,11 @@ void FdnReverbAudioProcessor::parameterChanged (const juce::String& parameterID,
         fdn.prepare (spec);
         fdnFade.prepare (spec);
     }
+    else if (parameterID == "freeze")
+    {
+        fdn.setFreeze (static_cast<bool> (*freeze));
+        fdnFade.setFreeze (static_cast<bool> (*freeze));
+    }
     else
     {
         updateFilterParameters();
@@ -147,6 +167,7 @@ void FdnReverbAudioProcessor::updateFilterParameters()
 {
     FeedbackDelayNetwork::FilterParameter lowShelf;
     FeedbackDelayNetwork::FilterParameter highShelf;
+    FeedbackDelayNetwork::HPFilterParameter hpFilter;
 
     lowShelf.frequency = *lowCutoff;
     lowShelf.q = *lowQ;
@@ -156,8 +177,12 @@ void FdnReverbAudioProcessor::updateFilterParameters()
     highShelf.q = *highQ;
     highShelf.linearGain = juce::Decibels::decibelsToGain (highGain->load());
 
-    fdn.setFilterParameter (lowShelf, highShelf);
-    fdnFade.setFilterParameter (lowShelf, highShelf);
+    hpFilter.frequency = *hpFrequency;
+    hpFilter.q = *hpQ;
+    hpFilter.mode = static_cast<int> (hpOrder->load());
+
+    fdn.setFilterParameter (lowShelf, highShelf, hpFilter);
+    fdnFade.setFilterParameter (lowShelf, highShelf, hpFilter);
 }
 //==============================================================================
 void FdnReverbAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
@@ -228,12 +253,6 @@ void FdnReverbAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
         for (int ch = fdnSize; ch < nChannels; ++ch)
             buffer.clear (ch, 0, nSamples);
     }
-}
-
-//------------------------------------------------------------------------------
-void FdnReverbAudioProcessor::setFreezeMode (bool freezeState)
-{
-    fdn.setFreeze (freezeState);
 }
 
 void FdnReverbAudioProcessor::getT60ForFrequencyArray (double* frequencies,
@@ -366,6 +385,43 @@ std::vector<std::unique_ptr<juce::RangedAudioParameter>>
         nullptr));
 
     params.push_back (OSCParameterInterface::createParameterTheOldWay (
+        "hpOrder",
+        "Highpass Slope",
+        "",
+        juce::NormalisableRange<float> (0.0f, 3.0f, 1.0f),
+        0.0f,
+        [] (float value)
+        {
+            if (value < 0.5f)
+                return "disabled";
+            else if (value >= 0.5f && value < 1.5f)
+                return "6 dB/oct";
+            else if (value >= 1.5f && value < 2.5f)
+                return "12 dB/oct";
+            else
+                return "24 dB/oct";
+        },
+        nullptr));
+
+    params.push_back (OSCParameterInterface::createParameterTheOldWay (
+        "hpFrequency",
+        "Highpass Cutoff Frequency",
+        "Hz",
+        juce::NormalisableRange<float> (20.0f, 20000.0f, 1.0f, 0.4f),
+        20.0f,
+        [] (float value) { return juce::String (value, 0); },
+        nullptr));
+
+    params.push_back (OSCParameterInterface::createParameterTheOldWay (
+        "hpQ",
+        "Highpass Q Factor",
+        "",
+        juce::NormalisableRange<float> (0.01f, 0.9f, 0.01f),
+        0.7f,
+        [] (float value) { return juce::String (value, 2); },
+        nullptr));
+
+    params.push_back (OSCParameterInterface::createParameterTheOldWay (
         "dryWet",
         "Dry/Wet",
         "",
@@ -387,17 +443,30 @@ std::vector<std::unique_ptr<juce::RangedAudioParameter>>
         "fdnSize",
         "Fdn Size (internal)",
         "",
-        juce::NormalisableRange<float> (0.0f, 2.0f, 1.0f),
+        juce::NormalisableRange<float> (0.0f, 4.0f, 1.0f),
         2.0f,
         [] (float value)
         {
-            if (value == 0.0f)
+            if (value < 0.5f)
                 return "16";
-            else if (value == 1.0f)
+            else if (value >= 0.5 && value < 1.5f)
                 return "32";
-            else
+            else if (value >= 1.5 && value < 2.5f)
                 return "64";
+            else if (value >= 2.5 && value < 3.5f)
+                return "128";
+            else
+                return "256";
         },
+        nullptr));
+
+    params.push_back (OSCParameterInterface::createParameterTheOldWay (
+        "freeze",
+        "Freeze",
+        "",
+        juce::NormalisableRange<float> (0.0f, 1.0f, 1.0f),
+        0.0f,
+        [] (float value) { return value < 0.5 ? "off" : "on"; },
         nullptr));
 
     return params;

@@ -22,6 +22,7 @@
 
 #pragma once
 
+template <typename coefficientsType>
 class T60Visualizer : public juce::Component
 {
     struct Settings
@@ -55,7 +56,8 @@ public:
 
         //int width = getWidth();
 
-        g.setFont (getLookAndFeel().getTypefaceForFont (juce::Font (12.0f, 2)));
+        g.setFont (
+            juce::FontOptions (getLookAndFeel().getTypefaceForFont (juce::FontOptions (12.0f, 2))));
         g.setFont (12.0f);
 
         // time labels
@@ -145,8 +147,9 @@ public:
         {
             //bool isActive = activeElem == i;
 
-            juce::dsp::IIR::Coefficients<float>::Ptr handle =
-                (juce::dsp::IIR::Coefficients<float>::Ptr) arrayOfCoefficients.getUnchecked (i);
+            typename juce::dsp::IIR::Coefficients<coefficientsType>::Ptr handle =
+                (typename juce::dsp::IIR::Coefficients<coefficientsType>::Ptr)
+                    arrayOfCoefficients.getUnchecked (i);
             magnitude.clear();
 
             float db = juce::Decibels::gainToDecibels (
@@ -389,7 +392,7 @@ public:
         createTolerancePath();
     }
 
-    void addCoefficients (juce::dsp::IIR::Coefficients<float>::Ptr newCoeffs,
+    void addCoefficients (typename juce::dsp::IIR::Coefficients<coefficientsType>::Ptr newCoeffs,
                           juce::Colour newColourForCoeffs,
                           juce::Slider* frequencySlider = nullptr,
                           juce::Slider* gainSlider = nullptr)
@@ -398,6 +401,17 @@ public:
         arrayOfColours.add (newColourForCoeffs);
         arrayOfGainSliders.add (gainSlider);
         arrayOfFrequencySliders.add (frequencySlider);
+    }
+
+    void replaceCoefficients (
+        int filterIdx,
+        typename juce::dsp::IIR::Coefficients<coefficientsType>::Ptr newCoefficients)
+    {
+        if (filterIdx < arrayOfCoefficients.size())
+        {
+            arrayOfCoefficients.setUnchecked (filterIdx, newCoefficients);
+            repaint();
+        }
     }
 
 private:
@@ -415,7 +429,7 @@ private:
     juce::Path tolerancePath;
 
     juce::Array<float> allMagnitudesInDb;
-    juce::Array<juce::dsp::IIR::Coefficients<float>::Ptr> arrayOfCoefficients;
+    juce::Array<typename juce::dsp::IIR::Coefficients<coefficientsType>::Ptr> arrayOfCoefficients;
     juce::Array<juce::Slider*> arrayOfGainSliders, arrayOfFrequencySliders;
 
     juce::Array<juce::Colour> arrayOfColours;

@@ -80,21 +80,25 @@ MultiEQAudioProcessorEditor::MultiEQAudioProcessorEditor (MultiEQAudioProcessor&
             qEnabled[0] = false;
     }
 
-    if (*filterTypeLast < 2.5f)
+    if (*filterTypeLast > 0.5f)
     {
         gainEnabled[numFilterBands - 1] = false;
 
-        if (*filterTypeLast < 0.5f || *filterTypeLast > 1.5f)
+        if (*filterTypeLast < 1.5f || *filterTypeLast > 2.5f)
             qEnabled[numFilterBands - 1] = false;
     }
 
+    auto filterPtr = processor.getFilter();
+
     addAndMakeVisible (fv);
-    for (int f = 0; f < numFilterBands; ++f)
-        fv.addCoefficients (processor.getCoefficientsForGui (f),
-                            colours[f],
-                            &slFilterFrequency[f],
-                            &slFilterGain[f],
-                            &slFilterQ[f]);
+
+    if (filterPtr != nullptr)
+        for (int f = 0; f < numFilterBands; ++f)
+            fv.addCoefficients (filterPtr->getCoefficientsForGui (f),
+                                colours[f],
+                                &slFilterFrequency[f],
+                                &slFilterGain[f],
+                                &slFilterQ[f]);
 
     fv.enableFilter (2, false);
 
@@ -120,10 +124,10 @@ MultiEQAudioProcessorEditor::MultiEQAudioProcessorEditor (MultiEQAudioProcessor&
         }
         else if (i == numFilterBands - 1)
         {
-            cbFilterType[i].addItem ("LP (6dB/oct)", 1);
-            cbFilterType[i].addItem ("LP (12dB/oct)", 2);
-            cbFilterType[i].addItem ("LP (24dB/oct)", 3);
-            cbFilterType[i].addItem ("High-shelf", 4);
+            cbFilterType[i].addItem ("High-shelf", 1);
+            cbFilterType[i].addItem ("LP (6dB/oct)", 2);
+            cbFilterType[i].addItem ("LP (12dB/oct)", 3);
+            cbFilterType[i].addItem ("LP (24dB/oct)", 4);
         }
         else
         {
@@ -236,10 +240,16 @@ void MultiEQAudioProcessorEditor::resized()
 
 void MultiEQAudioProcessorEditor::updateFilterVisualizer()
 {
-    processor.updateGuiCoefficients();
-    fv.setSampleRate (processor.getSampleRate());
-    for (int f = 0; f < numFilterBands; ++f)
-        fv.replaceCoefficients (f, processor.getCoefficientsForGui (f));
+    auto filterPtr = processor.getFilter();
+
+    if (filterPtr != nullptr)
+    {
+        filterPtr->updateGuiCoefficients();
+
+        fv.setSampleRate (processor.getSampleRate());
+        for (int f = 0; f < numFilterBands; ++f)
+            fv.replaceCoefficients (f, filterPtr->getCoefficientsForGui (f));
+    }
 }
 
 void MultiEQAudioProcessorEditor::timerCallback()
@@ -287,12 +297,12 @@ void MultiEQAudioProcessorEditor::comboBoxChanged (juce::ComboBox* comboBoxThatH
         return;
 
     const auto id = comboBoxThatHasChanged->getSelectedItemIndex();
-    if (id == 0 || id == 2)
+    if (id == 1 || id == 3)
     {
         qEnabled[idx] = false;
         gainEnabled[idx] = false;
     }
-    else if (id == 1)
+    else if (id == 2)
     {
         qEnabled[idx] = true;
         gainEnabled[idx] = false;

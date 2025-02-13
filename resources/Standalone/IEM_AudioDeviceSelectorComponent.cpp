@@ -109,7 +109,8 @@ static void drawTextLayout (juce::Graphics& g,
 
     juce::AttributedString attributedString { text };
     attributedString.setColour (textColour);
-    attributedString.setFont ((float) textBounds.getHeight() * 0.6f);
+    attributedString.setFont (
+        juce::FontOptions (static_cast<float> (textBounds.getHeight()) * 0.6f));
     attributedString.setJustification (juce::Justification::centredLeft);
     attributedString.setWordWrap (juce::AttributedString::WordWrap::none);
 

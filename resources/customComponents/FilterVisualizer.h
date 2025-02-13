@@ -84,7 +84,8 @@ public:
         g.setColour (juce::Colours::steelblue.withMultipliedAlpha (0.01f));
         g.fillAll();
 
-        g.setFont (getLookAndFeel().getTypefaceForFont (juce::Font (12.0f, 2)));
+        g.setFont (
+            juce::FontOptions (getLookAndFeel().getTypefaceForFont (juce::FontOptions (12.0f, 2))));
         g.setFont (12.0f);
 
         // db labels
