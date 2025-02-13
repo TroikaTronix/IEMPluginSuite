@@ -401,6 +401,16 @@ public:
         arrayOfFrequencySliders.add (frequencySlider);
     }
 
+    void replaceCoefficients (int filterIdx,
+                              juce::dsp::IIR::Coefficients<float>::Ptr newCoefficients)
+    {
+        if (filterIdx < arrayOfCoefficients.size())
+        {
+            arrayOfCoefficients.setUnchecked (filterIdx, newCoefficients);
+            repaint();
+        }
+    }
+
 private:
     float overallGainInDb;
 

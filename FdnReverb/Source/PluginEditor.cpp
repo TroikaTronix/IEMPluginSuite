@@ -220,34 +220,44 @@ FdnReverbAudioProcessorEditor::FdnReverbAudioProcessorEditor (
 
     // left side
     addAndMakeVisible (&tv);
-    lowpassCoeffs = IIR::Coefficients<float>::makeLowShelf (
-        48000,
-        lowCutoffSlider.getValue(),
-        lowQSlider.getValue(),
-        juce::Decibels::decibelsToGain (lowGainSlider.getValue()));
-    highpassCoeffs = IIR::Coefficients<float>::makeHighShelf (
-        48000,
-        highCutoffSlider.getValue(),
-        highQSlider.getValue(),
-        juce::Decibels::decibelsToGain (highGainSlider.getValue()));
+    addAndMakeVisible (&fv);
 
-    tv.addCoefficients (lowpassCoeffs, juce::Colours::orangered, &lowCutoffSlider, &lowGainSlider);
-    tv.addCoefficients (highpassCoeffs, juce::Colours::cyan, &highCutoffSlider, &highGainSlider);
+    auto fdnPtr = processor.getFdnPtr();
+
+    if (fdnPtr != nullptr)
+    {
+        fdnPtr->updateGuiCoefficients();
+        tv.addCoefficients (fdnPtr->getCoefficientsForGui (0),
+                            globalLaF.ClWidgetColours[2],
+                            &hpCutoffSlider);
+        tv.addCoefficients (fdnPtr->getCoefficientsForGui (1),
+                            juce::Colours::orangered,
+                            &lowCutoffSlider,
+                            &lowGainSlider);
+        tv.addCoefficients (fdnPtr->getCoefficientsForGui (2),
+                            juce::Colours::cyan,
+                            &highCutoffSlider,
+                            &highGainSlider);
+
+        fv.addCoefficients (fdnPtr->getCoefficientsForGui (0),
+                            globalLaF.ClWidgetColours[2],
+                            &hpCutoffSlider,
+                            nullptr,
+                            &hpQSlider);
+        fv.addCoefficients (fdnPtr->getCoefficientsForGui (1),
+                            globalLaF.ClWidgetColours[3],
+                            &lowCutoffSlider,
+                            &lowGainSlider,
+                            &lowQSlider);
+        fv.addCoefficients (fdnPtr->getCoefficientsForGui (2),
+                            globalLaF.ClWidgetColours[0],
+                            &highCutoffSlider,
+                            &highGainSlider,
+                            &highQSlider);
+    }
 
     float gain = pow (10.0, -3.0 / revTimeSlider.getValue());
     tv.setOverallGain (gain);
-
-    addAndMakeVisible (&fv);
-    fv.addCoefficients (lowpassCoeffs,
-                        globalLaF.ClWidgetColours[3],
-                        &lowCutoffSlider,
-                        &lowGainSlider,
-                        &lowQSlider);
-    fv.addCoefficients (highpassCoeffs,
-                        globalLaF.ClWidgetColours[0],
-                        &highCutoffSlider,
-                        &highGainSlider,
-                        &highQSlider);
     fv.setOverallGain (gain);
 }
 
@@ -265,6 +275,8 @@ void FdnReverbAudioProcessorEditor::paint (juce::Graphics& g)
 
 void FdnReverbAudioProcessorEditor::timerCallback()
 {
+    updateVisualizers();
+    stopTimer();
 }
 
 void FdnReverbAudioProcessorEditor::buttonClicked (juce::Button* button)
@@ -280,33 +292,19 @@ void FdnReverbAudioProcessorEditor::buttonClicked (juce::Button* button)
 
 void FdnReverbAudioProcessorEditor::sliderValueChanged (juce::Slider* slider)
 {
-    if (slider == &highCutoffSlider || slider == &highQSlider || slider == &highGainSlider)
+    if (slider == &highCutoffSlider || slider == &highQSlider || slider == &highGainSlider
+        || slider == &lowCutoffSlider || slider == &lowQSlider || slider == &lowGainSlider
+        || slider == &hpCutoffSlider || slider == &hpQSlider)
     {
-        *highpassCoeffs = *IIR::Coefficients<float>::makeHighShelf (
-            48000,
-            highCutoffSlider.getValue(),
-            highQSlider.getValue(),
-            juce::Decibels::decibelsToGain (highGainSlider.getValue()));
-
-        tv.repaint();
-        fv.repaint();
-    }
-    else if (slider == &lowCutoffSlider || slider == &lowQSlider || slider == &lowGainSlider)
-    {
-        *lowpassCoeffs = *IIR::Coefficients<float>::makeLowShelf (
-            48000,
-            lowCutoffSlider.getValue(),
-            lowQSlider.getValue(),
-            juce::Decibels::decibelsToGain (lowGainSlider.getValue()));
-
-        tv.repaint();
-        fv.repaint();
+        updateVisualizers();
     }
     else if (slider == &revTimeSlider)
     {
         float gain = pow (10.0, -3.0 / revTimeSlider.getValue());
         fv.setOverallGain (gain);
         tv.setOverallGain (gain);
+
+        updateVisualizers();
     }
 }
 
@@ -318,7 +316,31 @@ void FdnReverbAudioProcessorEditor::comboBoxChanged (juce::ComboBox* comboBox)
             hpQSlider.setEnabled (true);
         else
             hpQSlider.setEnabled (false);
+
+        startTimer (100);
     }
+}
+
+void FdnReverbAudioProcessorEditor::updateVisualizers()
+{
+    auto fdnPtr = processor.getFdnPtr();
+
+    if (fdnPtr != nullptr)
+    {
+        fdnPtr->updateGuiCoefficients();
+
+        fv.setSampleRate (processor.getSampleRate());
+        tv.setSampleRate (processor.getSampleRate());
+
+        for (int i = 0; i < 3; ++i)
+        {
+            fv.replaceCoefficients (i, fdnPtr->getCoefficientsForGui (i));
+            tv.replaceCoefficients (i, fdnPtr->getCoefficientsForGui (i));
+        }
+    }
+
+    fv.repaint();
+    tv.repaint();
 }
 
 void FdnReverbAudioProcessorEditor::resized()
@@ -443,4 +465,6 @@ void FdnReverbAudioProcessorEditor::resized()
 
         fv.setBounds (filterArea);
     }
+
+    startTimer (100);
 }

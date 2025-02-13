@@ -57,6 +57,8 @@ public:
     void sliderValueChanged (juce::Slider* slider) override;
     void comboBoxChanged (juce::ComboBox* comboBox) override;
 
+    void updateVisualizers();
+
 private:
     LaF globalLaF;
 
@@ -97,11 +99,6 @@ private:
     // filter visualization
     T60Visualizer tv;
     FilterVisualizer<float> fv;
-
-    IIR::Coefficients<float>::Ptr hpCoeffs;
-    IIR::Coefficients<float>::Ptr addHpCoeffs;
-    IIR::Coefficients<float>::Ptr highpassCoeffs;
-    IIR::Coefficients<float>::Ptr lowpassCoeffs;
 
     int maxPossibleChannels = 64;
 

@@ -22,6 +22,7 @@
 
 #pragma once
 #include "../JuceLibraryCode/JuceHeader.h"
+#include "FilterVisualizerHelper.h"
 #include "WalshHadamard/fwht.h"
 using namespace juce::dsp;
 class FeedbackDelayNetwork : private ProcessorBase
@@ -83,6 +84,7 @@ public:
 
         indices = indexGen (fdnSize, delayLength);
         updateParameterSettings();
+        updateGuiCoefficients();
 
         for (int ch = 0; ch < fdnSize; ++ch)
         {
@@ -300,6 +302,67 @@ public:
         params.overallGainChanged = true;
     }
 
+    juce::dsp::IIR::Coefficients<float>::Ptr getCoefficientsForGui (const int filterIndex) const
+    {
+        return guiCoefficients[filterIndex];
+    }
+
+    void updateGuiCoefficients()
+    {
+        // Highpass coefficients
+        switch (hpFilterParameters.mode)
+        {
+            case 0:
+                guiCoefficients[0] = IIR::Coefficients<float>::makeAllPass (spec.sampleRate, 20.0f);
+                break;
+            case 1:
+                guiCoefficients[0] = IIR::Coefficients<float>::makeFirstOrderHighPass (
+                    spec.sampleRate,
+                    juce::jmin (0.5 * spec.sampleRate,
+                                static_cast<double> (hpFilterParameters.frequency)));
+                break;
+            case 2:
+                guiCoefficients[0] = IIR::Coefficients<float>::makeHighPass (
+                    spec.sampleRate,
+                    juce::jmin (0.5 * spec.sampleRate,
+                                static_cast<double> (hpFilterParameters.frequency)),
+                    hpFilterParameters.q);
+                break;
+            case 3:
+            {
+                auto coeffs = IIR::Coefficients<float>::makeHighPass (
+                    spec.sampleRate,
+                    juce::jmin (0.5 * spec.sampleRate,
+                                static_cast<double> (hpFilterParameters.frequency)));
+                coeffs->coefficients =
+                    FilterVisualizerHelper<float>::cascadeSecondOrderCoefficients (
+                        coeffs->coefficients,
+                        coeffs->coefficients);
+
+                guiCoefficients[0] = coeffs;
+                break;
+            }
+
+            default:
+                guiCoefficients[0] = IIR::Coefficients<float>::makeAllPass (spec.sampleRate, 20.0f);
+                break;
+        }
+
+        // Lowshelf
+        guiCoefficients[1] = IIR::Coefficients<float>::makeLowShelf (
+            spec.sampleRate,
+            juce::jmin (0.5 * spec.sampleRate, static_cast<double> (lowShelfParameters.frequency)),
+            lowShelfParameters.q,
+            lowShelfParameters.linearGain);
+
+        // Highshelf
+        guiCoefficients[2] = IIR::Coefficients<float>::makeHighShelf (
+            spec.sampleRate,
+            juce::jmin (0.5 * spec.sampleRate, static_cast<double> (highShelfParameters.frequency)),
+            highShelfParameters.q,
+            highShelfParameters.linearGain);
+    }
+
     void getT60ForFrequencyArray (double* frequencies, double* t60Data, size_t numSamples)
     {
         juce::dsp::IIR::Coefficients<float> coefficients;
@@ -386,6 +449,8 @@ private:
 
     juce::OwnedArray<juce::dsp::IIR::Filter<float>> hpFilters;
     juce::OwnedArray<juce::dsp::IIR::Filter<float>> additionalHpFilters;
+
+    juce::dsp::IIR::Coefficients<float>::Ptr guiCoefficients[3];
 
     juce::Array<int> delayPositionVector;
     juce::Array<float> feedbackGainVector;

@@ -72,6 +72,7 @@ public:
     void setFreezeMode (bool freezeState);
     void updateFilterParameters();
     void getT60ForFrequencyArray (double* frequencies, double* t60Data, size_t numSamples);
+    FeedbackDelayNetwork* getFdnPtr() { return &fdn; };
 
 private:
     //==============================================================================
