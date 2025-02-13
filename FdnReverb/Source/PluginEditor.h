@@ -97,8 +97,8 @@ private:
     std::unique_ptr<ButtonAttachment> networkOrderAttachment;
 
     // filter visualization
-    T60Visualizer tv;
-    FilterVisualizer<float> fv;
+    T60Visualizer<double> tv;
+    FilterVisualizer<double> fv;
 
     int maxPossibleChannels = 64;
 
