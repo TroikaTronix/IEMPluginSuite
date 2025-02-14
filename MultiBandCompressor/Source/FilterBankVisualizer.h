@@ -115,7 +115,8 @@ public:
         g.fillAll();
 
         auto currentFont =
-            juce::FontOptions (getLookAndFeel().getTypefaceForFont (juce::FontOptions (12.0f, 2)));
+            juce::FontOptions (getLookAndFeel().getTypefaceForFont (juce::FontOptions (12.0f, 2)))
+                .withHeight (12.0f);
         g.setFont (currentFont);
 
         // db labels

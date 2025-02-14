@@ -115,7 +115,8 @@ public:
 
         g.setColour (juce::Colours::white);
         auto currentFont =
-            juce::FontOptions (getLookAndFeel().getTypefaceForFont (juce::FontOptions (12.0f, 2)));
+            juce::FontOptions (getLookAndFeel().getTypefaceForFont (juce::FontOptions (12.0f, 2)))
+                .withHeight (12.0f);
         g.setFont (currentFont); // regular font
 
         if (errorText.isNotEmpty())

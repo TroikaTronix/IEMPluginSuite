@@ -44,7 +44,8 @@ public:
 
         g.setColour (juce::Colours::white);
         auto currentFont =
-            juce::FontOptions (getLookAndFeel().getTypefaceForFont (juce::FontOptions (12.0f, 0)));
+            juce::FontOptions (getLookAndFeel().getTypefaceForFont (juce::FontOptions (12.0f, 0)))
+                .withHeight (12.0f);
         g.setFont (currentFont);
         g.drawText ("SHAPE", centreX - 15, height - 12, 30, 12, juce::Justification::centred);
         //g.drawMultiLineText("LEFT", 0, centreY-12, 10);

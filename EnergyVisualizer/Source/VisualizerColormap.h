@@ -82,12 +82,14 @@ public:
         int width = colormapArea.getWidth();
 
         auto currentFont =
-            juce::FontOptions (getLookAndFeel().getTypefaceForFont (juce::FontOptions (12.0f, 1)));
+            juce::FontOptions (getLookAndFeel().getTypefaceForFont (juce::FontOptions (12.0f, 1)))
+                .withHeight (12.0f);
         g.setFont (currentFont);
         g.drawText ("dB", 25, 0, width, 12, juce::Justification::centred);
 
         currentFont =
-            juce::FontOptions (getLookAndFeel().getTypefaceForFont (juce::FontOptions (12.0f, 0)));
+            juce::FontOptions (getLookAndFeel().getTypefaceForFont (juce::FontOptions (12.0f, 0)))
+                .withHeight (12.0f);
         g.setFont (currentFont);
 
         const float yStep = (float) colormapArea.getHeight() / 7;

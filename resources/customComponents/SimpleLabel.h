@@ -83,8 +83,10 @@ public:
     {
         g.setColour (colour.withMultipliedAlpha (this->isEnabled() ? 1.0f : 0.4f));
         g.setFont (bounds.getHeight());
-        g.setFont (juce::FontOptions (getLookAndFeel().getTypefaceForFont (
-            juce::FontOptions (bounds.getHeight(), isBoldFlag ? 1 : 0))));
+        g.setFont (
+            juce::FontOptions (getLookAndFeel().getTypefaceForFont (
+                                   juce::FontOptions (bounds.getHeight(), isBoldFlag ? 1 : 0)))
+                .withHeight (bounds.getHeight()));
         g.drawText (labelText, bounds, labelJustification, true);
     }
 
