@@ -392,8 +392,7 @@ public:
         {
             g.setColour ((juce::Colours::white).withMultipliedAlpha (0.5));
             g.setFont (juce::FontOptions (
-                           getLookAndFeel().getTypefaceForFont (juce::FontOptions (15.0f, 1)))
-                           .withHeight (15.0f));
+                getLookAndFeel().getTypefaceForFont (juce::FontOptions (15.0f, 1))));
             g.drawFittedText (displayTextIfNotSelectable,
                               35,
                               15,

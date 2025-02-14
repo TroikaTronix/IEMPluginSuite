@@ -39,8 +39,7 @@ public:
         const float centreY = bounds.getCentreY();
 
         auto currentFont =
-            juce::FontOptions (getLookAndFeel().getTypefaceForFont (juce::FontOptions (12.0f, 1)))
-                .withHeight (12.0f);
+            juce::FontOptions (getLookAndFeel().getTypefaceForFont (juce::FontOptions (12.0f, 1)));
         g.setFont (currentFont);
 
         const int size = elements.size();

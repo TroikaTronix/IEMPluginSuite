@@ -43,8 +43,7 @@ public:
         engVisualizer (energyVis)
     {
         typeFace =
-            juce::FontOptions (getLookAndFeel().getTypefaceForFont (juce::FontOptions (12.0f, 0)))
-                .withHeight (12.0f);
+            juce::FontOptions (getLookAndFeel().getTypefaceForFont (juce::FontOptions (12.0f, 0)));
 
         addAndMakeVisible (table);
         table.setModel (this);

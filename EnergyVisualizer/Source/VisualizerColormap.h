@@ -82,8 +82,7 @@ public:
         int width = colormapArea.getWidth();
 
         auto currentFont =
-            juce::FontOptions (getLookAndFeel().getTypefaceForFont (juce::FontOptions (12.0f, 1)))
-                .withHeight (12.0f);
+            juce::FontOptions (getLookAndFeel().getTypefaceForFont (juce::FontOptions (12.0f, 1)));
         g.setFont (currentFont);
         g.drawText ("dB", 25, 0, width, 12, juce::Justification::centred);
 

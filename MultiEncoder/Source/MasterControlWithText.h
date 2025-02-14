@@ -135,9 +135,8 @@ public:
 
         g.setColour (juce::Colours::white);
         g.setFont (bounds.getHeight());
-        auto currentFont = juce::FontOptions (getLookAndFeel().getTypefaceForFont (
-                                                  juce::FontOptions (bounds.getHeight(), 0)))
-                               .withHeight (bounds.getHeight());
+        auto currentFont = juce::FontOptions (
+            getLookAndFeel().getTypefaceForFont (juce::FontOptions (bounds.getHeight(), 0)));
         g.setFont (currentFont);
         g.drawText (text, bounds, juce::Justification::left, true);
     }
