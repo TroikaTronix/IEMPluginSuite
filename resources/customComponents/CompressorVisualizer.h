@@ -85,7 +85,7 @@ class CompressorVisualizer : public juce::Component
             float yPos = 0.0f;
             contentTransform.transformPoint (xPos, yPos);
 
-            g.drawText ("0 dB", xPos + 1, yPos - 12, 18, 12.0f, juce::Justification::left, false);
+            g.drawText ("0 dB", xPos + 1, yPos - 12, 19, 12.0f, juce::Justification::left, false);
 
             for (int val = -step; val >= minDecibels; val -= step)
             {

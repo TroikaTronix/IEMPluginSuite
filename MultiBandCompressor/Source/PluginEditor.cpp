@@ -434,7 +434,7 @@ void MultiBandCompressorAudioProcessorEditor::resized()
     // ==== COMPRESSOR VISUALIZATION ====
     const float paramToCharacteristiscRatio = 0.47f;
     const float meterToCharacteristicRatio = 0.175f;
-    const float labelToParamRatio = 0.17f;
+    const float labelToParamRatio = 0.25f;
     const int paramRowToRowGap = 2;
     const int paramToCharacteristicGap = 2;
     const int bandToBandGap = 6;
@@ -462,8 +462,9 @@ void MultiBandCompressorAudioProcessorEditor::resized()
         paramArea.reduce ((paramArea.getWidth() % 3) / 2, 0);
         const int sliderWidth = paramArea.getWidth() / 3;
 
-        paramRow1 = paramArea.removeFromTop (paramArea.proportionOfHeight (0.5f));
-        paramRow2 = paramArea;
+        auto paramRowHeight = paramArea.proportionOfHeight (0.5f);
+        paramRow1 = paramArea.removeFromTop (paramRowHeight);
+        paramRow2 = paramArea.removeFromBottom (paramRowHeight);
         paramRow1.removeFromBottom (paramRowToRowGap / 2);
         paramRow2.removeFromTop (paramRowToRowGap / 2);
         labelRow1 = paramRow1.removeFromBottom (paramRow1.proportionOfHeight (labelToParamRatio));
@@ -541,7 +542,7 @@ void MultiBandCompressorAudioProcessorEditor::resized()
     juce::Rectangle<int> labelRow =
         sliderRow.removeFromBottom (sliderRow.proportionOfHeight (labelToSliderRatio));
 
-    const int masterSliderWidth = 35;
+    const int masterSliderWidth = 40;
     DBG (sliderRow.getWidth());
 
     slMasterThreshold.setBounds (sliderRow.removeFromLeft (masterSliderWidth));
