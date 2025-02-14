@@ -61,9 +61,17 @@ public:
 
     const int getMaxAttributeWidth()
     {
-        auto font = juce::FontOptions (
-            getLookAndFeel().getTypefaceForFont (juce::FontOptions (attributeHeight, 2)));
-        return juce::Font (font).getStringWidth ("LOUDSPEAKERS:");
+        auto font = juce::FontOptions (getLookAndFeel().getTypefaceForFont (
+                                           juce::FontOptions (attributeHeight, 2)))
+                        .withHeight (attributeHeight);
+
+        juce::AttributedString text ("LOUDSPEAKERS:");
+        text.setFont (font);
+
+        juce::TextLayout layout;
+        layout.createLayout (text, 999);
+
+        return static_cast<int> (std::ceil (layout.getWidth()));
     }
 
     void resized() override
@@ -78,8 +86,9 @@ public:
             const int valueStart = maxAttWidth + spacing;
             const int valueWidth = juce::jmax (bounds.getWidth() - valueStart, 0);
 
-            auto font = juce::FontOptions (
-                getLookAndFeel().getTypefaceForFont (juce::FontOptions (valueHeight, 2)));
+            auto font = juce::FontOptions (getLookAndFeel().getTypefaceForFont (
+                                               juce::FontOptions (valueHeight, 2)))
+                            .withHeight (valueHeight);
 
             arr.addFittedText (font,
                                retainedDecoder->getDescription(),
@@ -154,6 +163,8 @@ public:
             auto currentFont = juce::FontOptions (
                 getLookAndFeel().getTypefaceForFont (juce::FontOptions (valueHeight, 1)));
             g.setFont (currentFont);
+            g.setFont (valueHeight);
+
             g.drawText (retainedDecoder->getName(),
                         resStart,
                         1,
@@ -170,6 +181,7 @@ public:
             currentFont = juce::FontOptions (
                 getLookAndFeel().getTypefaceForFont (juce::FontOptions (attributeHeight, 2)));
             g.setFont (currentFont);
+            g.setFont (attributeHeight);
 
             g.drawText ("ORDER:",
                         0,
