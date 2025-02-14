@@ -38,7 +38,7 @@ class DirectivityVisualizer : public juce::Component
 
     const float deg2rad = juce::MathConstants<float>::pi / 180.0f;
     const int degStep = 1;
-    const int nLookUpSamples = 360;
+    const int nLookUpSamples = 361;
     const int maxdB = 90;
     const float power = 3.0f;
     const int dBstep = 10;
