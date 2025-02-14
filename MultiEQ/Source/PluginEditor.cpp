@@ -218,10 +218,10 @@ void MultiEQAudioProcessorEditor::resized()
         juce::Rectangle<int> cbArea (filterArea.removeFromBottom (50));
         for (int i = 0; i < numFilterBands; ++i)
         {
-            slFilterFrequency[i].setBounds (cbArea.removeFromLeft (45));
-            slFilterGain[i].setBounds (cbArea.removeFromLeft (40));
-            slFilterQ[i].setBounds (cbArea.removeFromLeft (35));
-            cbArea.removeFromLeft (20);
+            slFilterFrequency[i].setBounds (cbArea.removeFromLeft (42));
+            slFilterGain[i].setBounds (cbArea.removeFromLeft (42));
+            slFilterQ[i].setBounds (cbArea.removeFromLeft (42));
+            cbArea.removeFromLeft (14);
         }
 
         cbArea = filterArea.removeFromBottom (21);
