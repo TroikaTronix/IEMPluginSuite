@@ -84,8 +84,11 @@ public:
         isCircularShape == true ? g.fillEllipse (buttonArea)
                                 : g.fillRoundedRectangle (buttonArea, 10.0f);
 
-        auto currentFont = juce::FontOptions (getLookAndFeel().getTypefaceForFont (
-            juce::FontOptions (static_cast<float> (buttonArea.getHeight()) * scaleFontSize, 1)));
+        auto currentFont =
+            juce::FontOptions (getLookAndFeel().getTypefaceForFont (juce::FontOptions (
+                                   static_cast<float> (buttonArea.getHeight()) * scaleFontSize,
+                                   1)))
+                .withHeight (buttonArea.getHeight() * scaleFontSize);
         g.setFont (currentFont);
         g.setColour (findColour (getToggleState() ? juce::TextButton::textColourOnId
                                                   : juce::TextButton::textColourOffId)

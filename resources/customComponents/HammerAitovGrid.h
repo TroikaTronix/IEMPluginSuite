@@ -111,7 +111,8 @@ public:
 
         // text
         auto currentFont =
-            juce::FontOptions (getLookAndFeel().getTypefaceForFont (juce::FontOptions (12.0f, 1)));
+            juce::FontOptions (getLookAndFeel().getTypefaceForFont (juce::FontOptions (12.0f, 1)))
+                .withHeight (12.0f);
         g.setFont (currentFont);
         juce::Point<float> textPos;
 
@@ -144,7 +145,8 @@ public:
         g.drawText ("BOTTOM", textPos.x - 25, textPos.y, 50, 12, juce::Justification::centred);
 
         currentFont =
-            juce::FontOptions (getLookAndFeel().getTypefaceForFont (juce::FontOptions (12.0f, 2)));
+            juce::FontOptions (getLookAndFeel().getTypefaceForFont (juce::FontOptions (12.0f, 2)))
+                .withHeight (12.0f);
         g.setFont (currentFont);
 
         // azimuth labels

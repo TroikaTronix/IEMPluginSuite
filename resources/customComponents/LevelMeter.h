@@ -66,8 +66,9 @@ class LevelMeter : public juce::Component
             g.strokePath (bg, juce::PathStrokeType (2.f));
 
             g.setColour (juce::Colours::white);
-            auto currentFont = juce::FontOptions (
-                getLookAndFeel().getTypefaceForFont (juce::FontOptions (9.0f, 0)));
+            auto currentFont = juce::FontOptions (getLookAndFeel().getTypefaceForFont (
+                                                      juce::FontOptions (9.0f, 0)))
+                                   .withHeight (9.0f);
             g.setFont (currentFont);
 
             int lastTextDrawPos = -1;

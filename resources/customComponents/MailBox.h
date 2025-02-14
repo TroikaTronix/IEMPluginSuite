@@ -55,7 +55,8 @@ public:
         g.fillRect (background);
 
         auto currentFont =
-            juce::FontOptions (getLookAndFeel().getTypefaceForFont (juce::FontOptions (17.0f, 0)));
+            juce::FontOptions (getLookAndFeel().getTypefaceForFont (juce::FontOptions (17.0f, 0)))
+                .withHeight (17.0f);
         g.setFont (currentFont);
 
         juce::Rectangle<int> textArea = background.reduced (4, 2);
@@ -63,7 +64,8 @@ public:
         g.drawText (message.headline, textArea.removeFromTop (20), juce::Justification::topLeft);
 
         currentFont =
-            juce::FontOptions (getLookAndFeel().getTypefaceForFont (juce::FontOptions (14.0f, 2)));
+            juce::FontOptions (getLookAndFeel().getTypefaceForFont (juce::FontOptions (14.0f, 2)))
+                .withHeight (14.0f);
         g.setFont (currentFont);
 
         g.drawFittedText (message.text,

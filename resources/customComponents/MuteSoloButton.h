@@ -61,8 +61,11 @@ public:
                                       isMouseOver(),
                                       isMouseButtonDown());
 
-        auto currentFont = juce::FontOptions (getLookAndFeel().getTypefaceForFont (
-            juce::FontOptions (static_cast<float> (bounds.getHeight() - 4), 0)));
+        auto currentFont =
+            juce::FontOptions (
+                getLookAndFeel().getTypefaceForFont (
+                    juce::FontOptions (static_cast<float> (bounds.getHeight() - 4), 0)))
+                .withHeight (static_cast<float> (bounds.getHeight() - 4));
         g.setFont (currentFont);
 
         g.setColour (state ? juce::Colours::black : findColour (juce::ToggleButton::tickColourId));

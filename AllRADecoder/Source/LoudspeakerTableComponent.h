@@ -43,7 +43,8 @@ public:
         engVisualizer (energyVis)
     {
         typeFace =
-            juce::FontOptions (getLookAndFeel().getTypefaceForFont (juce::FontOptions (12.0f, 0)));
+            juce::FontOptions (getLookAndFeel().getTypefaceForFont (juce::FontOptions (12.0f, 0)))
+                .withHeight (12.0f);
 
         addAndMakeVisible (table);
         table.setModel (this);
@@ -390,8 +391,9 @@ private:
                         g.setColour (juce::Colours::white);
                 }
 
-                auto currentFont = juce::FontOptions (
-                    getLookAndFeel().getTypefaceForFont (juce::FontOptions (13.0f, 0)));
+                auto currentFont = juce::FontOptions (getLookAndFeel().getTypefaceForFont (
+                                                          juce::FontOptions (13.0f, 0)))
+                                       .withHeight (13.0f);
                 g.setFont (currentFont);
 
                 juce::Rectangle<int> textArea (getBorderSize().subtractedFrom (getLocalBounds()));

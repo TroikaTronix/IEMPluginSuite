@@ -83,7 +83,8 @@ public:
 
         g.setColour (juce::Colours::white);
         auto currentFont =
-            juce::FontOptions (getLookAndFeel().getTypefaceForFont (juce::FontOptions (12.0f, 0)));
+            juce::FontOptions (getLookAndFeel().getTypefaceForFont (juce::FontOptions (12.0f, 0)))
+                .withHeight (12.0f);
         g.setFont (currentFont);
 
         juce::String displayText = showrEVector ? "acos-rE source width (double-click to change)"

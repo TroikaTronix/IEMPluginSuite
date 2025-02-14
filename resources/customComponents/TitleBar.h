@@ -233,8 +233,8 @@ public:
         {
             g.setColour ((juce::Colours::white).withMultipliedAlpha (0.5));
             g.setFont (juce::FontOptions (
-                getLookAndFeel().getTypefaceForFont (juce::FontOptions (12.0f, 1))));
-            g.setFont (15.0f);
+                           getLookAndFeel().getTypefaceForFont (juce::FontOptions (15.0f, 1)))
+                           .withHeight (15.0f));
             g.drawFittedText (displayTextIfNotSelectable,
                               35,
                               0,
@@ -392,7 +392,8 @@ public:
         {
             g.setColour ((juce::Colours::white).withMultipliedAlpha (0.5));
             g.setFont (juce::FontOptions (
-                getLookAndFeel().getTypefaceForFont (juce::FontOptions (15.0f, 1))));
+                           getLookAndFeel().getTypefaceForFont (juce::FontOptions (15.0f, 1)))
+                           .withHeight (15.0f));
             g.drawFittedText (displayTextIfNotSelectable,
                               35,
                               15,
@@ -655,8 +656,8 @@ public:
         juce::Rectangle<int> bounds = getLocalBounds();
         g.setColour (juce::Colours::white.withAlpha (0.5f));
         g.setFont (
-            juce::FontOptions (getLookAndFeel().getTypefaceForFont (juce::FontOptions (12.0f, 0))));
-        g.setFont (14.0f);
+            juce::FontOptions (getLookAndFeel().getTypefaceForFont (juce::FontOptions (14.0f, 0)))
+                .withHeight (14.0f));
         juce::String versionString = "v";
 
 #if JUCE_DEBUG

@@ -51,7 +51,8 @@ public:
         g.drawEllipse (centreX - radius, centreY - radius, 2.0f * radius, 2.0f * radius, 1.0f);
 
         auto currentFont =
-            juce::FontOptions (getLookAndFeel().getTypefaceForFont (juce::FontOptions (12.0f, 1)));
+            juce::FontOptions (getLookAndFeel().getTypefaceForFont (juce::FontOptions (12.0f, 1)))
+                .withHeight (12.0f);
         g.setFont (currentFont);
         g.drawText ("FRONT",
                     centreX - 15,
@@ -485,7 +486,8 @@ public:
         const float centreY = bounds.getCentreY();
 
         auto currentFont =
-            juce::FontOptions (getLookAndFeel().getTypefaceForFont (juce::FontOptions (12.0f, 1)));
+            juce::FontOptions (getLookAndFeel().getTypefaceForFont (juce::FontOptions (12.0f, 1)))
+                .withHeight (12.0f);
         g.setFont (currentFont);
 
         const int size = elements.size();
