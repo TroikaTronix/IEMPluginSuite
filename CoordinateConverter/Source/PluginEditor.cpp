@@ -288,7 +288,7 @@ void CoordinateConverterAudioProcessorEditor::resized()
 
     const int rotSliderHeight = 55;
     const int rotSliderSpacing = 17;
-    const int rotSliderWidth = 40;
+    const int rotSliderWidth = 45;
 
     const int sphericalWidth = 240;
 
