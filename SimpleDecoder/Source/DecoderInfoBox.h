@@ -61,9 +61,9 @@ public:
 
     const int getMaxAttributeWidth()
     {
-        auto font = juce::Font (getLookAndFeel().getTypefaceForFont (juce::Font (12.0f, 2)));
-        font.setHeight (attributeHeight);
-        return font.getStringWidth ("LOUDSPEAKERS:");
+        auto font = juce::FontOptions (
+            getLookAndFeel().getTypefaceForFont (juce::FontOptions (attributeHeight, 2)));
+        return juce::Font (font).getStringWidth ("LOUDSPEAKERS:");
     }
 
     void resized() override
@@ -78,8 +78,8 @@ public:
             const int valueStart = maxAttWidth + spacing;
             const int valueWidth = juce::jmax (bounds.getWidth() - valueStart, 0);
 
-            auto font = juce::Font (getLookAndFeel().getTypefaceForFont (juce::Font (12.0f, 2)));
-            font.setHeight (valueHeight);
+            auto font = juce::FontOptions (
+                getLookAndFeel().getTypefaceForFont (juce::FontOptions (valueHeight, 2)));
 
             arr.addFittedText (font,
                                retainedDecoder->getDescription(),
@@ -105,7 +105,9 @@ public:
         const int width = bounds.getWidth();
 
         g.setColour (juce::Colours::white);
-        g.setFont (getLookAndFeel().getTypefaceForFont (juce::Font (12.0f, 2))); // regular font
+        auto currentFont =
+            juce::FontOptions (getLookAndFeel().getTypefaceForFont (juce::FontOptions (12.0f, 2)));
+        g.setFont (currentFont); // regular font
 
         if (errorText.isNotEmpty())
         {
@@ -149,8 +151,9 @@ public:
                         valueHeight,
                         juce::Justification::bottomRight);
 
-            g.setFont (getLookAndFeel().getTypefaceForFont (juce::Font (12.0f, 1))); // bold font
-            g.setFont (valueHeight);
+            auto currentFont = juce::FontOptions (
+                getLookAndFeel().getTypefaceForFont (juce::FontOptions (valueHeight, 1)));
+            g.setFont (currentFont);
             g.drawText (retainedDecoder->getName(),
                         resStart,
                         1,
@@ -164,8 +167,9 @@ public:
             const int descEnd =
                 arr.getBoundingBox (juce::jmax (0, arr.getNumGlyphs() - 1), 1, true).getBottom();
 
-            g.setFont (getLookAndFeel().getTypefaceForFont (juce::Font (12.0f, 2))); // regular font
-            g.setFont (attributeHeight);
+            currentFont = juce::FontOptions (
+                getLookAndFeel().getTypefaceForFont (juce::FontOptions (attributeHeight, 2)));
+            g.setFont (currentFont);
 
             g.drawText ("ORDER:",
                         0,

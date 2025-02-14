@@ -52,8 +52,9 @@ public:
         g.strokePath (dBGrid, juce::PathStrokeType (0.5f));
 
         g.setColour (juce::Colours::white);
-        g.setFont (getLookAndFeel().getTypefaceForFont (juce::Font (12.0f, 2)));
-        g.setFont (12.0f);
+        auto currentFont =
+            juce::FontOptions (getLookAndFeel().getTypefaceForFont (juce::FontOptions (12.0f, 2)));
+        g.setFont (currentFont);
 
         for (int dB = 0; dB >= -60; dB -= 10)
         {

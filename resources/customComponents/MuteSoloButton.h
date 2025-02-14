@@ -61,8 +61,9 @@ public:
                                       isMouseOver(),
                                       isMouseButtonDown());
 
-        g.setFont (getLookAndFeel().getTypefaceForFont (juce::Font (12.0f, 0)));
-        g.setFont (bounds.getHeight() - 4);
+        auto currentFont = juce::FontOptions (getLookAndFeel().getTypefaceForFont (
+            juce::FontOptions (static_cast<float> (bounds.getHeight() - 4), 0)));
+        g.setFont (currentFont);
 
         g.setColour (state ? juce::Colours::black : findColour (juce::ToggleButton::tickColourId));
         g.drawFittedText (type == solo ? "S" : "M", bounds, juce::Justification::centred, 1);

@@ -54,15 +54,17 @@ public:
         g.setColour (messageColour.withMultipliedAlpha (0.1f));
         g.fillRect (background);
 
-        g.setFont (getLookAndFeel().getTypefaceForFont (juce::Font (12.0f, 0)));
-        g.setFont (17.0f);
+        auto currentFont =
+            juce::FontOptions (getLookAndFeel().getTypefaceForFont (juce::FontOptions (17.0f, 0)));
+        g.setFont (currentFont);
 
         juce::Rectangle<int> textArea = background.reduced (4, 2);
         g.setColour (textColour);
         g.drawText (message.headline, textArea.removeFromTop (20), juce::Justification::topLeft);
 
-        g.setFont (getLookAndFeel().getTypefaceForFont (juce::Font (12.0f, 2)));
-        g.setFont (14.0f);
+        currentFont =
+            juce::FontOptions (getLookAndFeel().getTypefaceForFont (juce::FontOptions (14.0f, 2)));
+        g.setFont (currentFont);
 
         g.drawFittedText (message.text,
                           textArea,

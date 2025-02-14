@@ -43,8 +43,9 @@ public:
         int centreY = bounds.getCentreY();
 
         g.setColour (juce::Colours::white);
-        g.setFont (getLookAndFeel().getTypefaceForFont (juce::Font (12.0f, 0)));
-        g.setFont (12.0f);
+        auto currentFont =
+            juce::FontOptions (getLookAndFeel().getTypefaceForFont (juce::FontOptions (12.0f, 0)));
+        g.setFont (currentFont);
         g.drawText ("SHAPE", centreX - 15, height - 12, 30, 12, juce::Justification::centred);
         //g.drawMultiLineText("LEFT", 0, centreY-12, 10);
         g.drawFittedText ("O\nR\nD\nE\nR",

@@ -75,8 +75,9 @@ class CompressorVisualizer : public juce::Component
             g.drawDashedLine (unity, dashLengths, 2, 0.5f);
 
             g.setColour (juce::Colours::white);
-            g.setFont (getLookAndFeel().getTypefaceForFont (juce::Font (12.0f, 2)));
-            g.setFont (12.0f);
+            auto currentFont = juce::FontOptions (
+                getLookAndFeel().getTypefaceForFont (juce::FontOptions (12.0f, 2)));
+            g.setFont (currentFont);
 
             const float step = 10.0f;
             float xPos = 0.0f;
