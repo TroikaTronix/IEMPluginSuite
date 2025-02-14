@@ -110,8 +110,10 @@ public:
         g.strokePath (path, juce::PathStrokeType (0.2f));
 
         // text
-        g.setFont (getLookAndFeel().getTypefaceForFont (juce::Font (12.0f, 1)));
-        g.setFont (12.0f);
+        auto currentFont =
+            juce::FontOptions (getLookAndFeel().getTypefaceForFont (juce::FontOptions (12.0f, 1)))
+                .withHeight (12.0f);
+        g.setFont (currentFont);
         juce::Point<float> textPos;
 
         textPos = anglesToPoint (0, 0);
@@ -142,8 +144,10 @@ public:
         textPos.applyTransform (toArea);
         g.drawText ("BOTTOM", textPos.x - 25, textPos.y, 50, 12, juce::Justification::centred);
 
-        g.setFont (getLookAndFeel().getTypefaceForFont (juce::Font (12.0f, 2)));
-        g.setFont (12.0f);
+        currentFont =
+            juce::FontOptions (getLookAndFeel().getTypefaceForFont (juce::FontOptions (12.0f, 2)))
+                .withHeight (12.0f);
+        g.setFont (currentFont);
 
         // azimuth labels
         for (int azi = -150; azi <= 150; azi += 30)

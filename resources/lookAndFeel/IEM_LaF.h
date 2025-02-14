@@ -784,10 +784,12 @@ public:
                                                               : juce::TextButton::textColourOffId)
                          .withMultipliedAlpha (button.isEnabled() ? 1.0f : 0.5f));
 
-        const int yIndent = juce::jmin (4, button.proportionOfHeight (0.3f));
+        const int yIndent =
+            juce::jmin (4, static_cast<int> (std::ceil (button.getHeight() * 0.30f)));
+        // const int yIndent = 8;
         const int cornerSize = juce::jmin (button.getHeight(), button.getWidth()) / 2;
 
-        const int fontHeight = juce::roundToInt (font.getHeight() * 0.6f);
+        const int fontHeight = static_cast<int> (std::ceil (font.getHeight() * 0.6f));
         const int leftIndent =
             juce::jmin (fontHeight, 2 + cornerSize / (button.isConnectedOnLeft() ? 4 : 2));
         const int rightIndent =

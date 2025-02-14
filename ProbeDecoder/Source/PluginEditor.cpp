@@ -38,7 +38,7 @@ ProbeDecoderAudioProcessorEditor::ProbeDecoderAudioProcessorEditor (
 {
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
-    setSize (500, 325);
+    setSize (415, 325);
     setLookAndFeel (&globalLaF);
 
     // ==== SPHERE AND ELEMENTS ===============
@@ -70,7 +70,7 @@ ProbeDecoderAudioProcessorEditor::ProbeDecoderAudioProcessorEditor (
                                 *title.getInputWidgetPtr()->getOrderCbPointer()));
 
     // ======================== YAW PITCH ROLL GROUP
-    ypGroup.setText ("Azimuth & Elevation");
+    ypGroup.setText ("Direction");
     ypGroup.setTextLabelPosition (juce::Justification::centredLeft);
     ypGroup.setColour (juce::GroupComponent::outlineColourId, globalLaF.ClSeperator);
     ypGroup.setColour (juce::GroupComponent::textColourId, juce::Colours::white);
@@ -153,10 +153,10 @@ void ProbeDecoderAudioProcessorEditor::resized()
 
     // ============== SIDEBAR RIGHT ====================
     // =================================================
-    juce::Rectangle<int> sideBarArea (area.removeFromRight (190));
+    juce::Rectangle<int> sideBarArea (area.removeFromRight (95));
 
     const int rotSliderHeight = 55;
-    const int rotSliderSpacing = 10;
+    const int rotSliderSpacing = 15;
 
     const int rotSliderWidth = 40;
     const int labelHeight = 15;

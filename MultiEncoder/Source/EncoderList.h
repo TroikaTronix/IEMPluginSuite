@@ -267,12 +267,14 @@ public:
 
         const int rotSliderSpacing = 10;
         const int rotSliderHeight = 55;
-        const int rotSliderWidth = 40;
+        const int rotSliderWidth = 42;
 
         for (int i = 0; i < nChannels; ++i)
         {
             sliderRow = bounds.removeFromTop (rotSliderHeight);
-            colourChooserArray[i]->setBounds (sliderRow.removeFromLeft (22).reduced (0, 18));
+            auto colorChooserArea = sliderRow.removeFromLeft (23);
+            colourChooserArray[i]->setBounds (
+                colorChooserArea.removeFromTop (rotSliderWidth).reduced (0, 12));
             sliderRow.removeFromLeft (5);
             slAzimuthArray[i]->setBounds (sliderRow.removeFromLeft (rotSliderWidth));
             sliderRow.removeFromLeft (rotSliderSpacing);

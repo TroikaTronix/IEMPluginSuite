@@ -36,7 +36,7 @@ SimpleDecoderAudioProcessorEditor::SimpleDecoderAudioProcessorEditor (
 {
     // ============== BEGIN: essentials ======================
     // set GUI size and lookAndFeel
-    setResizeLimits (670, 330, 1000, 700); // use this to create a resizable GUI
+    setResizeLimits (670, 300, 1000, 700); // use this to create a resizable GUI
     setResizable (true, true);
     setLookAndFeel (&globalLaF);
 

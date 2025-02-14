@@ -411,7 +411,8 @@ void OSCStatus::paint (juce::Graphics& g)
 
     g.setColour (juce::Colours::white.withAlpha (mouseOver ? 1.0f : 0.5f));
     auto currentFont =
-        juce::FontOptions (getLookAndFeel().getTypefaceForFont (juce::FontOptions (14.0f, 0)));
+        juce::FontOptions (getLookAndFeel().getTypefaceForFont (juce::FontOptions (14.0f, 0)))
+            .withHeight (14.0f);
     g.setFont (currentFont);
 
     juce::AttributedString text;
