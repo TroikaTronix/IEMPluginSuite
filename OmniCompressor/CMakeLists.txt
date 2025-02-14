@@ -15,27 +15,7 @@ if (IEM_FORMATS)
         VST3_CATEGORIES Spatial Surround Fx Dynamics
         AAX_CATEGORY SoundField Dynamics)
 
-    target_compile_definitions (OmniCompressor PRIVATE
-        JUCE_DISPLAY_SPLASH_SCREEN=0)
-
     list (APPEND PLUGIN_TARGET OmniCompressor)
-endif()
-if (IEM_BUILD_AAX)
-    juce_add_plugin (OmniCompressorAAX
-        PLUGIN_MANUFACTURER_CODE IEMA
-        PLUGIN_CODE OmCo
-        ICON_BIG "../resources/Standalone/IEMPluginSuiteSmall.png"
-        ICON_SMALL "../resources/Standalone/IEMPluginSuiteSmall.png"
-        COMPANY_NAME "IEM"
-        PRODUCT_NAME "OmniCompressor"
-        FORMATS AAX
-        VERSION ${OmniCompressor_VERSION}
-        AAX_CATEGORY AAX_ePlugInCategory_SoundField)
-
-    target_compile_definitions (OmniCompressorAAX PRIVATE
-        JUCE_DISPLAY_SPLASH_SCREEN=1)
-
-    list (APPEND PLUGIN_TARGET OmniCompressorAAX)
 endif()
 
 foreach (TARGET IN LISTS PLUGIN_TARGET)
