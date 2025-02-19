@@ -126,10 +126,6 @@ variables:
     - sardinecake
   image: registry.git.iem.at/devtools/sardinecake/windows:msvc
   before_script:
-    - ls /c/Program Files (x86)/Microsoft Visual Studio/
-    - ls /c/Program Files (x86)/
-    - ls /c/Program Files/
-    - /c/Program Files/Microsoft Visual Studio/
     - rm -rf build
     - mkdir /share
     - ln -s /usr/share/cmake /share/cmake
