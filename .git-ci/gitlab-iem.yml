@@ -129,7 +129,7 @@ variables:
     - pwd
     - which cmake
     - ls /usr/share/
-    - ls /usr/share/cmake-3.29/Modules/CMake.cmake
+    - ls /usr/share/cmake/Modules/CMake.cmake
     - uname -a
     - cmake --version
     - .git-ci/getvst.sh
