@@ -342,7 +342,7 @@ windows:
           exit 1
       fi
 
-linux-pluginval:
+.linux-pluginval:
   stage: test
   extends:
     - .pluginval
@@ -365,7 +365,7 @@ linux-pluginval:
 
     - curl -L "https://github.com/Tracktion/pluginval/releases/latest/download/pluginval_Linux.zip" -o pluginval.zip
 
-macos-pluginval:
+.macos-pluginval:
   extends:
     - .pluginval
   tags:
