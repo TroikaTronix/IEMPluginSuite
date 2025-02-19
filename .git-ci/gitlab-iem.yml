@@ -128,7 +128,7 @@ variables:
   before_script:
     - pwd
     - which cmake
-    - ls /urs/local/share/
+    - ls /usr/local/share/
     - ls /usr/local/share/cmake-3.29/Modules/CMake.cmake
     - uname -a
     - cmake --version
