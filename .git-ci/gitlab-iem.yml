@@ -266,7 +266,7 @@ windows:
   extends:
     - .artifacts
     - .run_selected
-    - .build:macos
+    - .build:windows
   artifacts:
     name: IEMPluginSuite_windows
 
