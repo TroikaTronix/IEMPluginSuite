@@ -133,7 +133,7 @@ variables:
     - cl -help
     - .git-ci/getvst.sh
     - .git-ci/fftw4win.sh
-    - MSVCPATH=$(which msvc)
+    - MSVCPATH=$(which cl)
   script:
     - cmake -B build -DCMAKE_CXX_COMPILER=$MSVCPATH -DCMAKE_C_COMPILER=$MSVCPATH -DIEM_BUILD_VST3=ON -DIEM_BUILD_VST2=ON -DVST2SDKPATH=src/VST_SDK/VST2_SDK/ -DIEM_BUILD_LV2=ON -DIEM_BUILD_STANDALONE=ON -DIEM_POST_BUILD_INSTALL=NO
     - cmake --build build --config Release
