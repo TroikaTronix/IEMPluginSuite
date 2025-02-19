@@ -126,6 +126,10 @@ variables:
     - sardinecake
   image: registry.git.iem.at/devtools/sardinecake/windows:msvc
   before_script:
+    - ls /c/Program Files (x86)/Microsoft Visual Studio/
+    - ls /c/Program Files (x86)/
+    - ls /c/Program Files/
+    - /c/Program Files/Microsoft Visual Studio/
     - rm -rf build
     - mkdir /share
     - ln -s /usr/share/cmake /share/cmake
@@ -133,8 +137,9 @@ variables:
     - cl -help
     - .git-ci/getvst.sh
     - .git-ci/fftw4win.sh
+    - MSVCPATH=$(which msvc)
   script:
-    - cmake -B build -DCMAKE_CXX_COMPILER_ID=MSVC -DCMAKE_C_COMPILER_ID=MSVC -DIEM_BUILD_VST3=ON -DIEM_BUILD_VST2=ON -DVST2SDKPATH=src/VST_SDK/VST2_SDK/ -DIEM_BUILD_LV2=ON -DIEM_BUILD_STANDALONE=ON -DIEM_POST_BUILD_INSTALL=NO
+    - cmake -B build -DCMAKE_CXX_COMPILER=$MSVCPATH -DCMAKE_C_COMPILER=$MSVCPATH -DIEM_BUILD_VST3=ON -DIEM_BUILD_VST2=ON -DVST2SDKPATH=src/VST_SDK/VST2_SDK/ -DIEM_BUILD_LV2=ON -DIEM_BUILD_STANDALONE=ON -DIEM_POST_BUILD_INSTALL=NO
     - cmake --build build --config Release
     # Collect binaries
     - mkdir VST3
