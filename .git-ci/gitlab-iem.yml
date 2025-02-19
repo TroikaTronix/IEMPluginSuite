@@ -129,8 +129,7 @@ variables:
     - .git-ci/getvst.sh
     - .git-ci/fftw4win.sh
     - rm -rf build
-    - hash -r
-    - export CMAKE_ROOT=/usr/share/cmake
+    - ln /usr/share/cmake /share/cmake
   script:
     - cmake -B build -DIEM_BUILD_VST3=ON -DIEM_BUILD_VST2=ON -DVST2SDKPATH=src/VST_SDK/VST2_SDK/ -DIEM_BUILD_LV2=ON -DIEM_BUILD_STANDALONE=ON -DIEM_POST_BUILD_INSTALL=NO
     - cmake --build build --config Release
