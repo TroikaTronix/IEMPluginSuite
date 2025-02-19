@@ -132,6 +132,15 @@ variables:
   script:
     - cmake -B build -DIEM_BUILD_VST3=ON -DIEM_BUILD_VST2=ON -DVST2SDKPATH=src/VST_SDK/VST2_SDK/ -DIEM_BUILD_LV2=ON -DIEM_BUILD_STANDALONE=ON -DIEM_POST_BUILD_INSTALL=NO
     - cmake --build build --config Release
+    # Collect binaries
+    - mkdir VST3
+    - cp -r build/*/*_artefacts/Release/VST3/*.vst3 VST3/
+    - mkdir VST
+    - cp -r build/*/*_artefacts/Release/VST/*.dll VST/
+    - mkdir LV2
+    - cp -r build/*/*_artefacts/Release/LV2/*.lv2 LV2/
+    - mkdir Standalone
+    - cp -r build/*/*_artefacts/Release/Standalone/*.exe Standalone/
 
 
 # FIXME: Fix toolchain for windows adn cmake
@@ -204,7 +213,7 @@ variables:
     paths:
       - format.log
 
-clang-format:
+.clang-format:
   extends: .format-check
   image: xianpengshen/clang-tools:18
   variables:
@@ -220,7 +229,7 @@ clang-format:
 # git handles native line-endings nicely,
 # iff the files are committed from the proper systems
 # (CRLF-files from Windows; LF-files from un*x)
-linefeed-format:
+.linefeed-format:
   extends: .format-check
   image: alpine:latest
   variables:
@@ -230,7 +239,7 @@ linefeed-format:
 
 # some static code analysers
 # currently run in 'pre-check' stage, as the build stage takes so long
-sast:
+.sast:
   stage: pre-check
   allow_failure: true
   variables:
