@@ -129,8 +129,7 @@ variables:
     - rm -rf build
     - mkdir /share
     - ln -s /usr/share/cmake /share/cmake
-    - cmake -v
-    - cmake -h
+    - cmake --help
 
     - .git-ci/getvst.sh
     - .git-ci/fftw4win.sh
