@@ -127,6 +127,8 @@ variables:
   image: registry.git.iem.at/devtools/sardinecake/windows:msvc
   before_script:
     - pwd
+    - which cmake
+    - uname -a
     - cmake --version
     - .git-ci/getvst.sh
     - .git-ci/fftw4win.sh
