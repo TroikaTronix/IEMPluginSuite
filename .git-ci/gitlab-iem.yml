@@ -129,9 +129,9 @@ variables:
     - rm -rf build
     - mkdir /share
     - ln -s /usr/share/cmake /share/cmake
-    - cmkae -v
+    - cmake -v
     - cmake -h
-    
+
     - .git-ci/getvst.sh
     - .git-ci/fftw4win.sh
   script:
