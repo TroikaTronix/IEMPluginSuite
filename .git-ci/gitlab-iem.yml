@@ -126,6 +126,7 @@ variables:
     - sardinecake
   image: registry.git.iem.at/devtools/sardinecake/windows:msvc
   before_script:
+    - winget install kitware.cmake
     - .git-ci/getvst.sh
     - .git-ci/fftw4win.sh
     - rm -rf build
