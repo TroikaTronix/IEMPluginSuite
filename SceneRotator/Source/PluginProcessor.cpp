@@ -1013,7 +1013,7 @@ void SceneRotatorAudioProcessor::openMidiInput (juce::MidiDeviceInfo midiDevice,
 
             if (currentMidiScheme == MidiScheme::supperwareQuaternions)
             {
-                trackerDriver.turnOn (true, true);
+                trackerDriver.turnOn (false, true);
                 trackerDriver.zero();
                 DBG ("Supperware HT turned on");
             }
