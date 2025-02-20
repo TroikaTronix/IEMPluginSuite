@@ -83,6 +83,7 @@ public:
     void prepare (const juce::dsp::ProcessSpec& newSpec) override
     {
         spec = newSpec;
+        isInitialized = true;
 
         indices = indexGen (fdnSize, delayLength);
         updateParameterSettings();
@@ -413,7 +414,7 @@ public:
 
 private:
     //==============================================================================
-    juce::dsp::ProcessSpec spec = { -1, 0, 0 };
+    juce::dsp::ProcessSpec spec = { 48000.0, 0, 0 };
 
     juce::OwnedArray<juce::AudioBuffer<float>> delayBufferVector;
     juce::OwnedArray<juce::IIRFilter> highShelfFilters;
@@ -444,6 +445,7 @@ private:
     float overallGain;
 
     bool freeze = false;
+    bool isInitialized = false;
     FdnSize fdnSize = uninitialized;
 
     struct UpdateStruct
@@ -566,7 +568,7 @@ private:
 
     void updateFilterCoefficients()
     {
-        if (spec.sampleRate > 0)
+        if (isInitialized)
         {
             // update shelving filter parameters
             for (int channel = 0; channel < fdnSize; ++channel)
@@ -638,7 +640,7 @@ private:
             {
                 for (int i = 0; i < diff; i++)
                 {
-                    delayBufferVector.add (new juce::AudioBuffer<float> (1, 1));
+                    delayBufferVector.add (new juce::AudioBuffer<float>());
                     highShelfFilters.add (new juce::IIRFilter());
                     lowShelfFilters.add (new juce::IIRFilter());
                     hpFilters.add (new juce::dsp::IIR::Filter<float> (hpCoefficients));

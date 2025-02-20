@@ -308,7 +308,7 @@ void FdnReverbAudioProcessorEditor::updateVisualizers()
 {
     auto fdnPtr = processor.getFdnPtr();
 
-    if (fdnPtr != nullptr)
+    if (fdnPtr != nullptr && processor.getSampleRate() > 0)
     {
         fdnPtr->updateGuiCoefficients();
 
