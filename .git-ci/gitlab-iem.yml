@@ -123,7 +123,7 @@ variables:
 .build:windows:
   stage: build
   tags:
-    - sardinecake@xenakis
+    - sardinecake
   image: registry.git.iem.at/devtools/sardinecake/windows:msvc
   before_script:
     - rm -rf build
