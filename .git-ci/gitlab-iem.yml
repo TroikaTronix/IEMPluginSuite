@@ -127,8 +127,6 @@ variables:
   image: registry.git.iem.at/devtools/sardinecake/windows:msvc
   before_script:
     - rm -rf build
-    - mkdir /share
-    - ln -s /usr/share/cmake /share/cmake
     - which cl
     - cl -help
     - .git-ci/getvst.sh
