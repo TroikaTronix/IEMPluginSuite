@@ -124,7 +124,7 @@ variables:
   stage: build
   tags:
     - sardinecake
-  image: registry.git.iem.at/devtools/sardinecake/windows:msvc
+  image: registry.git.iem.at/devtools/sardinecake/windows:vs2022
   before_script:
     - rm -rf build
     - which cl
