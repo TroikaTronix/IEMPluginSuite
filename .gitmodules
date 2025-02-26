@@ -3,4 +3,4 @@
 	url = https://github.com/juce-framework/JUCE.git
 [submodule "resources/ht-api-juce"]
 	path = resources/ht-api-juce
-	url = https://github.com/Supperware/ht-api-juce
+	url = https://github.com/fholzm/ht-api-juce

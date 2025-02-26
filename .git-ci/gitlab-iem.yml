@@ -20,8 +20,8 @@ variables:
 .artifacts:
   artifacts:
     paths:
-      # - VST3
-      - VST
+      - VST3
+      # - VST
       # - LV2
       - Standalone
       - ChangeLog.md
@@ -32,6 +32,8 @@ variables:
     - master
     - develop
     - ci-test
+    - fix-pluginval-issues-macos
+    - fix-pluginval-issues-linux
 
 .build:linux:
   stage: build
@@ -300,13 +302,13 @@ macos:
     - rm -rf test-logs
     - mkdir test-logs
 
-    - |
-      find VST/ -name "*.so" -o -name "*.vst" | while read fname; do
-        logfile="test-logs/${fname##*/}.txt"
+    # - |
+    #   find VST/ -name "*.so" -o -name "*.vst" | while read fname; do
+    #     logfile="test-logs/${fname##*/}.txt"
 
-        ${PLUGINVAL} ${PLUGINVAL_ARGS} ${PLUGINVAL_ARGS_GUI} "$fname" >> ${logfile} || echo "${fname} failed with exit code $?" >> failed-tests.txt;
-        cat $logfile
-      done
+    #     ${PLUGINVAL} ${PLUGINVAL_ARGS} ${PLUGINVAL_ARGS_GUI} "$fname" >> ${logfile} || echo "${fname} failed with exit code $?" >> failed-tests.txt;
+    #     cat $logfile
+    #   done
 
     - |
       find VST3/ -name "*.vst3" | while read fname; do

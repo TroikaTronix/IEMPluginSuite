@@ -285,7 +285,11 @@ public:
         return s.fMin * powf ((s.fMax / s.fMin), ((x - mL) / width));
     }
 
-    void setSampleRate (int newSampleRate) { sampleRate = newSampleRate; }
+    void setSampleRate (int newSampleRate)
+    {
+        jassert (newSampleRate > 0);
+        sampleRate = newSampleRate;
+    }
 
     void setOverallGain (float newGain)
     {
