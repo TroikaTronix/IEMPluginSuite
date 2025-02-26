@@ -88,6 +88,8 @@ RoomEncoderAudioProcessor::RoomEncoderAudioProcessor() :
     wallAttenuationCeiling = parameters.getRawParameterValue ("wallAttenuationCeiling");
     wallAttenuationFloor = parameters.getRawParameterValue ("wallAttenuationFloor");
 
+    constantGainDistance = parameters.getRawParameterValue ("constantGainDistance");
+
     parameters.addParameterListener ("directivityOrderSetting", this);
     parameters.addParameterListener ("orderSetting", this);
     parameters.addParameterListener ("lowShelfFreq", this);
@@ -428,7 +430,6 @@ void RoomEncoderAudioProcessor::calculateImageSourcePositions (const float t,
         mz[q] = o * h + mSig[o & 1] * sourcePos.z - listenerPos.z;
 
         mRadius[q] = sqrt (mx[q] * mx[q] + my[q] * my[q] + mz[q] * mz[q]);
-        // mRadius[q] = juce::jmax (mRadius[q], 0.1f);
         mx[q] /= mRadius[q];
         my[q] /= mRadius[q];
         mz[q] /= mRadius[q];
@@ -741,7 +742,9 @@ void RoomEncoderAudioProcessor::processBlock (juce::AudioSampleBuffer& buffer,
 
         float gain =
             powReflCoeff[reflectionList[q]->order]
-            / juce::jmax (mRadius[q], 0.1f); // Regularize radius to 0.1 m to avoid division by zero
+            / juce::jmax (
+                mRadius[q],
+                constantGainDistance->load()); // Regularize radius to avoid division by zero
         if (*directPathUnityGain > 0.5f)
             gain *= mRadius[0];
 
@@ -1472,6 +1475,15 @@ std::vector<std::unique_ptr<juce::RangedAudioParameter>>
         juce::NormalisableRange<float> (-50.0f, 0.0f, 0.01f, 3.0f),
         0.0f,
         [] (float value) { return juce::String (value, 2); },
+        nullptr));
+
+    params.push_back (OSCParameterInterface::createParameterTheOldWay (
+        "constantGainDistance",
+        "Constant Gain Distance",
+        "m",
+        juce::NormalisableRange<float> (0.001f, 1.0f, 0.001f),
+        0.1f,
+        [] (float value) { return juce::String (value, 3); },
         nullptr));
 
     return params;

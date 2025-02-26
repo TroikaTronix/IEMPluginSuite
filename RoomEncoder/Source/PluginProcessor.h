@@ -206,6 +206,8 @@ private:
     std::atomic<float>* wallAttenuationCeiling;
     std::atomic<float>* wallAttenuationFloor;
 
+    std::atomic<float>* constantGainDistance;
+
     int _numRefl;
 
     juce::SharedResourcePointer<SharedParams> sharedParams;
