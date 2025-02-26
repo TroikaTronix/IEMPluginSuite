@@ -33,6 +33,7 @@ variables:
     - develop
     - ci-test
     - fix-pluginval-issues-macos
+    - fix-pluginval-issues-linux
 
 .build:linux:
   stage: build
