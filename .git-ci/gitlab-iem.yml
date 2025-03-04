@@ -123,22 +123,28 @@ variables:
     - cp -r build/*/*_artefacts/Release/Standalone/*.app Standalone/
 
 
-# FIXME: Fix toolchain for windows adn cmake
 .build:windows:
   stage: build
   tags:
-    - windows
-  variables:
-    IEMCI_CONFIGURATIONS: mingw64
+    - sardinecake
+  image: registry.git.iem.at/devtools/sardinecake/windows:vs2022
+  before_script:
+    - rm -rf build && mkdir build
+    - .git-ci/getvst.sh
+    # FIXME: this fftw is not usable by the CMakeLists.txt
+    - .git-ci/fftw4win.sh
   script:
-# TODO: Get FFTW
-# TODO: Get VST2 SDK
-    - cmake --version
-    - mkdir build
-    - cd build
-    - cmake .. -DIEM_BUILD_VST3=ON -DIEM_BUILD_LV2=ON -DIEM_BUILD_STANDALONE=ON
-    - cmake --build . --config Release
-    - cd ..
+    - cmake -B build -DIEM_BUILD_VST3=ON -DIEM_BUILD_VST2=ON -DVST2SDKPATH=src/VST_SDK/VST2_SDK/ -DIEM_BUILD_LV2=ON -DIEM_BUILD_STANDALONE=ON -DIEM_POST_BUILD_INSTALL=NO
+    - cmake --build build --config Release
+    # Collect binaries
+    - mkdir VST3
+    - cp -r build/*/*_artefacts/Release/VST3/*.vst3 VST3/
+    - mkdir VST
+    - cp -r build/*/*_artefacts/Release/VST/*.dll VST/
+    - mkdir LV2
+    - cp -r build/*/*_artefacts/Release/LV2/*.lv2 LV2/
+    - mkdir Standalone
+    - cp -r build/*/*_artefacts/Release/Standalone/*.exe Standalone/
 
 # Collect binaries
     # - mkdir VST3
