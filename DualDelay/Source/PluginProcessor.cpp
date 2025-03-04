@@ -34,14 +34,14 @@ DualDelayAudioProcessor::DualDelayAudioProcessor() :
                         ((juce::PluginHostType::getPluginLoadedAs()
                           == juce::AudioProcessor::wrapperType_VST3)
                              ? juce::AudioChannelSet::ambisonic (1)
-                             : juce::AudioChannelSet::ambisonic (7)),
+                             : juce::AudioChannelSet::ambisonic (maxOrder)),
                         true)
         #endif
             .withOutput ("Output",
                          ((juce::PluginHostType::getPluginLoadedAs()
                            == juce::AudioProcessor::wrapperType_VST3)
                               ? juce::AudioChannelSet::ambisonic (1)
-                              : juce::AudioChannelSet::ambisonic (7)),
+                              : juce::AudioChannelSet::ambisonic (maxOrder)),
                          true)
     #endif
             ,
@@ -171,8 +171,8 @@ void DualDelayAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBl
 
         rotator[i].updateParams (*yaw[i], *pitch[i], *roll[i], static_cast<int> (*orderSetting));
         warp[i].updateParams (
-            AmbisonicWarp::AzimuthWarpType (juce::roundToInt (warpModeAz[i]->load())),
-            AmbisonicWarp::ElevationWarpType (juce::roundToInt (warpModeEl[i]->load())),
+            AmbisonicWarp<maxOrder>::AzimuthWarpType (juce::roundToInt (warpModeAz[i]->load())),
+            AmbisonicWarp<maxOrder>::ElevationWarpType (juce::roundToInt (warpModeEl[i]->load())),
             *warpFactorAz[i],
             *warpFactorEl[i]);
         warp[i].setWorkingOrder (isqrt (numberOfOutputChannels) - 1);
@@ -455,11 +455,12 @@ void DualDelayAudioProcessor::parameterChanged (const juce::String& parameterID,
 
     else if (parameterID == "warpModeAz" + side || parameterID == "warpModeEl" + side
              || parameterID == "warpFactorAz" + side || parameterID == "warpFactorEl" + side)
-        warp[sideIdx].updateParams (
-            AmbisonicWarp::AzimuthWarpType (juce::roundToInt (warpModeAz[sideIdx]->load())),
-            AmbisonicWarp::ElevationWarpType (juce::roundToInt (warpModeEl[sideIdx]->load())),
-            *warpFactorAz[sideIdx],
-            *warpFactorEl[sideIdx]);
+        warp[sideIdx].updateParams (AmbisonicWarp<maxOrder>::AzimuthWarpType (
+                                        juce::roundToInt (warpModeAz[sideIdx]->load())),
+                                    AmbisonicWarp<maxOrder>::ElevationWarpType (
+                                        juce::roundToInt (warpModeEl[sideIdx]->load())),
+                                    *warpFactorAz[sideIdx],
+                                    *warpFactorEl[sideIdx]);
 
     else if (parameterID.startsWith ("HPcutOff") || parameterID.startsWith ("LPcutOff"))
     {

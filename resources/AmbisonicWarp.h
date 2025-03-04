@@ -29,6 +29,8 @@ https://github.com/kronihias/ambix/
 #include "ambisonicTools.h"
 #include "efficientSHvanilla.h"
 #include "tDesignN10.h"
+
+template <int maxOrder = 7>
 class AmbisonicWarp : public juce::Thread, juce::Timer
 {
 public:
@@ -271,8 +273,7 @@ private:
         return { warpedAngle, g };
     }
 
-    const int maxOrder = 7;
-    const int maxChannels = squares[maxOrder + 1];
+    static constexpr int maxChannels = (maxOrder + 1) * (maxOrder + 1);
 
     int _workingOrder, _usedChannels;
 
