@@ -96,7 +96,7 @@ public:
             additionalFilterArrays[i].clear();
             for (int ch = 0; ch < nMaxSIMDFilters; ++ch)
                 additionalFilterArrays[i].add (
-                    new juce::dsp::IIR::Filter<IIRfloat> (additionalProcessorCoefficients[0]));
+                    new juce::dsp::IIR::Filter<IIRfloat> (additionalProcessorCoefficients[i]));
         }
     }
     ~MultiChannelFilter() {}
@@ -438,7 +438,7 @@ private:
         {
             createLinkwitzRileyFilter (false);
         }
-        else if (filterIndex == 0
+        else if (filterIndex == numFilterBands - 1
                  && filterParameters[numFilterBands - 1].type == FilterType::LinkwitzRileyLowPass)
         {
             createLinkwitzRileyFilter (true);
