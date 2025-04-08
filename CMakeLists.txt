@@ -144,9 +144,9 @@ endif()
 set (IEM_FORMATS "")
 
 if (IEM_BUILD_VST2)
-    SET (VST2SDKPATH "/usr/include" CACHE STRING "Path to the VST2 SDK")
+    SET (VST2SDKPATH "src/VST_SDK/VST2_SDK/" CACHE STRING "Path to the VST2 SDK")
     # checking VST2 SDK
-    if (VST2SDKPATH STREQUAL "/usr/include")
+    if (VST2SDKPATH STREQUAL "src/VST_SDK/VST2_SDK/")
         CHECK_INCLUDE_FILES(pluginterfaces/vst2.x/aeffectx.h HAVE_VST2_HEADERS)
         IF (NOT HAVE_VST2_HEADERS)
             message (FATAL_ERROR "You have to specify the VST2SDKPATH variable with the path to the VST2 SDK if you want to build VST2 versions.")
