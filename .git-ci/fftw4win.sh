@@ -1,9 +1,3 @@
-#!/bin/sh
-
-# script to download and "install" FFTW for windows, so we can use it for juce
-# see http://www.fftw.org/install/windows.html
-
-
 #!/bin/bash
 
 # Exit on any error
