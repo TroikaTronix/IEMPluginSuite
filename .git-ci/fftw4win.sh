@@ -17,5 +17,5 @@ mkdir -p "$TARGET_DIR"
 
 # Extract the tar.gz file
 echo "Extracting $TAR_FILE..."
-tar -xzf "$TAR_FILE" --directory "$TARGET_DIR"
+tar -xzf "$TAR_FILE" --strip-components=1 --directory "$TARGET_DIR"
 rm "$TAR_FILE"
