@@ -259,7 +259,7 @@ DualDelayAudioProcessorEditor::DualDelayAudioProcessorEditor (
     addAndMakeVisible (&btTimeMode);
     btTimeMode.setButtonText ("BPM");
     btTimeMode.setToggleable (true);
-    btTimeMode.setClickingTogglesState (true);
+    btTimeMode.setClickingTogglesState (! isModeMS);
     btTimeMode.setColour (juce::TextButton::buttonColourId, globalLaF.ClWidgetColours[1]);
     btTimeMode.setColour (juce::TextButton::buttonOnColourId, globalLaF.ClWidgetColours[1]);
     btTimeMode.addListener (this);
@@ -619,7 +619,7 @@ void DualDelayAudioProcessorEditor::resized()
     const int sliderWidth = 55;
     const int sliderSpacing = 10;
 
-    updateDelayUnit (! btTimeMode.getToggleState());
+    updateDelayUnit (! isModeMS);
 
     juce::Rectangle<int> area (getLocalBounds());
     juce::Rectangle<int> groupArea;
@@ -943,7 +943,7 @@ void DualDelayAudioProcessorEditor::buttonClicked (juce::Button* button)
         else
         {
             // Restore default controls
-            updateDelayUnit (! btTimeMode.getToggleState());
+            updateDelayUnit (! isModeMS);
         }
     }
     else if (button == &tbRightSync)
@@ -959,7 +959,7 @@ void DualDelayAudioProcessorEditor::buttonClicked (juce::Button* button)
         else
         {
             // Restore default controls
-            updateDelayUnit (! btTimeMode.getToggleState());
+            updateDelayUnit (! isModeMS);
         }
     }
 }
@@ -968,7 +968,7 @@ void DualDelayAudioProcessorEditor::sliderValueChanged (juce::Slider* slider)
 {
     if (slider == &SlLeftDelayMS)
     {
-        if (~btTimeMode.getToggleState())
+        if (isModeMS)
         {
             auto [bpm, mult] = processor.msToBPM (SlLeftDelayMS.getValue());
             SlLeftDelay.setValue (bpm, juce::sendNotification);
@@ -977,7 +977,7 @@ void DualDelayAudioProcessorEditor::sliderValueChanged (juce::Slider* slider)
     }
     else if (slider == &SlRightDelayMS)
     {
-        if (~btTimeMode.getToggleState())
+        if (isModeMS)
         {
             auto [bpm, mult] = processor.msToBPM (SlLeftDelayMS.getValue());
             SlLeftDelay.setValue (bpm, juce::sendNotification);
@@ -1033,6 +1033,8 @@ void DualDelayAudioProcessorEditor::updateDelayUnit (bool isBPM)
         lbDelMultR.setVisible (isBPM);
     }
     btTimeMode.setButtonText (isBPM ? "BPM" : "ms");
+
+    isModeMS = ! isBPM;
 }
 
 void DualDelayAudioProcessorEditor::updateTransformMode (bool side)

@@ -137,5 +137,7 @@ private:
     const double minTapIntervalMS = 100.0;
     const double maxTapIntervalMS = 2000.0;
 
+    bool isModeMS { false };
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (DualDelayAudioProcessorEditor)
 };
