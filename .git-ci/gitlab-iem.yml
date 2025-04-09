@@ -31,7 +31,8 @@ variables:
     - master
     - develop
     - ci-test
-    - ci-test-*
+    - ci-test-windows
+
 .build:linux:
   stage: build
   image: ubuntu:jammy
