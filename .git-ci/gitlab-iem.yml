@@ -31,7 +31,6 @@ variables:
     - master
     - develop
     - ci-test
-    - ci-test-windows
 
 .build:linux:
   stage: build
@@ -127,13 +126,8 @@ variables:
   image: registry.git.iem.at/devtools/sardinecake/windows:vs2022
   before_script:
     - rm -rf build
-    - which cl
-    - cl -help
     - .git-ci/getvst.sh
     - .git-ci/fftw4win.sh
-    - MSVCPATH="$(which cl)"
-    - ls
-    - ls fftw
   script:
     - cmake -B build -DIEM_BUILD_VST3=ON -DIEM_BUILD_VST2=ON -DVST2SDKPATH=src/VST_SDK/VST2_SDK/ -DIEM_BUILD_LV2=ON -DIEM_BUILD_STANDALONE=ON -DIEM_POST_BUILD_INSTALL=NO
     - cmake --build build --config Release
@@ -147,46 +141,6 @@ variables:
     - mkdir Standalone
     - cp -r build/*/*_artefacts/Release/Standalone/*.exe Standalone/
 
-
-# FIXME: Fix toolchain for windows adn cmake
-# .build:windows:
-#   stage: build
-#   tags:
-#     - windows
-#   variables:
-#     IEMCI_CONFIGURATIONS: mingw64
-#   script:
-# # TODO: Get FFTW
-# # TODO: Get VST2 SDK
-#     - cmake --version
-#     - mkdir build
-#     - cd build
-#     - cmake .. -DIEM_BUILD_VST3=ON -DIEM_BUILD_LV2=ON -DIEM_BUILD_STANDALONE=ON
-#     - cmake --build . --config Release
-#     - cd ..
-
-# Collect binaries
-    # - mkdir VST3
-    # - cp -r build/*/*_artefacts/Release/VST3/*.vst3 VST3/
-    # - mkdir VST
-    # - cp -r build/*/*_artefacts/Release/VST/*.dll VST/
-    # - mkdir LV2
-    # - cp -r build/*/*_artefacts/Release/LV2/*.lv2 LV2/
-    # - mkdir Standalone
-    # - cp -r build/*/*_artefacts/Release/Standalone/*.exe Standalone/
-    # - test -n "${PROJECTS}" || PROJECTS=$(make showprojects)
-    # - make system CONFIG=$CONFIG BITS=$BITS PROJUCER="/c/JUCE/Projucer.exe"
-    # - make CONFIG=$CONFIG BITS=$BITS PROJUCER="/c/JUCE/Projucer.exe" PROJECTS="${PROJECTS}" remove_intermediates=yes
-# collect binaries for artifacts
-#     - mkdir -p IEM/standalone
-#     - cp */Builds/*/*/*/VST/*.dll IEM/
-#     - cp */Builds/*/*/*/*/*.exe IEM/standalone/
-# # embed non-standard libraries in the bundles
-# # FIXME: this requires that we have either x64 or x86, not both
-#     - cp resources/fftw3/*/libfftwf*.dll IEM/standalone/
-#     - cp resources/fftw3/*/libfftwf*.dll IEM/
-
-###################################################
 # expand the templates to real jobs
 
 # check for coding-style compliance
@@ -218,7 +172,7 @@ variables:
     paths:
       - format.log
 
-.clang-format:
+clang-format:
   extends: .format-check
   image: xianpengshen/clang-tools:18
   variables:
@@ -234,7 +188,7 @@ variables:
 # git handles native line-endings nicely,
 # iff the files are committed from the proper systems
 # (CRLF-files from Windows; LF-files from un*x)
-.linefeed-format:
+linefeed-format:
   extends: .format-check
   image: alpine:latest
   variables:
@@ -244,7 +198,7 @@ variables:
 
 # some static code analysers
 # currently run in 'pre-check' stage, as the build stage takes so long
-.sast:
+sast:
   stage: pre-check
   allow_failure: true
   variables:
@@ -260,7 +214,7 @@ variables:
 include:
 - template: Security/SAST.gitlab-ci.yml
 
-.linux:
+linux:
   extends:
     - .artifacts
     - .run_selected
@@ -268,7 +222,7 @@ include:
   artifacts:
     name: IEMPluginSuite_linux
 
-.macos:
+macos:
   extends:
     - .artifacts
     - .run_selected
@@ -283,30 +237,6 @@ windows:
     - .build:windows
   artifacts:
     name: IEMPluginSuite_windows
-
-# .windows:
-#   variables:
-#     IEMCI_CONFIGURATIONS: mingw64
-#   extends:
-#     - .artifacts
-#     - .run_selected
-#     - .build:windows
-
-# .windows64:
-#   variables:
-#     BITS: 64
-#   extends:
-#     - .windows
-#   artifacts:
-#     name: IEMPluginSuite_w64
-
-# .windows32:
-#   extends:
-#     - .windows
-#   variables:
-#     BITS: 32
-#   artifacts:
-#     name: IEMPluginSuite_w32
 
 
 # Plugin validator
@@ -343,12 +273,12 @@ windows:
         cat $logfile
       done
 
-    - |
-      find VST3/ -name "*.vst3" | while read fname; do
-        logfile="test-logs/${fname##*/}.txt"
-        ${PLUGINVAL} ${PLUGINVAL_ARGS} ${PLUGINVAL_ARGS_GUI} "$fname" >> ${logfile} || echo "${fname} failed with exit code $?" >> failed-tests.txt;
-        cat $logfile
-      done
+    # - |
+    #   find VST3/ -name "*.vst3" | while read fname; do
+    #     logfile="test-logs/${fname##*/}.txt"
+    #     ${PLUGINVAL} ${PLUGINVAL_ARGS} ${PLUGINVAL_ARGS_GUI} "$fname" >> ${logfile} || echo "${fname} failed with exit code $?" >> failed-tests.txt;
+    #     cat $logfile
+    #   done
 
     - |
       if test -f failed-tests.txt; then
@@ -356,7 +286,7 @@ windows:
           exit 1
       fi
 
-.linux-pluginval:
+linux-pluginval:
   stage: test
   extends:
     - .pluginval
@@ -379,7 +309,7 @@ windows:
 
     - curl -L "https://github.com/Tracktion/pluginval/releases/latest/download/pluginval_Linux.zip" -o pluginval.zip
 
-.macos-pluginval:
+macos-pluginval:
   extends:
     - .pluginval
   tags:
@@ -393,3 +323,20 @@ windows:
     PLUGINVAL: pluginval.app/Contents/MacOS/pluginval
   before_script:
     - curl -L "https://github.com/Tracktion/pluginval/releases/latest/download/pluginval_macOS.zip" -o pluginval.zip
+
+windows-pluginval:
+  stage: test
+  extends:
+    - .pluginval
+  tags:
+    - sardinecake
+  image: registry.git.iem.at/devtools/sardinecake/windows:vs2022
+  dependencies:
+    - windows
+  needs:
+    - windows
+  variables:
+    PLUGINVAL_ARGS_GUI: "--skip-gui-tests"
+    PLUGINVAL: "./pluginval"
+  before_script:
+    - curl -L "https://github.com/Tracktion/pluginval/releases/latest/download/pluginval_windows.zip" -o pluginval.zip
