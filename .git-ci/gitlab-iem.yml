@@ -31,7 +31,6 @@ variables:
     - master
     - develop
     - ci-test
-    - ci-test-windows
 
 .build:linux:
   stage: build
@@ -266,13 +265,12 @@ windows:
     - rm -rf test-logs
     - mkdir test-logs
 
-    # - |
-    #   find VST/ -name "*.so" -o -name "*.vst" | while read fname; do
-    #     logfile="test-logs/${fname##*/}.txt"
-
-    #     ${PLUGINVAL} ${PLUGINVAL_ARGS} ${PLUGINVAL_ARGS_GUI} "$fname" >> ${logfile} || echo "${fname} failed with exit code $?" >> failed-tests.txt;
-    #     cat $logfile
-    #   done
+    - |
+      find VST/ -name "*.so" -o -name "*.vst" | while read fname; do
+        logfile="test-logs/${fname##*/}.txt"
+        ${PLUGINVAL} ${PLUGINVAL_ARGS} ${PLUGINVAL_ARGS_GUI} "$fname" >> ${logfile} || echo "${fname} failed with exit code $?" >> failed-tests.txt;
+        cat $logfile
+      done
 
     # - |
     #   find VST3/ -name "*.vst3" | while read fname; do
