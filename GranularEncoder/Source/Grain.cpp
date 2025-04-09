@@ -94,10 +94,10 @@ void Grain::processBlock (juce::AudioBuffer<float>& buffer,
             int readIndexInt = static_cast<int> (readIndex);
             int readIndexIntNext = readIndexInt + 1;
             float sampleFracWeight = readIndex - readIndexInt;
-            if (readIndexInt >= numSampCircBuffer)
-                readIndexInt = readIndexInt - numSampCircBuffer;
-            if (readIndexIntNext >= numSampCircBuffer)
-                readIndexIntNext = readIndexIntNext - numSampCircBuffer;
+
+            readIndexInt %= numSampCircBuffer;
+            readIndexIntNext %= numSampCircBuffer;
+
             float sampleIntPart = circularBuffToSeed[readIndexInt];
             float sampleFracPart = circularBuffToSeed[readIndexIntNext] - sampleIntPart;
             float sampleValue = sampleIntPart + sampleFracWeight * sampleFracPart;

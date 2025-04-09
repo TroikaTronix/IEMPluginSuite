@@ -25,6 +25,7 @@
 #include "Quaternion.h"
 #include "ambisonicTools.h"
 
+template <int maxOrder = 7>
 class AmbisonicRotator
 {
 public:
@@ -33,7 +34,7 @@ public:
         orderMatrices.add (new juce::dsp::Matrix<float> (0, 0)); // 0th
         orderMatricesCopy.add (new juce::dsp::Matrix<float> (0, 0)); // 0th
 
-        for (int l = 1; l <= 7; ++l)
+        for (int l = 1; l <= maxOrder; ++l)
         {
             const int nCh = (2 * l + 1);
             auto elem = orderMatrices.add (new juce::dsp::Matrix<float> (nCh, nCh));
@@ -42,7 +43,7 @@ public:
             elemCopy->clear();
         }
 
-        copyBuffer.setSize (64, 64);
+        copyBuffer.setSize (maxChannels, maxChannels);
     };
 
     ~AmbisonicRotator() {};
@@ -54,7 +55,7 @@ public:
         const int bufferChannels = bufferToRotate->getNumChannels();
 
         const int workingOrder =
-            juce::jmin (isqrt (bufferToRotate->getNumChannels()) - 1, orderSetting, 7);
+            juce::jmin (isqrt (bufferToRotate->getNumChannels()) - 1, orderSetting, maxOrder);
 
         const int actualChannels = squares[workingOrder + 1];
 
@@ -279,6 +280,8 @@ private:
 
         rotationParamsHaveChanged = false;
     }
+
+    static constexpr int maxChannels = (maxOrder + 1) * (maxOrder + 1);
 
     float yawRadians { 0.0f };
     float pitchRadians { 0.0f };

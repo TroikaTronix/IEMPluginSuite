@@ -40,8 +40,9 @@ class DualDelayAudioProcessor
     : public AudioProcessorBase<IOTypes::Ambisonics<>, IOTypes::Ambisonics<>, true>
 {
 public:
-    constexpr static int numberOfInputChannels = 64;
-    constexpr static int numberOfOutputChannels = 64;
+    constexpr static int maxOrder = 7;
+    constexpr static int numberOfInputChannels = (maxOrder + 1) * (maxOrder + 1);
+    constexpr static int numberOfOutputChannels = (maxOrder + 1) * (maxOrder + 1);
     //==============================================================================
     DualDelayAudioProcessor();
     ~DualDelayAudioProcessor();
@@ -102,8 +103,8 @@ private:
     std::atomic<float>* orderSetting;
 
     juce::dsp::Oscillator<float> LFO[2];
-    AmbisonicRotator rotator[2];
-    AmbisonicWarp warp[2];
+    AmbisonicRotator<maxOrder> rotator[2];
+    AmbisonicWarp<maxOrder> warp[2];
 
     juce::OwnedArray<juce::IIRFilter> lowPassFilters[2];
     juce::OwnedArray<juce::IIRFilter> highPassFilters[2];

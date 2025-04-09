@@ -36,7 +36,7 @@ MultiEncoderAudioProcessor::MultiEncoderAudioProcessor() :
                         ((juce::PluginHostType::getPluginLoadedAs()
                           == juce::AudioProcessor::wrapperType_VST3)
                              ? juce::AudioChannelSet::mono()
-                             : juce::AudioChannelSet::discreteChannels (maxNumberOfInputs)),
+                             : juce::AudioChannelSet::ambisonic (7)),
                         true)
         #endif
             .withOutput ("Output",

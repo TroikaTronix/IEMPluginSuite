@@ -88,6 +88,8 @@ RoomEncoderAudioProcessor::RoomEncoderAudioProcessor() :
     wallAttenuationCeiling = parameters.getRawParameterValue ("wallAttenuationCeiling");
     wallAttenuationFloor = parameters.getRawParameterValue ("wallAttenuationFloor");
 
+    constantGainDistance = parameters.getRawParameterValue ("constantGainDistance");
+
     parameters.addParameterListener ("directivityOrderSetting", this);
     parameters.addParameterListener ("orderSetting", this);
     parameters.addParameterListener ("lowShelfFreq", this);
@@ -575,20 +577,6 @@ void RoomEncoderAudioProcessor::processBlock (juce::AudioSampleBuffer& buffer,
                                    juce::jlimit (-rZHalfBound, rZHalfBound, listenerPos.z));
     }
 
-    const bool doRenderDirectPath = *renderDirectPath > 0.5f;
-    if (doRenderDirectPath)
-    {
-        // prevent division by zero when source is as listener's position
-        auto difPos = sourcePos - listenerPos;
-        const auto length = difPos.length();
-        if (length == 0.0)
-            sourcePos =
-                listenerPos
-                - sourcePos * 0.1f / sourcePos.length(); //Vector3D<float> (0.1f, 0.0f, 0.0f);
-        else if (length < 0.1)
-            sourcePos = listenerPos + difPos * 0.1f / length;
-    }
-
     float* pMonoBufferWrite = monoBuffer.getWritePointer (0);
 
     calculateImageSourcePositions (rX, rY, rZ);
@@ -752,7 +740,11 @@ void RoomEncoderAudioProcessor::processBlock (juce::AudioSampleBuffer& buffer,
         else
             juce::FloatVectorOperations::clear (SHcoeffs, 64);
 
-        float gain = powReflCoeff[reflectionList[q]->order] / mRadius[q];
+        float gain =
+            powReflCoeff[reflectionList[q]->order]
+            / juce::jmax (
+                mRadius[q],
+                constantGainDistance->load()); // Regularize radius to avoid division by zero
         if (*directPathUnityGain > 0.5f)
             gain *= mRadius[0];
 
@@ -768,7 +760,7 @@ void RoomEncoderAudioProcessor::processBlock (juce::AudioSampleBuffer& buffer,
         gain *= juce::Decibels::decibelsToGain (extraAttenuationInDb);
 
         // direct path rendering
-        if (q == 0 && ! doRenderDirectPath)
+        if (q == 0 && *renderDirectPath < 0.5f)
         {
             allGains[0] = 0.0f;
             continue;
@@ -1483,6 +1475,15 @@ std::vector<std::unique_ptr<juce::RangedAudioParameter>>
         juce::NormalisableRange<float> (-50.0f, 0.0f, 0.01f, 3.0f),
         0.0f,
         [] (float value) { return juce::String (value, 2); },
+        nullptr));
+
+    params.push_back (OSCParameterInterface::createParameterTheOldWay (
+        "constantGainDistance",
+        "Constant Gain Distance",
+        "m",
+        juce::NormalisableRange<float> (0.001f, 1.0f, 0.001f),
+        0.1f,
+        [] (float value) { return juce::String (value, 3); },
         nullptr));
 
     return params;

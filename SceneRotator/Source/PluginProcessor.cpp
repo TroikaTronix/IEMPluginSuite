@@ -1001,9 +1001,8 @@ void SceneRotatorAudioProcessor::openMidiInput (juce::MidiDeviceInfo midiDevice,
     juce::Array<juce::MidiDeviceInfo> devices = juce::MidiInput::getAvailableDevices();
 
     const int index = devices.indexOf (midiDevice);
-    //const auto deviceIdentifier 0;
 
-    if (devices[index].name == "Head Tracker")
+    if (devices[index].name.startsWith (juce::String ("Head Tracker")))
     {
         if (supMidiState == Midi::State::Available)
         {
@@ -1013,7 +1012,7 @@ void SceneRotatorAudioProcessor::openMidiInput (juce::MidiDeviceInfo midiDevice,
 
             if (currentMidiScheme == MidiScheme::supperwareQuaternions)
             {
-                trackerDriver.turnOn (true, true);
+                trackerDriver.turnOn (false, true);
                 trackerDriver.zero();
                 DBG ("Supperware HT turned on");
             }
@@ -1065,7 +1064,7 @@ void SceneRotatorAudioProcessor::closeMidiInput()
 {
     const juce::ScopedLock scopedLock (changingMidiDevice);
 
-    if (currentMidiDeviceInfo.name == "Head Tracker")
+    if (currentMidiDeviceInfo.name.startsWith (juce::String ("Head Tracker")))
     {
         if (currentMidiScheme == MidiScheme::supperwareQuaternions)
         {

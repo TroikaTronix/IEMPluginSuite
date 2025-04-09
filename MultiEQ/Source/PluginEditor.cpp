@@ -117,10 +117,10 @@ MultiEQAudioProcessorEditor::MultiEQAudioProcessorEditor (MultiEQAudioProcessor&
 
         if (i == 0)
         {
-            cbFilterType[i].addItem ("HP (6dB/oct)", 1);
-            cbFilterType[i].addItem ("HP (12dB/oct)", 2);
-            cbFilterType[i].addItem ("HP (24db/oct)", 3);
-            cbFilterType[i].addItem ("Low-shelf", 4);
+            cbFilterType[i].addItem ("HP (6dB/oct)", 2);
+            cbFilterType[i].addItem ("HP (12dB/oct)", 3);
+            cbFilterType[i].addItem ("HP (24db/oct)", 4);
+            cbFilterType[i].addItem ("Low-shelf", 1);
         }
         else if (i == numFilterBands - 1)
         {
@@ -296,18 +296,18 @@ void MultiEQAudioProcessorEditor::comboBoxChanged (juce::ComboBox* comboBoxThatH
     else
         return;
 
-    const auto id = comboBoxThatHasChanged->getSelectedItemIndex();
-    if (id == 1 || id == 3)
+    const auto id = comboBoxThatHasChanged->getSelectedId();
+    if (id == 2 || id == 4) // 1st order LP/HP or LR filter
     {
         qEnabled[idx] = false;
         gainEnabled[idx] = false;
     }
-    else if (id == 2)
+    else if (id == 3) // 2nd order LP/HP
     {
         qEnabled[idx] = true;
         gainEnabled[idx] = false;
     }
-    else
+    else // Shelving filter
     {
         qEnabled[idx] = true;
         gainEnabled[idx] = true;
