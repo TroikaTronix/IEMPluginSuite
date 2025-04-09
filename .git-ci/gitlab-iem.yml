@@ -266,7 +266,7 @@ windows:
     - mkdir test-logs
 
     - |
-      find VST/ -name "*.so" -o -name "*.vst" | while read fname; do
+      find VST/ -name "*.so" -o -name "*.vst" -o -name "*.dll" | while read fname; do
         logfile="test-logs/${fname##*/}.txt"
         ${PLUGINVAL} ${PLUGINVAL_ARGS} ${PLUGINVAL_ARGS_GUI} "$fname" >> ${logfile} || echo "${fname} failed with exit code $?" >> failed-tests.txt;
         cat $logfile
