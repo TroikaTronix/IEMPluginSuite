@@ -80,11 +80,12 @@ MultiEQAudioProcessorEditor::MultiEQAudioProcessorEditor (MultiEQAudioProcessor&
             qEnabled[0] = false;
     }
 
-    if (*filterTypeLast > 0.5f)
+    if (*filterTypeLast > 5.5f) // Disable gain, if high shelf is selected
     {
         gainEnabled[numFilterBands - 1] = false;
 
-        if (*filterTypeLast < 1.5f || *filterTypeLast > 2.5f)
+        if (*filterTypeLast < 6.5f
+            || *filterTypeLast > 7.5f) // Disable Q, if 1st order or LR LP is selected
             qEnabled[numFilterBands - 1] = false;
     }
 
