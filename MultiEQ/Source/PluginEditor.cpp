@@ -35,6 +35,7 @@ MultiEQAudioProcessorEditor::MultiEQAudioProcessorEditor (MultiEQAudioProcessor&
     // set GUI size and lookAndFeel
     //setSize(500, 300); // use this to create a fixed-size GUI
     setResizeLimits (880, 330, 1000, 800); // use this to create a resizable GUI
+    setResizable (true, true);
     setLookAndFeel (&globalLaF);
 
     // make title and footer visible, and set the PluginName
@@ -65,16 +66,40 @@ MultiEQAudioProcessorEditor::MultiEQAudioProcessorEditor (MultiEQAudioProcessor&
         gainEnabled[f] = true;
         qEnabled[f] = true;
     }
-    gainEnabled[0] = false;
-    gainEnabled[numFilterBands - 1] = false;
+
+    // Select state of gain and Q slider for first and last band
+    auto filterTypeFirst = valueTreeState.getRawParameterValue ("filterType0");
+    auto filterTypeLast =
+        valueTreeState.getRawParameterValue ("filterType" + juce::String (numFilterBands - 1));
+
+    if (*filterTypeFirst < 2.5f)
+    {
+        gainEnabled[0] = false;
+
+        if (*filterTypeFirst < 0.5f || *filterTypeFirst > 1.5f)
+            qEnabled[0] = false;
+    }
+
+    if (*filterTypeLast > 5.5f) // Disable gain, if high shelf is selected
+    {
+        gainEnabled[numFilterBands - 1] = false;
+
+        if (*filterTypeLast < 6.5f
+            || *filterTypeLast > 7.5f) // Disable Q, if 1st order or LR LP is selected
+            qEnabled[numFilterBands - 1] = false;
+    }
+
+    auto filterPtr = processor.getFilter();
 
     addAndMakeVisible (fv);
-    for (int f = 0; f < numFilterBands; ++f)
-        fv.addCoefficients (processor.getCoefficientsForGui (f),
-                            colours[f],
-                            &slFilterFrequency[f],
-                            &slFilterGain[f],
-                            &slFilterQ[f]);
+
+    if (filterPtr != nullptr)
+        for (int f = 0; f < numFilterBands; ++f)
+            fv.addCoefficients (filterPtr->getCoefficientsForGui (f),
+                                colours[f],
+                                &slFilterFrequency[f],
+                                &slFilterGain[f],
+                                &slFilterQ[f]);
 
     fv.enableFilter (2, false);
 
@@ -93,17 +118,17 @@ MultiEQAudioProcessorEditor::MultiEQAudioProcessorEditor (MultiEQAudioProcessor&
 
         if (i == 0)
         {
-            cbFilterType[i].addItem ("HP (6dB/oct)", 1);
-            cbFilterType[i].addItem ("HP (12dB/oct)", 2);
-            cbFilterType[i].addItem ("HP (24db/oct)", 3);
-            cbFilterType[i].addItem ("Low-shelf", 4);
+            cbFilterType[i].addItem ("HP (6dB/oct)", 2);
+            cbFilterType[i].addItem ("HP (12dB/oct)", 3);
+            cbFilterType[i].addItem ("HP (24db/oct)", 4);
+            cbFilterType[i].addItem ("Low-shelf", 1);
         }
         else if (i == numFilterBands - 1)
         {
-            cbFilterType[i].addItem ("LP (6dB/oct)", 1);
-            cbFilterType[i].addItem ("LP (12dB/oct)", 2);
-            cbFilterType[i].addItem ("LP (24dB/oct)", 3);
-            cbFilterType[i].addItem ("High-shelf", 4);
+            cbFilterType[i].addItem ("High-shelf", 1);
+            cbFilterType[i].addItem ("LP (6dB/oct)", 2);
+            cbFilterType[i].addItem ("LP (12dB/oct)", 3);
+            cbFilterType[i].addItem ("LP (24dB/oct)", 4);
         }
         else
         {
@@ -194,10 +219,10 @@ void MultiEQAudioProcessorEditor::resized()
         juce::Rectangle<int> cbArea (filterArea.removeFromBottom (50));
         for (int i = 0; i < numFilterBands; ++i)
         {
-            slFilterFrequency[i].setBounds (cbArea.removeFromLeft (45));
-            slFilterGain[i].setBounds (cbArea.removeFromLeft (40));
-            slFilterQ[i].setBounds (cbArea.removeFromLeft (35));
-            cbArea.removeFromLeft (20);
+            slFilterFrequency[i].setBounds (cbArea.removeFromLeft (42));
+            slFilterGain[i].setBounds (cbArea.removeFromLeft (42));
+            slFilterQ[i].setBounds (cbArea.removeFromLeft (42));
+            cbArea.removeFromLeft (14);
         }
 
         cbArea = filterArea.removeFromBottom (21);
@@ -216,10 +241,16 @@ void MultiEQAudioProcessorEditor::resized()
 
 void MultiEQAudioProcessorEditor::updateFilterVisualizer()
 {
-    processor.updateGuiCoefficients();
-    fv.setSampleRate (processor.getSampleRate());
-    for (int f = 0; f < numFilterBands; ++f)
-        fv.replaceCoefficients (f, processor.getCoefficientsForGui (f));
+    auto filterPtr = processor.getFilter();
+
+    if (filterPtr != nullptr)
+    {
+        filterPtr->updateGuiCoefficients();
+
+        fv.setSampleRate (processor.getSampleRate());
+        for (int f = 0; f < numFilterBands; ++f)
+            fv.replaceCoefficients (f, filterPtr->getCoefficientsForGui (f));
+    }
 }
 
 void MultiEQAudioProcessorEditor::timerCallback()
@@ -266,18 +297,18 @@ void MultiEQAudioProcessorEditor::comboBoxChanged (juce::ComboBox* comboBoxThatH
     else
         return;
 
-    const auto id = comboBoxThatHasChanged->getSelectedItemIndex();
-    if (id == 0 || id == 2)
+    const auto id = comboBoxThatHasChanged->getSelectedId();
+    if (id == 2 || id == 4) // 1st order LP/HP or LR filter
     {
         qEnabled[idx] = false;
         gainEnabled[idx] = false;
     }
-    else if (id == 1)
+    else if (id == 3) // 2nd order LP/HP
     {
         qEnabled[idx] = true;
         gainEnabled[idx] = false;
     }
-    else
+    else // Shelving filter
     {
         qEnabled[idx] = true;
         gainEnabled[idx] = true;

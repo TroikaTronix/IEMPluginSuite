@@ -1,8 +1,8 @@
 /*
  ==============================================================================
  This file is part of the IEM plug-in suite.
- Author: Daniel Rudrich
- Copyright (c) 2017 - Institute of Electronic Music and Acoustics (IEM)
+ Author: Daniel Rudrich, Felix Holzmüller
+ Copyright (c) 2017, 2024 - Institute of Electronic Music and Acoustics (IEM)
  https://iem.at
 
  The IEM plug-in suite is free software: you can redistribute it and/or modify
@@ -22,12 +22,16 @@
 
 #pragma once
 
+#include <JuceHeader.h>
+
+#include "../../resources/AmbisonicRotator.h"
+#include "../../resources/AmbisonicWarp.h"
 #include "../../resources/AudioProcessorBase.h"
+#include "../../resources/OnePoleFilter.h"
 #include "../../resources/ambisonicTools.h"
-#include "../../resources/interpLagrangeWeights.h"
-#include "../JuceLibraryCode/JuceHeader.h"
 
 #define ProcessorClass DualDelayAudioProcessor
+#define OneOverSqrt2 0.7071067811865475f
 
 //==============================================================================
 /**
@@ -36,8 +40,9 @@ class DualDelayAudioProcessor
     : public AudioProcessorBase<IOTypes::Ambisonics<>, IOTypes::Ambisonics<>, true>
 {
 public:
-    constexpr static int numberOfInputChannels = 64;
-    constexpr static int numberOfOutputChannels = 64;
+    constexpr static int maxOrder = 7;
+    constexpr static int numberOfInputChannels = (maxOrder + 1) * (maxOrder + 1);
+    constexpr static int numberOfOutputChannels = (maxOrder + 1) * (maxOrder + 1);
     //==============================================================================
     DualDelayAudioProcessor();
     ~DualDelayAudioProcessor();
@@ -65,6 +70,9 @@ public:
 
     void parameterChanged (const juce::String& parameterID, float newValue) override;
     void updateBuffers() override;
+    void updateFilters (int idx);
+
+    std::tuple<float, float> msToBPM (float ms);
 
     //======= Parameters ===========================================================
     std::vector<std::unique_ptr<juce::RangedAudioParameter>> createParameterLayout();
@@ -74,64 +82,39 @@ private:
     //==============================================================================
     // parameters
     std::atomic<float>* dryGain;
-    std::atomic<float>* wetGainL;
-    std::atomic<float>* wetGainR;
-    std::atomic<float>* delayTimeL;
-    std::atomic<float>* delayTimeR;
-    std::atomic<float>* rotationL;
-    std::atomic<float>* rotationR;
-    std::atomic<float>* LPcutOffL;
-    std::atomic<float>* LPcutOffR;
-    std::atomic<float>* HPcutOffL;
-    std::atomic<float>* HPcutOffR;
-    std::atomic<float>* feedbackL;
-    std::atomic<float>* feedbackR;
-    std::atomic<float>* xfeedbackL;
-    std::atomic<float>* xfeedbackR;
-    std::atomic<float>* lfoRateL;
-    std::atomic<float>* lfoRateR;
-    std::atomic<float>* lfoDepthL;
-    std::atomic<float>* lfoDepthR;
+    std::atomic<float>* wetGain[2];
+    std::atomic<float>* delayBPM[2];
+    std::atomic<float>* delayMult[2];
+    std::atomic<float>* sync[2];
+    std::atomic<float>* transformMode[2];
+    std::atomic<float>* yaw[2];
+    std::atomic<float>* pitch[2];
+    std::atomic<float>* roll[2];
+    std::atomic<float>* warpModeAz[2];
+    std::atomic<float>* warpModeEl[2];
+    std::atomic<float>* warpFactorAz[2];
+    std::atomic<float>* warpFactorEl[2];
+    std::atomic<float>* LPcutOff[2];
+    std::atomic<float>* HPcutOff[2];
+    std::atomic<float>* feedback[2];
+    std::atomic<float>* xfeedback[2];
+    std::atomic<float>* lfoRate[2];
+    std::atomic<float>* lfoDepth[2];
     std::atomic<float>* orderSetting;
 
-    float _delayL, _delayR;
+    juce::dsp::Oscillator<float> LFO[2];
+    AmbisonicRotator<maxOrder> rotator[2];
+    AmbisonicWarp<maxOrder> warp[2];
 
-    juce::AudioBuffer<float> AudioIN;
+    juce::OwnedArray<juce::IIRFilter> lowPassFilters[2];
+    juce::OwnedArray<juce::IIRFilter> highPassFilters[2];
 
-    juce::AudioBuffer<float> delayBufferLeft;
-    juce::AudioBuffer<float> delayBufferRight;
-    juce::AudioBuffer<float> delayOutLeft;
-    juce::AudioBuffer<float> delayOutRight;
-    juce::AudioBuffer<float> delayInLeft;
-    juce::AudioBuffer<float> delayInRight;
+    juce::dsp::DelayLine<float, juce::dsp::DelayLineInterpolationTypes::Lagrange3rd> delayLine[2];
+    juce::AudioBuffer<float> delayBuffer[2];
+    juce::AudioBuffer<float> delayOutBuffer[2];
+    OnePoleFilter<float> delayTimeInterp[2];
 
-    juce::AudioBuffer<float> delayTempBuffer;
-
-    juce::Array<float> delay;
-    juce::Array<int> interpCoeffIdx;
-    juce::Array<int> idx;
-
-    juce::dsp::Oscillator<float> LFOLeft, LFORight;
-
-    int writeOffsetLeft;
-    int writeOffsetRight;
-    int readOffsetLeft;
-    int readOffsetRight;
-
-    float* readPointer;
-    juce::Array<float> sin_z;
-    juce::Array<float> cos_z;
-
-    void calcParams (float phi);
-    void rotateBuffer (juce::AudioBuffer<float>* bufferToRotate,
-                       const int nChannels,
-                       const int samples);
-    float feedback = 0.8f;
-
-    juce::OwnedArray<juce::IIRFilter> lowPassFiltersLeft;
-    juce::OwnedArray<juce::IIRFilter> lowPassFiltersRight;
-    juce::OwnedArray<juce::IIRFilter> highPassFiltersLeft;
-    juce::OwnedArray<juce::IIRFilter> highPassFiltersRight;
+    bool updateFilterCoeffs = false;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (DualDelayAudioProcessor)
 };

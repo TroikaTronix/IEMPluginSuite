@@ -46,6 +46,7 @@ CoordinateConverterAudioProcessorEditor::CoordinateConverterAudioProcessorEditor
     // set GUI size and lookAndFeel
     //setSize(500, 300); // use this to create a fixed-size GUI
     setResizeLimits (470, 590, 800, 650); // use this to create a resizable GUI
+    setResizable (true, true);
     setLookAndFeel (&globalLaF);
 
     // make title and footer visible, and set the PluginName
@@ -287,7 +288,7 @@ void CoordinateConverterAudioProcessorEditor::resized()
 
     const int rotSliderHeight = 55;
     const int rotSliderSpacing = 17;
-    const int rotSliderWidth = 40;
+    const int rotSliderWidth = 45;
 
     const int sphericalWidth = 240;
 

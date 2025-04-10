@@ -114,8 +114,10 @@ public:
         g.setColour (juce::Colours::steelblue.withMultipliedAlpha (0.01f));
         g.fillAll();
 
-        g.setFont (getLookAndFeel().getTypefaceForFont (juce::Font (12.0f, 2)));
-        g.setFont (12.0f);
+        auto currentFont =
+            juce::FontOptions (getLookAndFeel().getTypefaceForFont (juce::FontOptions (12.0f, 2)))
+                .withHeight (12.0f);
+        g.setFont (currentFont);
 
         // db labels
         float dyn = s.dbMax - s.dbMin;

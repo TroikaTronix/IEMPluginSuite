@@ -61,9 +61,17 @@ public:
 
     const int getMaxAttributeWidth()
     {
-        auto font = juce::Font (getLookAndFeel().getTypefaceForFont (juce::Font (12.0f, 2)));
-        font.setHeight (attributeHeight);
-        return font.getStringWidth ("LOUDSPEAKERS:");
+        auto font = juce::FontOptions (getLookAndFeel().getTypefaceForFont (
+                                           juce::FontOptions (attributeHeight, 2)))
+                        .withHeight (attributeHeight);
+
+        juce::AttributedString text ("LOUDSPEAKERS:");
+        text.setFont (font);
+
+        juce::TextLayout layout;
+        layout.createLayout (text, 999);
+
+        return static_cast<int> (std::ceil (layout.getWidth()));
     }
 
     void resized() override
@@ -78,8 +86,9 @@ public:
             const int valueStart = maxAttWidth + spacing;
             const int valueWidth = juce::jmax (bounds.getWidth() - valueStart, 0);
 
-            auto font = juce::Font (getLookAndFeel().getTypefaceForFont (juce::Font (12.0f, 2)));
-            font.setHeight (valueHeight);
+            auto font = juce::FontOptions (getLookAndFeel().getTypefaceForFont (
+                                               juce::FontOptions (valueHeight, 2)))
+                            .withHeight (valueHeight);
 
             arr.addFittedText (font,
                                retainedDecoder->getDescription(),
@@ -105,8 +114,20 @@ public:
         const int width = bounds.getWidth();
 
         g.setColour (juce::Colours::white);
-        g.setFont (getLookAndFeel().getTypefaceForFont (juce::Font (12.0f, 2))); // regular font
+        auto currentFont =
+            juce::FontOptions (getLookAndFeel().getTypefaceForFont (juce::FontOptions (12.0f, 2)));
+        g.setFont (currentFont); // regular font
 
+        if (errorText.isNotEmpty())
+        {
+            auto options =
+                juce::MessageBoxOptions::makeOptionsOk (juce::MessageBoxIconType::WarningIcon,
+                                                        "Error",
+                                                        errorText);
+            messageBox = juce::AlertWindow::showScopedAsync (options, nullptr);
+
+            errorText.clear();
+        }
         if (retainedDecoder == nullptr)
         {
             g.setFont (valueHeight);
@@ -139,8 +160,11 @@ public:
                         valueHeight,
                         juce::Justification::bottomRight);
 
-            g.setFont (getLookAndFeel().getTypefaceForFont (juce::Font (12.0f, 1))); // bold font
+            auto currentFont = juce::FontOptions (
+                getLookAndFeel().getTypefaceForFont (juce::FontOptions (valueHeight, 1)));
+            g.setFont (currentFont);
             g.setFont (valueHeight);
+
             g.drawText (retainedDecoder->getName(),
                         resStart,
                         1,
@@ -154,7 +178,9 @@ public:
             const int descEnd =
                 arr.getBoundingBox (juce::jmax (0, arr.getNumGlyphs() - 1), 1, true).getBottom();
 
-            g.setFont (getLookAndFeel().getTypefaceForFont (juce::Font (12.0f, 2))); // regular font
+            currentFont = juce::FontOptions (
+                getLookAndFeel().getTypefaceForFont (juce::FontOptions (attributeHeight, 2)));
+            g.setFont (currentFont);
             g.setFont (attributeHeight);
 
             g.drawText ("ORDER:",
@@ -206,6 +232,8 @@ private:
     ReferenceCountedDecoder::Ptr decoder { nullptr };
 
     juce::GlyphArrangement arr;
+
+    juce::ScopedMessageBox messageBox;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (DecoderInfoBox)
 };

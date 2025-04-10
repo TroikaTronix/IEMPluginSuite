@@ -67,14 +67,14 @@
 #endif
 
 #ifndef DOXYGEN
-    #include "juce_audio_plugin_client/utility/juce_CreatePluginFilter.h"
+    #include <juce_audio_plugin_client/detail/juce_CreatePluginFilter.h>
 #endif
 
 #if BUILD_WITH_JACK_SUPPORT
     #include "IEM_JackAudio.h"
 #endif
 
-#include <juce_audio_plugin_client/utility/juce_CreatePluginFilter.h>
+#include <juce_audio_plugin_client/detail/juce_CreatePluginFilter.h>
 
 //==============================================================================
 /**

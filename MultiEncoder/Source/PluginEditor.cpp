@@ -205,7 +205,8 @@ MultiEncoderAudioProcessorEditor::MultiEncoderAudioProcessorEditor (
     addAndMakeVisible (&lbMasterRoll);
     lbMasterRoll.setText ("Roll");
 
-    setResizeLimits (590, 505, 800, 1200);
+    setResizeLimits (595, 505, 800, 1200);
+    setResizable (true, true);
     startTimer (40);
 }
 
@@ -301,11 +302,11 @@ void MultiEncoderAudioProcessorEditor::resized()
 
     // ============== SIDEBAR RIGHT ====================
     // =================================================
-    juce::Rectangle<int> sideBarArea (area.removeFromRight (220));
+    juce::Rectangle<int> sideBarArea (area.removeFromRight (225));
     //const int sliderHeight = 15;
     const int rotSliderSpacing = 10;
     //const int sliderSpacing = 3;
-    const int rotSliderWidth = 40;
+    const int rotSliderWidth = 42;
     //const int labelHeight = 15;
     //const int labelWidth = 20;
 
@@ -393,11 +394,12 @@ void MultiEncoderAudioProcessorEditor::resized()
 
 void MultiEncoderAudioProcessorEditor::importLayout()
 {
-    juce::FileChooser myChooser ("Load configuration...",
-                                 processor.getLastDir().exists() ? processor.getLastDir()
-                                                                 : juce::File::getSpecialLocation (
-                                                                     juce::File::userHomeDirectory),
-                                 "*.json");
+    juce::FileChooser myChooser (
+        "Load configuration...",
+        processor.getLastDir().exists()
+            ? processor.getLastDir()
+            : juce::File::getSpecialLocation (juce::File::userHomeDirectory),
+        "*.json");
     if (myChooser.browseForFileToOpen())
     {
         juce::File configFile (myChooser.getResult());

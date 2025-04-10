@@ -69,9 +69,9 @@ public:
 
     int maxPossibleChannels = 64;
 
-    void setFreezeMode (bool freezeState);
     void updateFilterParameters();
     void getT60ForFrequencyArray (double* frequencies, double* t60Data, size_t numSamples);
+    FeedbackDelayNetwork* getFdnPtr() { return &fdn; };
 
 private:
     //==============================================================================
@@ -88,7 +88,12 @@ private:
     std::atomic<float>* lowCutoff;
     std::atomic<float>* lowQ;
     std::atomic<float>* lowGain;
+    std::atomic<float>* hpOrder;
+    std::atomic<float>* hpFrequency;
+    std::atomic<float>* hpQ;
+
     std::atomic<float>* wet;
+    std::atomic<float>* freeze;
 
     FeedbackDelayNetwork fdn, fdnFade;
 

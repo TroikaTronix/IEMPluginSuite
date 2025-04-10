@@ -232,8 +232,9 @@ public:
         if (! selectable)
         {
             g.setColour ((juce::Colours::white).withMultipliedAlpha (0.5));
-            g.setFont (getLookAndFeel().getTypefaceForFont (juce::Font (12.0f, 1)));
-            g.setFont (15.0f);
+            g.setFont (juce::FontOptions (
+                           getLookAndFeel().getTypefaceForFont (juce::FontOptions (15.0f, 1)))
+                           .withHeight (15.0f));
             g.drawFittedText (displayTextIfNotSelectable,
                               35,
                               0,
@@ -390,8 +391,8 @@ public:
         if (! selectable)
         {
             g.setColour ((juce::Colours::white).withMultipliedAlpha (0.5));
-            g.setFont (getLookAndFeel().getTypefaceForFont (juce::Font (12.0f, 1)));
-            g.setFont (15.0f);
+            g.setFont (juce::FontOptions (
+                getLookAndFeel().getTypefaceForFont (juce::FontOptions (15.0f, 1))));
             g.drawFittedText (displayTextIfNotSelectable,
                               35,
                               15,
@@ -516,8 +517,8 @@ public:
 
     void setFont (juce::Typeface::Ptr newBoldFont, juce::Typeface::Ptr newRegularFont)
     {
-        boldFont = newBoldFont;
-        regularFont = newRegularFont;
+        boldFont = juce::FontOptions (newBoldFont).withHeight (boldHeight);
+        regularFont = juce::FontOptions (newRegularFont).withHeight (regularHeight);
     }
 
     void resized() override
@@ -540,21 +541,25 @@ public:
         juce::Rectangle<int> bounds = getLocalBounds();
         const float centreX = bounds.getX() + bounds.getWidth() * 0.5f;
         const float centreY = bounds.getY() + bounds.getHeight() * 0.5f;
-        const float boldHeight = 25.f;
-        const float regularHeight = 25.f;
         const int leftWidth = inputWidget.getComponentSize();
         const int rightWidth = outputWidget.getComponentSize();
 
-        boldFont.setHeight (boldHeight);
-        regularFont.setHeight (regularHeight);
+        // Typeset title sting
+        juce::AttributedString titleText;
+        titleText.append (boldText, boldFont, juce::Colours::white);
+        titleText.append (regularText, regularFont, juce::Colours::white);
+        titleText.setJustification (juce::Justification::bottom);
 
-        const float boldWidth = boldFont.getStringWidth (boldText);
-        const float regularWidth = regularFont.getStringWidth (regularText);
+        // Create TextLayout of title
+        const float maxWidth = static_cast<float> (bounds.getWidth() - rightWidth - leftWidth);
+        juce::TextLayout titleTextLayout;
+        titleTextLayout.createLayout (juce::AttributedString (titleText), maxWidth);
 
-        juce::Rectangle<float> textArea (0,
-                                         0,
-                                         boldWidth + regularWidth,
-                                         juce::jmax (boldHeight, regularHeight));
+        // Define title text area
+        const float titleWidth = titleTextLayout.getWidth();
+        const float titleHeight = titleTextLayout.getHeight();
+
+        juce::Rectangle<float> textArea (0, 0, titleWidth, titleHeight);
         textArea.setCentre (centreX, centreY);
 
         if (textArea.getX() < leftWidth)
@@ -562,15 +567,10 @@ public:
         if (textArea.getRight() > bounds.getRight() - rightWidth)
             textArea.setRight (bounds.getRight() - rightWidth);
 
-        g.setColour (juce::Colours::white);
-        g.setFont (boldFont);
-        g.drawFittedText (boldText,
-                          textArea.removeFromLeft (boldWidth).toNearestInt(),
-                          juce::Justification::bottom,
-                          1);
-        g.setFont (regularFont);
-        g.drawFittedText (regularText, textArea.toNearestInt(), juce::Justification::bottom, 1);
+        // Draw title
+        titleTextLayout.draw (g, textArea);
 
+        // Draw separation line
         g.setColour ((juce::Colours::white).withMultipliedAlpha (0.5));
         g.drawLine (bounds.getX(),
                     bounds.getY() + bounds.getHeight() - 4,
@@ -581,10 +581,13 @@ public:
 private:
     Tin inputWidget;
     Tout outputWidget;
-    juce::Font boldFont = juce::Font (25.f);
-    juce::Font regularFont = juce::Font (25.f);
+    juce::FontOptions boldFont = juce::FontOptions (25.f);
+    juce::FontOptions regularFont = juce::FontOptions (25.f);
     juce::String boldText = "Bold";
     juce::String regularText = "Regular";
+
+    const float boldHeight = 25.f;
+    const float regularHeight = 25.f;
 };
 
 class IEMLogo : public juce::Component
@@ -651,8 +654,9 @@ public:
     {
         juce::Rectangle<int> bounds = getLocalBounds();
         g.setColour (juce::Colours::white.withAlpha (0.5f));
-        g.setFont (getLookAndFeel().getTypefaceForFont (juce::Font (12.0f, 0)));
-        g.setFont (14.0f);
+        g.setFont (
+            juce::FontOptions (getLookAndFeel().getTypefaceForFont (juce::FontOptions (14.0f, 0)))
+                .withHeight (14.0f));
         juce::String versionString = "v";
 
 #if JUCE_DEBUG

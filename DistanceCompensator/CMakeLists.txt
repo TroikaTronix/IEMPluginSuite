@@ -1,54 +1,66 @@
 
-juce_add_plugin (DistanceCompensator
-    PLUGIN_MANUFACTURER_CODE IEMA
-    PLUGIN_CODE DisC
-    ICON_BIG "../resources/Standalone/IEMPluginSuiteSmall.png"
-    ICON_SMALL "../resources/Standalone/IEMPluginSuiteSmall.png"
-    COMPANY_NAME "IEM"
-    PRODUCT_NAME "DistanceCompensator"
-    FORMATS ${IEM_FORMATS}
-    VERSION "0.3.5"
-    LV2URI "http://plugins.iem.at/DistanceCompensator")
+set (PLUGIN_TARGET "")
 
-juce_generate_juce_header (DistanceCompensator)
+if (IEM_FORMATS)
+    juce_add_plugin (DistanceCompensator
+        PLUGIN_MANUFACTURER_CODE IEMA
+        PLUGIN_CODE DisC
+        ICON_BIG "../resources/Standalone/IEMPluginSuiteSmall.png"
+        ICON_SMALL "../resources/Standalone/IEMPluginSuiteSmall.png"
+        COMPANY_NAME "IEM"
+        PRODUCT_NAME "DistanceCompensator"
+        FORMATS ${IEM_FORMATS}
+        VERSION ${DistanceCompensator_VERSION}
+        LV2URI "http://plugins.iem.at/DistanceCompensator"
+        VST2_CATEGORY kPlugSurroundFx kPlugCategSpacializer
+        VST3_CATEGORIES Spatial Surround Delay Tools
+        AAX_CATEGORY SoundField)
 
-target_sources (DistanceCompensator PRIVATE
-    Source/PluginEditor.cpp
-    Source/PluginEditor.h
-    Source/PluginProcessor.cpp
-    Source/PluginProcessor.h
+    list (APPEND PLUGIN_TARGET DistanceCompensator)
+endif()
 
-    ../resources/OSC/OSCInputStream.h
-    ../resources/OSC/OSCParameterInterface.cpp
-    ../resources/OSC/OSCParameterInterface.h
-    ../resources/OSC/OSCStatus.cpp
-    ../resources/OSC/OSCStatus.h
-    ../resources/OSC/OSCUtilities.h
+foreach (TARGET IN LISTS PLUGIN_TARGET)
+    juce_generate_juce_header (${TARGET})
 
-    ../resources/efficientSHvanilla.cpp
-    )
 
-target_compile_definitions (DistanceCompensator PRIVATE
-    JUCE_USE_CURL=0
-    JUCE_WEB_BROWSER=0
-    JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1
-    JUCE_USE_FLAC=0
-    JUCE_USE_OGGVORBIS=0
-    JUCE_USE_MP3AUDIOFORMAT=0
-    JUCE_USE_LAME_AUDIO_FORMAT=0
-    JUCE_USE_WINDOWS_MEDIA_FORMAT=0
-    JUCE_DISPLAY_SPLASH_SCREEN=0
-    JUCE_VST3_CAN_REPLACE_VST2=0)
+    target_sources (${TARGET} PRIVATE
+        Source/PluginEditor.cpp
+        Source/PluginEditor.h
+        Source/PluginProcessor.cpp
+        Source/PluginProcessor.h
 
-target_include_directories (DistanceCompensator PRIVATE Source)
+        ../resources/OSC/OSCInputStream.h
+        ../resources/OSC/OSCParameterInterface.cpp
+        ../resources/OSC/OSCParameterInterface.h
+        ../resources/OSC/OSCStatus.cpp
+        ../resources/OSC/OSCStatus.h
+        ../resources/OSC/OSCUtilities.h
 
-target_link_libraries (DistanceCompensator PRIVATE
-    LAF_fonts
-    IEM_logo
-    juce::juce_audio_utils
-    juce::juce_audio_plugin_client
-    juce::juce_osc
-    juce::juce_dsp
-    juce::juce_opengl
-    juce::juce_recommended_config_flags
-    juce::juce_recommended_lto_flags)
+        ../resources/efficientSHvanilla.cpp
+        )
+
+    target_compile_definitions (${TARGET} PRIVATE
+        JUCE_USE_CURL=0
+        JUCE_WEB_BROWSER=0
+        JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1
+        JUCE_USE_FLAC=0
+        JUCE_USE_OGGVORBIS=0
+        JUCE_USE_MP3AUDIOFORMAT=0
+        JUCE_USE_LAME_AUDIO_FORMAT=0
+        JUCE_USE_WINDOWS_MEDIA_FORMAT=0
+        JUCE_VST3_CAN_REPLACE_VST2=0)
+
+    target_include_directories (${TARGET} PRIVATE Source)
+
+    target_link_libraries (${TARGET} PRIVATE
+        LAF_fonts
+        IEM_logo
+        juce::juce_audio_utils
+        juce::juce_audio_plugin_client
+        juce::juce_osc
+        juce::juce_dsp
+        juce::juce_opengl
+        juce::juce_recommended_config_flags
+        juce::juce_recommended_lto_flags)
+    endforeach()
+    

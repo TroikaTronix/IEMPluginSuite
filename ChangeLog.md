@@ -1,7 +1,58 @@
+# Changelog
+
 This file only contains the major changes of the IEM Plug-in Suite.
 For a list of all changes and bugfixes see the git log.
 
 Please note, that breaking changes are marked with `!!BREAKING CHANGE!!`. They might lead to an unexpected behavior and might not be compatible with your previous projects without making some adaptions. See the [Breaking changes article](https://plugins.iem.at/docs/breakingchanges/) for more information.
+
+## v1.15.0
+- general changes
+    - moved to JUCE 8.0.7
+    - added VST3 support
+    - added AAX support (macOS and Windows)
+    - Make more plug-ins resizeable
+- plug-in specific changes
+    - **AllRA**Decoder
+        - Add a clear all-button to start from scratch faster
+    - **Dual**Delay
+        - Major refactoring of the internal delay processing, fixing clicks and crackling if delay is changed rapidly
+        - Set delay by default in BPM with multipliers instead of milliseconds (`!!BREAKING CHANGE!!` although old projects are converted from ms to BPM, there may still be some tiny differences in actual delay time)
+        - Add mode for setting delay in ms
+        - Tap button
+        - Sync with DAW BPM possible
+        - Add selectable warping mode instead of rotation (similar to the [ambiX_warp](https://www.matthiaskronlachner.com/?p=2015); will only work properly with high Ambisonic orders)
+    - **FDN**Reverb
+        - Add high-pass filter
+        - Implement bigger FDN sizes
+        - Enable freeze mode
+    - **Granular**Encoder
+        - Save buffer only if freeze mode is active
+    - **Multiband**Compressor
+        - Fix UI settings when reopening
+    - **Multi**Encoder
+        - Add presets for various t-designs to incorporate non-Ambisonic effects more easily
+    - **Multi**EQ
+        - Refactor internal processing
+        - Fix bug with locked elements when reopening UI
+    - **Room**Encoder
+        - Fix regularization bug for sources moving through/close to the listener
+        - Make distance for constant gain rendering configurable as parameter
+    - **Simple**Decoder
+        - Add presets for various t-designs to incorporate non-Ambisonic effects more easily
+        - Fix crashing of plug-in if empty decoder file is loaded
+    - **Scene**Rotator
+        - Native support for Supperware Head Tracker 1
+
+## v1.14.1
+- general changes
+    - moved to JUCE 7.0.5
+    - Plug-ins work again on Windows Vista and 7
+- plug-in specific changes
+    -  **AllRA**Decoder and **Simple**Decoder
+        - Wrap azimuth exceeding 180° and elevation exceeding 90° for correct im-/export of layouts
+        - Update IEM Cube decoder preset
+    -  **Granular**Encoder
+        - Add some color to the sliders
 
 ## v1.14.0
 - general changes

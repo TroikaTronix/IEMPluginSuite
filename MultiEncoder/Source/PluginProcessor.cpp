@@ -23,6 +23,8 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
+#include <Presets.h>
+
 //==============================================================================
 MultiEncoderAudioProcessor::MultiEncoderAudioProcessor() :
     AudioProcessorBase (
@@ -30,9 +32,19 @@ MultiEncoderAudioProcessor::MultiEncoderAudioProcessor() :
         BusesProperties()
     #if ! JucePlugin_IsMidiEffect
         #if ! JucePlugin_IsSynth
-            .withInput ("Input", juce::AudioChannelSet::discreteChannels (maxNumberOfInputs), true)
+            .withInput ("Input",
+                        ((juce::PluginHostType::getPluginLoadedAs()
+                          == juce::AudioProcessor::wrapperType_VST3)
+                             ? juce::AudioChannelSet::mono()
+                             : juce::AudioChannelSet::ambisonic (7)),
+                        true)
         #endif
-            .withOutput ("Output", juce::AudioChannelSet::discreteChannels (64), true)
+            .withOutput ("Output",
+                         ((juce::PluginHostType::getPluginLoadedAs()
+                           == juce::AudioProcessor::wrapperType_VST3)
+                              ? juce::AudioChannelSet::ambisonic (1)
+                              : juce::AudioChannelSet::ambisonic (7)),
+                         true)
     #endif
             ,
 #endif
@@ -113,8 +125,7 @@ MultiEncoderAudioProcessor::~MultiEncoderAudioProcessor()
 
 int MultiEncoderAudioProcessor::getNumPrograms()
 {
-    return 1; // NB: some hosts don't cope very well if you tell them there are 0 programs,
-    // so this should be at least 1, even if you're not really implementing programs.
+    return 6;
 }
 
 int MultiEncoderAudioProcessor::getCurrentProgram()
@@ -124,11 +135,55 @@ int MultiEncoderAudioProcessor::getCurrentProgram()
 
 void MultiEncoderAudioProcessor::setCurrentProgram (int index)
 {
+    juce::String preset;
+    switch (index)
+    {
+        case 0:
+            return;
+        case 1:
+            preset = juce::String (Presets::t_design_12ch_json, Presets::t_design_12ch_jsonSize);
+            break;
+        case 2:
+            preset = juce::String (Presets::t_design_24ch_json, Presets::t_design_24ch_jsonSize);
+            break;
+        case 3:
+            preset = juce::String (Presets::t_design_36ch_json, Presets::t_design_36ch_jsonSize);
+            break;
+        case 4:
+            preset = juce::String (Presets::t_design_48ch_json, Presets::t_design_48ch_jsonSize);
+            break;
+        case 5:
+            preset = juce::String (Presets::t_design_60ch_json, Presets::t_design_60ch_jsonSize);
+            break;
+
+        default:
+            preset = "";
+            break;
+    }
+
+    loadConfigFromString (preset);
 }
 
 const juce::String MultiEncoderAudioProcessor::getProgramName (int index)
 {
-    return juce::String();
+    switch (index)
+    {
+        case 0:
+            return "---";
+        case 1:
+            return "t-design (12 channels)";
+        case 2:
+            return "t-design (24 channels)";
+        case 3:
+            return "t-design (36 channels)";
+        case 4:
+            return "t-design (48 channels)";
+        case 5:
+            return "t-design (60 channels)";
+
+        default:
+            return {};
+    }
 }
 
 void MultiEncoderAudioProcessor::changeProgramName (int index, const juce::String& newName)
@@ -601,12 +656,32 @@ std::vector<std::unique_ptr<juce::RangedAudioParameter>>
 
 //==============================================================================
 
-juce::Result MultiEncoderAudioProcessor::loadConfiguration (const juce::File& configFile)
+juce::Result MultiEncoderAudioProcessor::loadConfiguration (const juce::File& presetFile)
 {
+    if (! presetFile.exists())
+    {
+        return juce::Result::fail ("File does not exist!");
+    }
+
+    const juce::String jsonString = presetFile.loadFileAsString();
+
+    return loadConfigFromString (jsonString);
+}
+
+juce::Result MultiEncoderAudioProcessor::loadConfigFromString (juce::String configString)
+{
+    if (configString.isEmpty())
+        return juce::Result::fail ("Empty configuration string!");
+
+    juce::var parsedJson;
+    juce::Result result = juce::JSON::parse (configString, parsedJson);
+
+    if (result.failed())
+        return result;
+
     juce::ValueTree newSources ("NewSources");
 
-    juce::Result result =
-        ConfigurationHelper::parseFileForLoudspeakerLayout (configFile, newSources, nullptr);
+    result = ConfigurationHelper::parseVarForLoudspeakerLayout (parsedJson, newSources, nullptr);
 
     if (result.wasOk())
     {

@@ -19,6 +19,7 @@ AlwaysBreakBeforeMultilineStrings: false
 AlwaysBreakTemplateDeclarations: Yes
 BinPackArguments: false
 BinPackParameters: false
+BreakAfterAttributes: Never
 BreakAfterJavaFieldAnnotations: false
 BreakBeforeBinaryOperators: NonAssignment
 BreakBeforeBraces: Allman

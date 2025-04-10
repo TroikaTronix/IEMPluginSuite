@@ -83,8 +83,8 @@ public:
     {
         g.setColour (colour.withMultipliedAlpha (this->isEnabled() ? 1.0f : 0.4f));
         g.setFont (bounds.getHeight());
-        g.setFont (getLookAndFeel().getTypefaceForFont (
-            juce::Font (bounds.getHeight(), isBoldFlag ? 1 : 0)));
+        g.setFont (juce::FontOptions (
+            getLookAndFeel().getTypefaceForFont (juce::FontOptions (isBoldFlag ? 1 : 0))));
         g.drawText (labelText, bounds, labelJustification, true);
     }
 
@@ -150,22 +150,20 @@ public:
                                    bool rightBoldFlag)
     {
         g.setColour (juce::Colours::white);
-        juce::Font tempFont;
-        tempFont.setHeight (bounds.getHeight());
         int height = bounds.getHeight();
+        juce::FontOptions tempFont (height, leftBoldFlag ? 1 : 0);
 
-        tempFont.setStyleFlags (leftBoldFlag ? 1 : 0);
-        g.setFont (getLookAndFeel().getTypefaceForFont (tempFont));
+        g.setFont (juce::FontOptions (getLookAndFeel().getTypefaceForFont (tempFont)));
         g.setFont (height);
         g.drawText (leftLabelText, bounds, juce::Justification::left, true);
 
-        tempFont.setStyleFlags (middleBoldFlag ? 1 : 0);
-        g.setFont (getLookAndFeel().getTypefaceForFont (tempFont));
+        tempFont = juce::FontOptions (height, middleBoldFlag ? 1 : 0);
+        g.setFont (juce::FontOptions (getLookAndFeel().getTypefaceForFont (tempFont)));
         g.setFont (height + (middleBold ? 2 : 0));
         g.drawText (middleLabelText, bounds, juce::Justification::centred, true);
 
-        tempFont.setStyleFlags (rightBoldFlag ? 1 : 0);
-        g.setFont (getLookAndFeel().getTypefaceForFont (tempFont));
+        tempFont = juce::FontOptions (height, rightBoldFlag ? 1 : 0);
+        g.setFont (juce::FontOptions (getLookAndFeel().getTypefaceForFont (tempFont)));
         g.setFont (height);
         g.drawText (rightLabelText, bounds, juce::Justification::right, true);
     }

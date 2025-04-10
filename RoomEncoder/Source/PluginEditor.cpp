@@ -608,7 +608,7 @@ void RoomEncoderAudioProcessorEditor::resized()
     sliderRow.removeFromLeft (5);
     slWallAttenuationFloor.setBounds (sliderRow.removeFromLeft (rotSliderWidth));
 
-    sliderRow = wallAttenArea.removeFromTop (12);
+    sliderRow = wallAttenArea.removeFromTop (15);
     lbWallAttenuationBack.setBounds (sliderRow.removeFromLeft (rotSliderWidth));
     sliderRow.removeFromLeft (5);
     lbWallAttenuationCeiling.setBounds (sliderRow.removeFromLeft (rotSliderWidth));

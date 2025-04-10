@@ -97,29 +97,23 @@ public:
     juce::Font getLabelFont (juce::Label& label) override
     {
         ignoreUnused (label);
-        return juce::Font (robotoMedium);
+        return juce::Font (juce::FontOptions (robotoMedium));
     }
 
     juce::Font getPopupMenuFont() override
     {
-        juce::Font font (robotoRegular);
-        font.setHeight (14.0f);
-        return font;
+        return withDefaultMetrics (juce::FontOptions (robotoRegular).withHeight (14.0f));
     }
 
     juce::Font getTextButtonFont (juce::TextButton& button, int height) override
     {
         ignoreUnused (button, height);
-        juce::Font font (robotoMedium);
-        font.setHeight (14.0f);
-        return font;
+        return withDefaultMetrics (juce::FontOptions (robotoMedium).withHeight (14.0f));
     }
 
     juce::Font getAlertWindowMessageFont() override
     {
-        juce::Font font (robotoRegular);
-        font.setHeight (14.0f);
-        return font;
+        return withDefaultMetrics (juce::FontOptions (robotoRegular).withHeight (14.0f));
     }
 
     juce::Slider::SliderLayout getSliderLayout (juce::Slider& slider) override
@@ -226,11 +220,11 @@ public:
         if (! label.isBeingEdited())
         {
             const float fontAlpha = label.isEnabled() ? 1.0f : 0.5f;
-            const juce::Font font (robotoLight);
+            const juce::FontOptions font (robotoLight);
 
             //g.setColour (ClText.withMultipliedAlpha (alpha));
             g.setColour (ClText.withMultipliedAlpha (fontAlpha));
-            g.setFont (robotoMedium);
+            g.setFont (juce::FontOptions (robotoMedium));
             g.setFont (13.f);
 
             juce::Rectangle<int> textArea (
@@ -378,7 +372,7 @@ public:
         }
 
         g.setColour (header.findColour (juce::TableHeaderComponent::textColourId));
-        g.setFont (robotoRegular);
+        g.setFont (juce::FontOptions (robotoRegular));
         g.setFont (height * 0.6f);
         g.drawFittedText (columnName, area, juce::Justification::centred, 1);
     }
@@ -790,10 +784,12 @@ public:
                                                               : juce::TextButton::textColourOffId)
                          .withMultipliedAlpha (button.isEnabled() ? 1.0f : 0.5f));
 
-        const int yIndent = juce::jmin (4, button.proportionOfHeight (0.3f));
+        const int yIndent =
+            juce::jmin (4, static_cast<int> (std::ceil (button.getHeight() * 0.30f)));
+        // const int yIndent = 8;
         const int cornerSize = juce::jmin (button.getHeight(), button.getWidth()) / 2;
 
-        const int fontHeight = juce::roundToInt (font.getHeight() * 0.6f);
+        const int fontHeight = static_cast<int> (std::ceil (font.getHeight() * 0.6f));
         const int leftIndent =
             juce::jmin (fontHeight, 2 + cornerSize / (button.isConnectedOnLeft() ? 4 : 2));
         const int rightIndent =
@@ -838,7 +834,7 @@ public:
                                  .withMultipliedAlpha (isButtonDown ? 0.8f : 0.4f));
                 g.strokePath (outline, juce::PathStrokeType (isButtonDown ? 1.0f : 0.8f));
             }
-            g.setFont (robotoMedium);
+            g.setFont (juce::FontOptions (robotoMedium));
             g.setFont (height - 1);
             g.setColour (isOn ? button.findColour (juce::ToggleButton::tickColourId)
                               : juce::Colours::white);
@@ -872,7 +868,7 @@ public:
             if (! button.isEnabled())
                 g.setOpacity (0.5f);
 
-            g.setFont (robotoMedium);
+            g.setFont (juce::FontOptions (robotoMedium));
             g.drawFittedText (button.getButtonText(),
                               button.getLocalBounds()
                                   .withTrimmedLeft (juce::roundToInt (tickWidth) + 10)
@@ -947,7 +943,7 @@ public:
 
         juce::Rectangle<int> r (6, 0, width - 6, 15);
         g.setColour (ClText);
-        g.setFont (robotoMedium);
+        g.setFont (juce::FontOptions (robotoMedium));
         g.setFont (18.0f);
         g.drawFittedText (text, r, position, 1, 0.f);
 
@@ -987,7 +983,7 @@ public:
                                      const juce::Rectangle<int>& area,
                                      const juce::String& sectionName) override
     {
-        g.setFont (robotoBold);
+        g.setFont (juce::FontOptions (robotoBold));
         g.setFont (18.0f);
         g.setColour (findColour (juce::PopupMenu::headerTextColourId));
 

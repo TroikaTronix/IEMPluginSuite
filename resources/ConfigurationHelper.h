@@ -406,6 +406,16 @@ public:
         return parseFileForGenericLayout (fileToParse, loudspeakers, undoManager);
     }
 
+    /**
+     Load and parse for a 'LoudspeakerLayout' object from a JSON juce::var. If successful, writes the generic object into a juce::ValueTree object (elements). Set 'undoManager' to nullptr in case you don't want to use a undoManager.
+     */
+    static juce::Result parseVarForLoudspeakerLayout (const juce::var& parsedJson,
+                                                      juce::ValueTree& loudspeakers,
+                                                      juce::UndoManager* undoManager)
+    {
+        return parseVarForGenericLayout (parsedJson, loudspeakers, undoManager);
+    }
+
 #endif // #if CONFIGURATIONHELPER_ENABLE_LOUDSPEAKERLAYOUT_METHODS
 
 #if CONFIGURATIONHELPER_ENABLE_GENERICLAYOUT_METHODS
@@ -422,6 +432,16 @@ public:
         if (! result.wasOk())
             return juce::Result::fail (result.getErrorMessage());
 
+        return parseVarForGenericLayout (parsedJson, elements, undoManager);
+    }
+
+    /**
+     Load and parse for a 'LoudspeakerLayout' or 'GenericLayout' object from a JSON juce::var. If successful, writes the generic object into a juce::ValueTree object (elements). Set 'undoManager' to nullptr in case you don't want to use a undoManager.
+     */
+    static juce::Result parseVarForGenericLayout (const juce::var& parsedJson,
+                                                  juce::ValueTree& elements,
+                                                  juce::UndoManager* undoManager)
+    {
         // looks for a 'GenericLayout' or 'LoudspeakerLayout' object
         juce::var genericLayout;
         if (parsedJson.hasProperty ("GenericLayout"))
@@ -442,7 +462,7 @@ public:
             return juce::Result::fail (
                 "No 'Elements' or 'Loudspeakers' attribute found within the 'GenericLayout' or 'LoudspeakerLayout' object.");
 
-        result = addElementsToValueTree (elementArray, elements, undoManager);
+        juce::Result result = addElementsToValueTree (elementArray, elements, undoManager);
 
         if (! result.wasOk())
             return juce::Result::fail (result.getErrorMessage());

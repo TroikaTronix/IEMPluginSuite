@@ -33,11 +33,17 @@
 
 typedef ReverseSlider::SliderAttachment SliderAttachment;
 typedef juce::AudioProcessorValueTreeState::ComboBoxAttachment ComboBoxAttachment;
+typedef juce::AudioProcessorValueTreeState::ButtonAttachment ButtonAttachment;
 
 //==============================================================================
 /**
 */
-class DualDelayAudioProcessorEditor : public juce::AudioProcessorEditor, private juce::Timer
+class DualDelayAudioProcessorEditor : public juce::AudioProcessorEditor,
+                                      private juce::Timer,
+                                      private juce::Time,
+                                      private juce::Button::Listener,
+                                      private juce::Slider::Listener,
+                                      private juce::ComboBox::Listener
 {
 public:
     DualDelayAudioProcessorEditor (DualDelayAudioProcessor&, juce::AudioProcessorValueTreeState&);
@@ -47,9 +53,15 @@ public:
     void paint (juce::Graphics&) override;
     void resized() override;
 
+    void buttonClicked (juce::Button* button) override;
+    void sliderValueChanged (juce::Slider* slider) override;
+    void comboBoxChanged (juce::ComboBox* comboBox) override;
+
 private:
     LaF globalLaF;
 
+    void updateDelayUnit (bool isBPM);
+    void updateTransformMode (bool side);
     void timerCallback() override;
 
     DualDelayAudioProcessor& processor;
@@ -58,8 +70,8 @@ private:
     TitleBar<AmbisonicIOWidget<>, NoIOWidget> title;
     OSCFooter footer;
 
-    std::unique_ptr<ComboBoxAttachment> cbNormalizationAtachement;
-    std::unique_ptr<ComboBoxAttachment> cbOrderAtachement;
+    std::unique_ptr<ComboBoxAttachment> cbNormalizationAttachement;
+    std::unique_ptr<ComboBoxAttachment> cbOrderAttachement;
     int maxPossibleOrder;
 
     ReverseSlider SlDryGain;
@@ -67,33 +79,65 @@ private:
 
     // elements for left side
     DoubleSlider dblSlLeftFilter;
-    ReverseSlider SlLeftRot;
-    ReverseSlider SlLeftDelay, SlLeftLfoRate, SlLeftLfoDepth, SlLeftFb, SlLeftCrossFb, SlLeftGain;
+    ReverseSlider SlLeftYaw, SlLeftPitch, SlLeftRoll;
+    ReverseSlider SlLeftWarpFactorAz, SlLeftWarpFactorEl;
+    ReverseSlider SlLeftDelay, SlLeftDelayMS, SlLeftDelayMult, SlLeftLfoRate, SlLeftLfoDepth,
+        SlLeftFb, SlLeftCrossFb, SlLeftGain;
+    juce::ComboBox cbLeftTransfromMode, cbLeftWarpTypeAz, cbLeftWarpTypeEl;
+    juce::ToggleButton tbLeftSync;
+    juce::TextButton btLeftTap;
 
     std::unique_ptr<SliderAttachment> dblSlLeftFilterHpAttachment, dblSlLeftFilterLpAttachment;
-    std::unique_ptr<SliderAttachment> SlLeftRotAttachment;
-    std::unique_ptr<SliderAttachment> SlLeftDelayAttachment, SlLeftLfoRateAttachment,
-        SlLeftLfoDepthAttachment, SlLeftFbAttachment, SlLeftCrossFbAttachment, SlLeftGainAttachment;
+    std::unique_ptr<SliderAttachment> SlLeftYawAttachment, SlLeftPitchAttachment,
+        SlLeftRollAttachment;
+    std::unique_ptr<SliderAttachment> SlLeftWarpFactorAzAttachment, SlLeftWarpFactorElAttachment;
+    std::unique_ptr<SliderAttachment> SlLeftDelayAttachment, SlLeftDelayMultAttachment,
+        SlLeftLfoRateAttachment, SlLeftLfoDepthAttachment, SlLeftFbAttachment,
+        SlLeftCrossFbAttachment, SlLeftGainAttachment;
+    std::unique_ptr<ComboBoxAttachment> cbLeftTransfromModeAttachment, cbLeftWarpTypeAzAttachment,
+        cbLeftWarpTypeElAttachment;
+    std::unique_ptr<ButtonAttachment> btLeftSyncAttachment;
 
     // elements for right side
     DoubleSlider dblSlRightFilter;
-    ReverseSlider SlRightRot;
-    ReverseSlider SlRightDelay, SlRightLfoRate, SlRightLfoDepth, SlRightFb, SlRightCrossFb,
-        SlRightGain;
+    ReverseSlider SlRightYaw, SlRightPitch, SlRightRoll;
+    ReverseSlider SlRightWarpFactorAz, SlRightWarpFactorEl;
+    ReverseSlider SlRightDelay, SlRightDelayMS, SlRightDelayMult, SlRightLfoRate, SlRightLfoDepth,
+        SlRightFb, SlRightCrossFb, SlRightGain;
+    juce::ComboBox cbRightTransfromMode, cbRightWarpTypeAz, cbRightWarpTypeEl;
+    juce::ToggleButton tbRightSync;
+    juce::TextButton btRightTap;
 
     std::unique_ptr<SliderAttachment> dblSlRightFilterHpAttachment, dblSlRightFilterLpAttachment;
-    std::unique_ptr<SliderAttachment> SlRightRotAttachment;
-    std::unique_ptr<SliderAttachment> SlRightDelayAttachment, SlRightLfoRateAttachment,
-        SlRightLfoDepthAttachment, SlRightFbAttachment, SlRightCrossFbAttachment,
-        SlRightGainAttachment;
+    std::unique_ptr<SliderAttachment> SlRightYawAttachment, SlRightPitchAttachment,
+        SlRightRollAttachment;
+    std::unique_ptr<SliderAttachment> SlRightWarpFactorAzAttachment, SlRightWarpFactorElAttachment;
+    std::unique_ptr<SliderAttachment> SlRightDelayAttachment, SlRightDelayMultAttachment,
+        SlRightLfoRateAttachment, SlRightLfoDepthAttachment, SlRightFbAttachment,
+        SlRightCrossFbAttachment, SlRightGainAttachment;
+    std::unique_ptr<ComboBoxAttachment> cbRightTransfromModeAttachment, cbRightWarpTypeAzAttachment,
+        cbRightWarpTypeElAttachment;
+    std::unique_ptr<ButtonAttachment> btRightSyncAttachment;
+
+    juce::TextButton btTimeMode;
 
     // labels and groups
-    SimpleLabel lbRotL, lbDelL, lbFbL, lbXFbL;
-    SimpleLabel lbRotR, lbDelR, lbFbR, lbXFbR;
+    SimpleLabel lbYawL, lbPitchL, lbRollL, lbDelL, lbDelMultL, lbFbL, lbXFbL, lbWarpFactorAzL,
+        lbAzModeL, lbElModeL, lbWarpFactorElL;
+    SimpleLabel lbYawR, lbPitchR, lbRollR, lbDelR, lbDelMultR, lbFbR, lbXFbR, lbWarpFactorAzR,
+        lbAzModeR, lbElModeR, lbWarpFactorElR;
     SimpleLabel lbGainL, lbGainR, lbGainDry;
     TripleLabel lbLfoL, lbLfoR, lbFilterL, lbFilterR;
 
     juce::GroupComponent gcRotDelL, gcRotDelR, gcFiltL, gcFiltR, gcFbL, gcFbR, gcOutput;
+
+    double lastTap = 0.0;
+    double tapIntervalMS = 0.0;
+    const double tapBeta = 0.8;
+    const double minTapIntervalMS = 100.0;
+    const double maxTapIntervalMS = 2000.0;
+
+    bool isModeMS { false };
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (DualDelayAudioProcessorEditor)
 };

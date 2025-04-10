@@ -35,9 +35,19 @@ SimpleDecoderAudioProcessor::SimpleDecoderAudioProcessor() :
         BusesProperties()
     #if ! JucePlugin_IsMidiEffect
         #if ! JucePlugin_IsSynth
-            .withInput ("Input", juce::AudioChannelSet::discreteChannels (64), true)
+            .withInput ("Input",
+                        ((juce::PluginHostType::getPluginLoadedAs()
+                          == juce::AudioProcessor::wrapperType_VST3)
+                             ? juce::AudioChannelSet::ambisonic (1)
+                             : juce::AudioChannelSet::ambisonic (7)),
+                        true)
         #endif
-            .withOutput ("Output", juce::AudioChannelSet::discreteChannels (64), true)
+            .withOutput ("Output",
+                         ((juce::PluginHostType::getPluginLoadedAs()
+                           == juce::AudioProcessor::wrapperType_VST3)
+                              ? juce::AudioChannelSet::ambisonic (1)
+                              : juce::AudioChannelSet::ambisonic (7)),
+                         true)
     #endif
             ,
 #endif
@@ -136,7 +146,7 @@ void SimpleDecoderAudioProcessor::setLastDir (juce::File newLastDir)
 //==============================================================================
 int SimpleDecoderAudioProcessor::getNumPrograms()
 {
-    return 11;
+    return 16;
 }
 
 int SimpleDecoderAudioProcessor::getCurrentProgram()
@@ -154,42 +164,48 @@ void SimpleDecoderAudioProcessor::setCurrentProgram (int index)
         case 1:
             preset = juce::String (Presets::CUBE_json, Presets::CUBE_jsonSize);
             break;
-
         case 2:
             preset =
                 juce::String (Presets::Produktionsstudio_json, Presets::Produktionsstudio_jsonSize);
             break;
-
         case 3:
             preset = juce::String (Presets::MSDecoder_json, Presets::MSDecoder_jsonSize);
             break;
-
         case 4:
             preset = juce::String (Presets::Quadraphonic_json, Presets::Quadraphonic_jsonSize);
             break;
-
         case 5:
             preset = juce::String (Presets::_5point1_json, Presets::_5point1_jsonSize);
             break;
-
         case 6:
             preset = juce::String (Presets::_7point1_json, Presets::_7point1_jsonSize);
             break;
-
         case 7:
             preset = juce::String (Presets::_5point1point4_json, Presets::_5point1point4_jsonSize);
             break;
-
         case 8:
             preset = juce::String (Presets::_7point1point4_json, Presets::_7point1point4_jsonSize);
             break;
-
         case 9:
             preset = juce::String (Presets::Cube_8ch_json, Presets::Cube_8ch_jsonSize);
             break;
-
         case 10:
             preset = juce::String (Presets::_22_2_NHK_json, Presets::_22_2_NHK_jsonSize);
+            break;
+        case 11:
+            preset = juce::String (Presets::t_design_12ch_json, Presets::t_design_12ch_jsonSize);
+            break;
+        case 12:
+            preset = juce::String (Presets::t_design_24ch_json, Presets::t_design_24ch_jsonSize);
+            break;
+        case 13:
+            preset = juce::String (Presets::t_design_36ch_json, Presets::t_design_36ch_jsonSize);
+            break;
+        case 14:
+            preset = juce::String (Presets::t_design_48ch_json, Presets::t_design_48ch_jsonSize);
+            break;
+        case 15:
+            preset = juce::String (Presets::t_design_60ch_json, Presets::t_design_60ch_jsonSize);
             break;
 
         default:
@@ -226,6 +242,16 @@ const juce::String SimpleDecoderAudioProcessor::getProgramName (int index)
             return "8ch Cube";
         case 10:
             return "22.2 NHK";
+        case 11:
+            return "t-design (12 channels)";
+        case 12:
+            return "t-design (24 channels)";
+        case 13:
+            return "t-design (36 channels)";
+        case 14:
+            return "t-design (48 channels)";
+        case 15:
+            return "t-design (60 channels)";
 
         default:
             return {};
@@ -562,8 +588,6 @@ void SimpleDecoderAudioProcessor::loadConfigFromString (juce::String configStrin
     if (configString.isEmpty())
         return;
 
-    lastConfigString = configString;
-
     juce::var parsedJson;
     juce::Result result = juce::JSON::parse (configString, parsedJson);
 
@@ -574,7 +598,11 @@ void SimpleDecoderAudioProcessor::loadConfigFromString (juce::String configStrin
 
     result = ConfigurationHelper::parseVarForDecoder (parsedJson, &tempDecoder);
     if (result.failed())
+    {
         messageForEditor = result.getErrorMessage();
+        messageChanged = true;
+        return;
+    }
 
     if (tempDecoder != nullptr)
     {
@@ -603,6 +631,7 @@ void SimpleDecoderAudioProcessor::loadConfigFromString (juce::String configStrin
 
     updateDecoderInfo = true;
     messageChanged = true;
+    lastConfigString = configString;
 }
 
 //==============================================================================

@@ -38,7 +38,7 @@ class DirectivityVisualizer : public juce::Component
 
     const float deg2rad = juce::MathConstants<float>::pi / 180.0f;
     const int degStep = 1;
-    const int nLookUpSamples = 360;
+    const int nLookUpSamples = 361;
     const int maxdB = 90;
     const float power = 3.0f;
     const int dBstep = 10;
@@ -196,8 +196,11 @@ public:
         g.strokePath (path, juce::PathStrokeType (0.5f));
 
         g.setColour (juce::Colours::white);
-        g.setFont (getLookAndFeel().getTypefaceForFont (juce::Font (12.0f, 2)));
-        g.setFont (12.0f);
+
+        auto currentFont =
+            juce::FontOptions (getLookAndFeel().getTypefaceForFont (juce::FontOptions (12.0f, 2)))
+                .withHeight (12.0f);
+        g.setFont (currentFont);
         g.drawText ("0 dB",
                     centreX - 10,
                     centreY + scale * dBToRadius (0.0f) - 12,

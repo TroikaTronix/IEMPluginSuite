@@ -36,6 +36,7 @@ EnergyVisualizerAudioProcessorEditor::EnergyVisualizerAudioProcessorEditor (
     // editor's size to whatever you need it to be.
 
     setResizeLimits (710, 410, 1500, 1200);
+    setResizable (true, true);
     setLookAndFeel (&globalLaF);
 
     addAndMakeVisible (&title);

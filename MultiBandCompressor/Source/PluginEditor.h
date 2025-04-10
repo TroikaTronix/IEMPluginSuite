@@ -100,7 +100,8 @@ private:
     RoundButton tbSolo[numFilterBands];
     RoundButton tbBypass[numFilterBands];
     std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment>
-        soloAttachment[numFilterBands], bypassAttachment[numFilterBands];
+        soloAttachment[numFilterBands], bypassAttachment[numFilterBands],
+        overallMagnitudeDisplayAttachment;
 
     // Compressor Parameters
     ReverseSlider slKnee[numFilterBands], slThreshold[numFilterBands], slRatio[numFilterBands],

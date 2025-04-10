@@ -1,19 +1,27 @@
+set (PLUGIN_TARGET "")
 
-juce_add_plugin (GranularEncoder
-    PLUGIN_MANUFACTURER_CODE IEMA
-    PLUGIN_CODE GrEn
-    ICON_BIG "../resources/Standalone/IEMPluginSuiteSmall.png"
-    ICON_SMALL "../resources/Standalone/IEMPluginSuiteSmall.png"
-    COMPANY_NAME "IEM"
-    PRODUCT_NAME "GranularEncoder"
-    FORMATS ${IEM_FORMATS}
-    VERSION "1.0.1"
-    LV2URI "http://plugins.iem.at/GranularEncoder")
+if (IEM_FORMATS)
+    juce_add_plugin (GranularEncoder
+        PLUGIN_MANUFACTURER_CODE IEMA
+        PLUGIN_CODE GrEn
+        ICON_BIG "../resources/Standalone/IEMPluginSuiteSmall.png"
+        ICON_SMALL "../resources/Standalone/IEMPluginSuiteSmall.png"
+        COMPANY_NAME "IEM"
+        PRODUCT_NAME "GranularEncoder"
+        FORMATS ${IEM_FORMATS}
+        VERSION ${GranularEncoder_VERSION}
+        LV2URI "http://plugins.iem.at/GranularEncoder"
+        VST2_CATEGORY kPlugSurroundFx kPlugCategSpacializer kPlugCategEffect kPlugCategRoomFx kPlugCategSynth
+        VST3_CATEGORIES Spatial Surround Up-Downmix Synth
+        AAX_CATEGORY SoundField)
 
+    list (APPEND PLUGIN_TARGET GranularEncoder)
+endif()
 
-juce_generate_juce_header (GranularEncoder)
+foreach (TARGET IN LISTS PLUGIN_TARGET)
+juce_generate_juce_header (${TARGET})
 
-target_sources (GranularEncoder PRIVATE
+target_sources (${TARGET} PRIVATE
     Source/PluginEditor.cpp
     Source/PluginEditor.h
     Source/PluginProcessor.cpp
@@ -31,7 +39,7 @@ target_sources (GranularEncoder PRIVATE
     ../resources/efficientSHvanilla.cpp
     )
 
-target_compile_definitions (GranularEncoder PRIVATE
+target_compile_definitions (${TARGET} PRIVATE
     JUCE_USE_CURL=0
     JUCE_WEB_BROWSER=0
     JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1
@@ -40,12 +48,11 @@ target_compile_definitions (GranularEncoder PRIVATE
     JUCE_USE_MP3AUDIOFORMAT=0
     JUCE_USE_LAME_AUDIO_FORMAT=0
     JUCE_USE_WINDOWS_MEDIA_FORMAT=0
-    JUCE_DISPLAY_SPLASH_SCREEN=0
     JUCE_VST3_CAN_REPLACE_VST2=0)
 
-target_include_directories (GranularEncoder PRIVATE Source)
+target_include_directories (${TARGET} PRIVATE Source)
 
-target_link_libraries (GranularEncoder PRIVATE
+target_link_libraries (${TARGET} PRIVATE
     LAF_fonts
     IEM_logo
     juce::juce_audio_utils
@@ -54,3 +61,4 @@ target_link_libraries (GranularEncoder PRIVATE
     juce::juce_opengl
     juce::juce_recommended_config_flags
     juce::juce_recommended_lto_flags)
+endforeach()

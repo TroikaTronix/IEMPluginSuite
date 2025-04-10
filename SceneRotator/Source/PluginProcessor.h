@@ -29,13 +29,17 @@
 #include "../../resources/Quaternion.h"
 #include "../../resources/ReferenceCountedMatrix.h"
 
+#include "../../resources/ht-api-juce/supperware/Tracker.h"
+#include "../../resources/ht-api-juce/supperware/midi/midi.h"
+
 #define ProcessorClass SceneRotatorAudioProcessor
 
 //==============================================================================
 class SceneRotatorAudioProcessor
     : public AudioProcessorBase<IOTypes::Ambisonics<>, IOTypes::Ambisonics<>, true>,
       private juce::MidiMessageCollector,
-      private juce::Timer
+      private juce::Timer,
+      private Midi::TrackerDriver::Listener
 {
 public:
     constexpr static int numberOfInputChannels = 64;
@@ -90,18 +94,21 @@ public:
         none = 0,
         mrHeadTrackerYprDir,
         mrHeadTrackerYprInv,
-        mrHeadTrackerQuaternions
+        mrHeadTrackerQuaternions,
+        supperwareQuaternions
     };
 
     const juce::StringArray midiSchemeNames { "none (link only)",
                                               "MrHT YPR Direct",
                                               "MrHT YPR Inverse",
-                                              "MrHT Quaternions" };
+                                              "MrHT Quaternions",
+                                              "Supperware" };
 
-    const juce::Identifier midiSchemeIdentifieres[4] { "none",
+    const juce::Identifier midiSchemeIdentifieres[5] { "none",
                                                        "MrHT_YprDir",
                                                        "MrHT_YprInv",
-                                                       "MrHT_Quat" };
+                                                       "MrHT_Quat",
+                                                       "Sup_Quat" };
 
     juce::MidiDeviceInfo getCurrentMidiDeviceInfo();
     void openMidiInput (juce::MidiDeviceInfo midiDevice,
@@ -113,6 +120,10 @@ public:
     const juce::StringArray getMidiSchemes() { return midiSchemeNames; };
     MidiScheme getCurrentMidiScheme() { return currentMidiScheme; };
     void setMidiScheme (MidiScheme newMidiScheme);
+
+    //======= Supperware ===========================================================
+    void trackerMidiConnectionChanged (Midi::State newState) override;
+    void trackerOrientationQ (float inp_qw, float inp_qx, float inp_qy, float inp_qz) override;
 
     //==============================================================================
     // Flags for editor
@@ -171,6 +182,10 @@ private:
     juce::MidiDeviceInfo currentMidiDeviceInfo;
     MidiScheme currentMidiScheme = MidiScheme::none;
     juce::CriticalSection changingMidiDevice;
+
+    // TrackerDriver for Supperware head tracker
+    Midi::TrackerDriver trackerDriver;
+    Midi::State supMidiState = Midi::State::Unavailable;
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SceneRotatorAudioProcessor)
 };

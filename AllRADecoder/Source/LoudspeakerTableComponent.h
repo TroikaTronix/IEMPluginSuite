@@ -42,7 +42,8 @@ public:
         lspVisualizer (visualizer),
         engVisualizer (energyVis)
     {
-        typeFace = getLookAndFeel().getTypefaceForFont (12);
+        typeFace =
+            juce::FontOptions (getLookAndFeel().getTypefaceForFont (juce::FontOptions (12.0f, 0)));
 
         addAndMakeVisible (table);
         table.setModel (this);
@@ -334,7 +335,7 @@ public:
 
 private:
     juce::TableListBox table; // the table component itself
-    juce::Typeface::Ptr typeFace;
+    juce::FontOptions typeFace;
     juce::ValueTree& data;
     juce::UndoManager& undoManager;
 
@@ -389,8 +390,10 @@ private:
                         g.setColour (juce::Colours::white);
                 }
 
-                g.setFont (getLookAndFeel().getTypefaceForFont (juce::Font (12.0f)));
-                g.setFont (13.f);
+                auto currentFont = juce::FontOptions (getLookAndFeel().getTypefaceForFont (
+                                                          juce::FontOptions (13.0f, 0)))
+                                       .withHeight (13.0f);
+                g.setFont (currentFont);
 
                 juce::Rectangle<int> textArea (getBorderSize().subtractedFrom (getLocalBounds()));
 

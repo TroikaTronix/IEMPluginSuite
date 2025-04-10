@@ -63,8 +63,9 @@ public:
                       float dbMax,
                       float gridDiv,
                       bool gainHandleLin = false) :
-        overallGainInDb (0.0f), sampleRate (48000.0), s { fMin,  fMax,    dbMin,
-                                                          dbMax, gridDiv, gainHandleLin }
+        overallGainInDb (0.0f),
+        sampleRate (48000.0),
+        s { fMin, fMax, dbMin, dbMax, gridDiv, gainHandleLin }
     {
         init();
     }
@@ -83,7 +84,8 @@ public:
         g.setColour (juce::Colours::steelblue.withMultipliedAlpha (0.01f));
         g.fillAll();
 
-        g.setFont (getLookAndFeel().getTypefaceForFont (juce::Font (12.0f, 2)));
+        g.setFont (
+            juce::FontOptions (getLookAndFeel().getTypefaceForFont (juce::FontOptions (12.0f, 2))));
         g.setFont (12.0f);
 
         // db labels

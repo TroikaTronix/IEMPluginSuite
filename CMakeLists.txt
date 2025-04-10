@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.13)
+cmake_minimum_required (VERSION 3.22 FATAL_ERROR)
 include(CheckIncludeFiles)
 
 #  _____ ______ __  __   _____  _                    _          _____       _ _
@@ -42,8 +42,11 @@ option (IEM_USE_SYSTEM_JUCE "Use JUCE found via CMake rather than the bundled on
 option (IEM_BUILD_VST2 "Build VST2 version of the plug-ins." OFF)
 option (IEM_BUILD_VST3 "Build VST3 version of the plug-ins." OFF)
 option (IEM_BUILD_LV2 "Build LV2 version of the plug-ins." OFF)
+option (IEM_BUILD_AAX "Build AAX version of the plug-ins." OFF)
 option (IEM_BUILD_STANDALONE "Build standalones of the plug-ins." ON)
 option (IEM_STANDALONE_JACK_SUPPORT "Build standalones with JACK support." ON)
+
+include (Versions.cmake)
 
 set (IEM_POST_BUILD_INSTALL "USER" CACHE STRING "Define if plug-ins are installed for USER, SYSTEM or if you want NO installation")
 set (prefix "/usr/local" CACHE STRING "Path prefix for custom installation")
@@ -51,7 +54,7 @@ set (prefix "/usr/local" CACHE STRING "Path prefix for custom installation")
 set (CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 # Actual project configuration
-project (IEMPluginSuite VERSION 1.14.1 LANGUAGES C CXX)
+project (IEMPluginSuite VERSION ${IEMPluginSuite_VERISON} LANGUAGES C CXX)
 
 set_property (GLOBAL PROPERTY USE_FOLDERS YES)
 
@@ -71,13 +74,23 @@ elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     set_directory_properties (PROPERTIES JUCE_VST_COPY_DIR "${prefix}/VST/IEM")
     set_directory_properties (PROPERTIES JUCE_VST3_COPY_DIR "${prefix}/VST3/IEM")
     set_directory_properties (PROPERTIES JUCE_LV2_COPY_DIR "${prefix}/LV2")
+    set_directory_properties (PROPERTIES JUCE_AAX_COPY_DIR "/Library/Application Support/Avid/Audio/Plug-Ins/IEM")
+    # TODO: I've found no references for a local AAX installation on macOS, so I need to check this
 
 elseif (CMAKE_SYSTEM_NAME STREQUAL "Windows")
     set_directory_properties (PROPERTIES JUCE_COPY_PLUGIN_AFTER_BUILD ON)
 
+    if(MSVC)
+        message (STATUS "MSVC detected, setting runtime library to Multi-threaded (/MT)")
+        add_compile_options($<$<CONFIG:Release>:/MT> # Runtime library: Multi-threaded
+                            $<$<CONFIG:RelWithDebInfo>:/MT> # Runtime library: Multi-threaded                           
+                            $<$<CONFIG:Debug>:/MTd> # Runtime library: Multi-threaded Debug
+                            )
+    endif()
+
     if ((IEM_POST_BUILD_INSTALL STREQUAL "USER") AND (prefix STREQUAL "/usr/local"))
-        if (IEM_BUILD_VST3 OR IEM_BUILD_VST2)
-            message (WARNING "VST and VST3 plug-ins are installed for all users by default as there is no officially supported consistent directory for local installation. Using SYSTEM for those. You can provide a costum prefix to change this behaviour.")
+        if (IEM_BUILD_VST3 OR IEM_BUILD_VST2 OR IEM_BUILD_AAX)
+            message (WARNING "VST, VST3 and AAX plug-ins are installed for all users by default as there is no officially supported consistent directory for local installation. Using SYSTEM for those. You can provide a costum prefix to change this behaviour.")
             set (IEM_POST_BUILD_INSTALL "SYSTEM")
         endif()
 
@@ -88,6 +101,7 @@ elseif (CMAKE_SYSTEM_NAME STREQUAL "Windows")
         set_directory_properties (PROPERTIES JUCE_VST_COPY_DIR "${prefix}/VST")
         set_directory_properties (PROPERTIES JUCE_VST3_COPY_DIR "${prefix}/VST3")
         set_directory_properties(PROPERTIES JUCE_LV2_COPY_DIR "${prefix}/LV2")
+        set_directory_properties(PROPERTIES JUCE_AAX_COPY_DIR "${prefix}/AAX")
 
     else()  # Defaulting to SYSTEM as this is the only valid path on Windows for VST and VST3
         set_directory_properties(PROPERTIES JUCE_LV2_COPY_DIR "$ENV{CommonProgramFiles}/LV2")
@@ -95,13 +109,13 @@ elseif (CMAKE_SYSTEM_NAME STREQUAL "Windows")
         if (CMAKE_SIZEOF_VOID_P EQUAL 8)
             set_directory_properties (PROPERTIES JUCE_VST_COPY_DIR "$ENV{ProgramW6432}/Steinberg/VSTplugins/IEM")
             set_directory_properties (PROPERTIES JUCE_VST3_COPY_DIR "$ENV{CommonProgramFiles}/VST3/IEM")
+            set_directory_properties (PROPERTIES JUCE_AAX_COPY_DIR "$ENV{CommonProgramFiles}/Avid/Audio/Plug-Ins/IEM")
         else()
             set_directory_properties (PROPERTIES JUCE_VST_COPY_DIR "$ENV{ProgramFiles(x86)}/Steinberg/Vstplugins/IEM")
             set_directory_properties (PROPERTIES JUCE_VST3_COPY_DIR "$ENV{CommonProgramFiles(x86)}/VST3/IEM")
         endif()
 
     endif()
-
 
 elseif ((CMAKE_SYSTEM_NAME STREQUAL "Linux") OR (CMAKE_SYSTEM_NAME MATCHES ".*BSD"))
     set_directory_properties (PROPERTIES JUCE_COPY_PLUGIN_AFTER_BUILD ON)
@@ -119,7 +133,9 @@ endif()
 
 # add JUCE dependency
 if (IEM_USE_SYSTEM_JUCE)
-    find_package(JUCE CONFIG REQUIRED)
+    set (CMAKE_WARN_DEPRECATED TRUE)
+    message (DEPRECATION "Using a system JUCE installation may be deprecated in future releases. Please use the fetched version instead.")
+    find_package (JUCE CONFIG REQUIRED)
 else()
     add_subdirectory (JUCE)
 endif()
@@ -128,10 +144,14 @@ endif()
 set (IEM_FORMATS "")
 
 if (IEM_BUILD_VST2)
-    SET (VST2SDKPATH "/usr/include" CACHE STRING "Path to the VST2 SDK")
+    SET (VST2SDKPATH "${CMAKE_CURRENT_SOURCE_DIR}/src/VST_SDK/VST2_SDK/" CACHE STRING "Path to the VST2 SDK")
+
     # checking VST2 SDK
-    if (VST2SDKPATH STREQUAL "/usr/include")
+    if (VST2SDKPATH STREQUAL "${CMAKE_CURRENT_SOURCE_DIR}/src/VST_SDK/VST2_SDK/")
+        set(CMAKE_REQUIRED_INCLUDES "${VST2SDKPATH}")
+        include(CheckIncludeFiles)
         CHECK_INCLUDE_FILES(pluginterfaces/vst2.x/aeffectx.h HAVE_VST2_HEADERS)
+
         IF (NOT HAVE_VST2_HEADERS)
             message (FATAL_ERROR "You have to specify the VST2SDKPATH variable with the path to the VST2 SDK if you want to build VST2 versions.")
         endif()
@@ -149,6 +169,11 @@ endif()
 if (IEM_BUILD_LV2)
     message ("-- IEM: Building LV2 versions")
     list (APPEND IEM_FORMATS LV2)
+endif()
+
+if (IEM_BUILD_AAX)
+    message ("-- IEM: Building AAX versions")
+    list (APPEND IEM_FORMATS AAX)
 endif()
 
 if (IEM_BUILD_STANDALONE)
@@ -190,8 +215,10 @@ if (BinauralDecoder IN_LIST PLUGINS_TO_BUILD AND NOT CMAKE_SYSTEM_NAME STREQUAL 
         set_target_properties ("fftw3f" PROPERTIES POSITION_INDEPENDET_CODE ON)
     endif()
 
-    target_compile_definitions ("BinauralDecoder" PUBLIC JUCE_DSP_USE_STATIC_FFTW=1)
-    target_link_libraries ("BinauralDecoder" PRIVATE fftw3f)
+    if (IEM_FORMATS)
+        target_compile_definitions ("BinauralDecoder" PUBLIC JUCE_DSP_USE_STATIC_FFTW=1)
+        target_link_libraries ("BinauralDecoder" PRIVATE fftw3f)
+    endif()
 endif()
 
 

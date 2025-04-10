@@ -30,7 +30,12 @@ ProbeDecoderAudioProcessor::ProbeDecoderAudioProcessor() :
         BusesProperties()
     #if ! JucePlugin_IsMidiEffect
         #if ! JucePlugin_IsSynth
-            .withInput ("Input", juce::AudioChannelSet::discreteChannels (64), true)
+            .withInput ("Input",
+                        ((juce::PluginHostType::getPluginLoadedAs()
+                          == juce::AudioProcessor::wrapperType_VST3)
+                             ? juce::AudioChannelSet::ambisonic (1)
+                             : juce::AudioChannelSet::ambisonic (7)),
+                        true)
         #endif
             .withOutput ("Output", juce::AudioChannelSet::mono(), true)
     #endif

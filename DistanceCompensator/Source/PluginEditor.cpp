@@ -177,6 +177,7 @@ DistanceCompensatorAudioProcessorEditor::DistanceCompensatorAudioProcessorEditor
     toolTipWin.setOpaque (false);
 
     setResizeLimits (500, 650, 500, 650); // use this to create a resizable GUI
+    setResizable (true, true);
 
     // start timer after everything is set up properly
     startTimer (20);

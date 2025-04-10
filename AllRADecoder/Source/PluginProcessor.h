@@ -99,6 +99,7 @@ public:
     void playAmbisonicNoiseBurst (const float azimuth, const float elevation);
     void addRandomPoint();
     void addImaginaryLoudspeakerBelow();
+    void clearLoudspeakers();
 
     void undo() { undoManager.undo(); }
     void redo() { undoManager.redo(); }

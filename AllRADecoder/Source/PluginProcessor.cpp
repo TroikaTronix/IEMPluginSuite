@@ -35,9 +35,19 @@ AllRADecoderAudioProcessor::AllRADecoderAudioProcessor() :
         BusesProperties()
     #if ! JucePlugin_IsMidiEffect
         #if ! JucePlugin_IsSynth
-            .withInput ("Input", juce::AudioChannelSet::discreteChannels (64), true)
+            .withInput ("Input",
+                        ((juce::PluginHostType::getPluginLoadedAs()
+                          == juce::AudioProcessor::wrapperType_VST3)
+                             ? juce::AudioChannelSet::ambisonic (1)
+                             : juce::AudioChannelSet::ambisonic (7)),
+                        true)
         #endif
-            .withOutput ("Output", juce::AudioChannelSet::discreteChannels (64), true)
+            .withOutput ("Output",
+                         ((juce::PluginHostType::getPluginLoadedAs()
+                           == juce::AudioProcessor::wrapperType_VST3)
+                              ? juce::AudioChannelSet::ambisonic (1)
+                              : juce::AudioChannelSet::ambisonic (7)),
+                         true)
     #endif
             ,
 #endif
@@ -576,6 +586,14 @@ void AllRADecoderAudioProcessor::addImaginaryLoudspeakerBelow()
                                         true,
                                         0.0f),
         &undoManager);
+}
+
+void AllRADecoderAudioProcessor::clearLoudspeakers()
+{
+    undoManager.beginNewTransaction();
+    loudspeakers.removeAllChildren (&undoManager);
+    highestChannelNumber = 0;
+    prepareLayout();
 }
 
 void AllRADecoderAudioProcessor::addRandomPoint()
@@ -1123,14 +1141,12 @@ void AllRADecoderAudioProcessor::saveConfigurationToFile (juce::File destination
     jsonObj->setProperty (
         "Name",
         juce::var ("All-Round Ambisonic decoder (AllRAD) and loudspeaker layout"));
-    char versionString[10];
-    strcpy (versionString, "v");
-    strcat (versionString, JucePlugin_VersionString);
+    juce::String versionString = juce::String ("v") + juce::String (JucePlugin_VersionString);
+
     jsonObj->setProperty (
         "Description",
-        juce::var ("This configuration file was created with the IEM AllRADecoder "
-                   + juce::String (versionString) + " plug-in. "
-                   + juce::Time::getCurrentTime().toString (true, true)));
+        juce::var ("This configuration file was created with the IEM AllRADecoder " + versionString
+                   + " plug-in. " + juce::Time::getCurrentTime().toString (true, true)));
 
     if (*exportDecoder >= 0.5f)
     {

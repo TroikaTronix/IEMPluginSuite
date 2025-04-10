@@ -48,9 +48,19 @@ SceneRotatorAudioProcessor::SceneRotatorAudioProcessor() :
         BusesProperties()
     #if ! JucePlugin_IsMidiEffect
         #if ! JucePlugin_IsSynth
-            .withInput ("Input", juce::AudioChannelSet::discreteChannels (64), true)
+            .withInput ("Input",
+                        ((juce::PluginHostType::getPluginLoadedAs()
+                          == juce::AudioProcessor::wrapperType_VST3)
+                             ? juce::AudioChannelSet::ambisonic (1)
+                             : juce::AudioChannelSet::ambisonic (7)),
+                        true)
         #endif
-            .withOutput ("Output", juce::AudioChannelSet::discreteChannels (64), true)
+            .withOutput ("Output",
+                         ((juce::PluginHostType::getPluginLoadedAs()
+                           == juce::AudioProcessor::wrapperType_VST3)
+                              ? juce::AudioChannelSet::ambisonic (1)
+                              : juce::AudioChannelSet::ambisonic (7)),
+                         true)
     #endif
             ,
 #endif
@@ -100,6 +110,9 @@ SceneRotatorAudioProcessor::SceneRotatorAudioProcessor() :
         auto elemCopy = orderMatricesCopy.add (new juce::dsp::Matrix<float> (nCh, nCh));
         elemCopy->clear();
     }
+
+    trackerDriver.addListener (this);
+    trackerDriver.setAutoDisconnect (false);
 
     startTimer (500);
 }
@@ -942,7 +955,8 @@ std::vector<std::unique_ptr<juce::RangedAudioParameter>>
 void SceneRotatorAudioProcessor::timerCallback()
 {
     // retrying to connect to a desired device which might not be physically connected
-    if (currentMidiDeviceInfo.identifier != "" && midiInput == nullptr)
+    if (currentMidiDeviceInfo.identifier != ""
+        && (midiInput == nullptr && supMidiState != Midi::State::Connected))
         openMidiInput (currentMidiDeviceInfo);
 }
 
@@ -987,7 +1001,36 @@ void SceneRotatorAudioProcessor::openMidiInput (juce::MidiDeviceInfo midiDevice,
     juce::Array<juce::MidiDeviceInfo> devices = juce::MidiInput::getAvailableDevices();
 
     const int index = devices.indexOf (midiDevice);
-    //const auto deviceIdentifier 0;
+
+    if (devices[index].name.startsWith (juce::String ("Head Tracker")))
+    {
+        if (supMidiState == Midi::State::Available)
+        {
+            trackerDriver.connect();
+            currentMidiDeviceInfo = midiDevice;
+            DBG ("Supperware HT connected");
+
+            if (currentMidiScheme == MidiScheme::supperwareQuaternions)
+            {
+                trackerDriver.turnOn (false, true);
+                trackerDriver.zero();
+                DBG ("Supperware HT turned on");
+            }
+
+            return;
+        }
+        else
+        {
+            DBG ("Supperware HT selected, but MIDI state unavailable");
+            currentMidiDeviceInfo =
+                midiDevice; // Still updating midiDevice so that is can be reconnected when available
+            return;
+        }
+    }
+    else if (supMidiState
+             == Midi::State::Connected) // If HT connected but not selected as HT device
+        closeMidiInput();
+
     if (index != -1)
     {
         midiInput = juce::MidiInput::openDevice (devices[index].identifier, this);
@@ -1020,7 +1063,19 @@ void SceneRotatorAudioProcessor::openMidiInput (juce::MidiDeviceInfo midiDevice,
 void SceneRotatorAudioProcessor::closeMidiInput()
 {
     const juce::ScopedLock scopedLock (changingMidiDevice);
-    if (midiInput != nullptr)
+
+    if (currentMidiDeviceInfo.name.startsWith (juce::String ("Head Tracker")))
+    {
+        if (currentMidiScheme == MidiScheme::supperwareQuaternions)
+        {
+            trackerDriver.turnOff();
+            DBG ("Supperware HT turned off");
+        }
+
+        trackerDriver.disconnect();
+        DBG ("Closing Supperware Head Tracker");
+    }
+    else if (midiInput != nullptr)
     {
         midiInput->stop();
         midiInput.reset();
@@ -1035,8 +1090,24 @@ void SceneRotatorAudioProcessor::closeMidiInput()
     return;
 }
 
+void SceneRotatorAudioProcessor::trackerMidiConnectionChanged (Midi::State newState)
+{
+    if (newState != supMidiState)
+    {
+        DBG ("Supperware HT MIDI state changed to " << static_cast<int> (newState));
+        supMidiState = newState;
+    }
+}
+
 void SceneRotatorAudioProcessor::setMidiScheme (MidiScheme newMidiScheme)
 {
+    if ((currentMidiScheme == MidiScheme::supperwareQuaternions)
+        && (supMidiState == Midi::State::Connected))
+    {
+        trackerDriver.turnOff();
+        DBG ("Supperware HT turned off");
+    }
+
     currentMidiScheme = newMidiScheme;
     DBG ("Scheme set to " << midiSchemeNames[static_cast<int> (newMidiScheme)]);
 
@@ -1058,6 +1129,22 @@ void SceneRotatorAudioProcessor::setMidiScheme (MidiScheme newMidiScheme)
         case MidiScheme::mrHeadTrackerQuaternions:
             break;
 
+        case MidiScheme::supperwareQuaternions:
+        {
+            if (supMidiState == Midi::State::Connected)
+            {
+                trackerDriver.turnOn (true, true);
+                trackerDriver.zero();
+                DBG ("Supperware HT turned on");
+            }
+            else
+            {
+                DBG ("Supperware HT not connected");
+            }
+
+            break;
+        }
+
         default:
             DBG ("Not supported MidiScheme - I guess the casting from int failed hard!");
             jassertfalse;
@@ -1065,6 +1152,25 @@ void SceneRotatorAudioProcessor::setMidiScheme (MidiScheme newMidiScheme)
     }
 
     schemeHasChanged = true;
+}
+
+void SceneRotatorAudioProcessor::trackerOrientationQ (float inp_qw,
+                                                      float inp_qx,
+                                                      float inp_qy,
+                                                      float inp_qz)
+{
+    // The supperware head tracker sends quaternions with different reference system --> x and y are swapped
+    updatingParams =
+        true; // We always get all quaternions at once --> no need to update eulers four times
+    parameters.getParameter ("qw")->setValueNotifyingHost (
+        parameters.getParameterRange ("qw").convertTo0to1 (inp_qw));
+    parameters.getParameter ("qx")->setValueNotifyingHost (
+        parameters.getParameterRange ("qx").convertTo0to1 (-inp_qy));
+    parameters.getParameter ("qy")->setValueNotifyingHost (
+        parameters.getParameterRange ("qy").convertTo0to1 (inp_qx));
+    updatingParams = false;
+    parameters.getParameter ("qz")->setValueNotifyingHost (
+        parameters.getParameterRange ("qz").convertTo0to1 (-inp_qz));
 }
 
 //==============================================================================

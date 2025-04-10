@@ -42,6 +42,7 @@ AllRADecoderAudioProcessorEditor::AllRADecoderAudioProcessorEditor (
     // set GUI size and lookAndFeel
     //setSize(500, 300); // use this to create a fixed-size GUI
     setResizeLimits (1000, 600, 1200, 900); // use this to create a resizable GUI
+    setResizable (true, true);
     setLookAndFeel (&globalLaF);
 
     // make title and footer visible, and set the PluginName
@@ -118,6 +119,12 @@ AllRADecoderAudioProcessorEditor::AllRADecoderAudioProcessorEditor (
     tbAddSpeakers.setTooltip (
         "Adds a new loudspeaker with random position. \n Alt+click: adds an imaginary loudspeaker to the nadir position.");
     tbAddSpeakers.addListener (this);
+
+    addAndMakeVisible (tbClearSpeakers);
+    tbClearSpeakers.setButtonText ("CLEAR");
+    tbClearSpeakers.setColour (juce::TextButton::buttonColourId, juce::Colours::red);
+    tbClearSpeakers.setTooltip ("Delete all loudspeakers.");
+    tbClearSpeakers.addListener (this);
 
     addAndMakeVisible (tbJson);
     tbJson.setButtonText ("EXPORT");
@@ -207,7 +214,7 @@ void AllRADecoderAudioProcessorEditor::resized()
     juce::Rectangle<int> ctrlsAndDisplay (rightArea.removeFromBottom (80));
     juce::Rectangle<int> lspCtrlArea (ctrlsAndDisplay.removeFromTop (20));
     ctrlsAndDisplay.removeFromTop (5);
-    tbAddSpeakers.setBounds (lspCtrlArea.removeFromLeft (120));
+    tbAddSpeakers.setBounds (lspCtrlArea.removeFromLeft (110));
     lspCtrlArea.removeFromLeft (5);
     tbRotate.setBounds (lspCtrlArea.removeFromLeft (55));
     lspCtrlArea.removeFromLeft (5);
@@ -215,7 +222,8 @@ void AllRADecoderAudioProcessorEditor::resized()
     lspCtrlArea.removeFromLeft (5);
     tbRedo.setBounds (lspCtrlArea.removeFromLeft (55));
     lspCtrlArea.removeFromLeft (5);
-
+    tbClearSpeakers.setBounds (lspCtrlArea.removeFromLeft (55));
+    lspCtrlArea.removeFromLeft (5);
     tbImport.setBounds (lspCtrlArea.removeFromRight (80));
     messageDisplay.setBounds (ctrlsAndDisplay);
 
@@ -298,6 +306,10 @@ void AllRADecoderAudioProcessorEditor::buttonClicked (juce::Button* button)
             processor.addImaginaryLoudspeakerBelow();
         else
             processor.addRandomPoint();
+    }
+    else if (button == &tbClearSpeakers)
+    {
+        processor.clearLoudspeakers();
     }
     else if (button == &tbCalculateDecoder)
     {
