@@ -172,7 +172,37 @@ private:
     double W (int l, int m, int n, juce::dsp::Matrix<float>& Rone, juce::dsp::Matrix<float>& Rlm1);
 
     void timerCallback() override;
+    
+    // Quaternion notification
+    typedef int32_t NotifyHostFlags;
+	enum
+	{
+		// flags for updating yaw/pitch/roll
+		yawChanged = 1 << 0,
+		pitchChanged = 1 << 1,
+		rollChanged = 1 << 2,
+		
+		// flags for updating quaternion
+		quatChangedW = 1 << 3,
+		quatChangedX = 1 << 4,
+		quatChangedY = 1 << 5,
+		quatChangedZ = 1 << 6
+	};
+	
+    std::atomic<NotifyHostFlags> notfyHostPending { 0 };
 
+    inline void setParameterIfChanged(
+					juce::RangedAudioParameter*	inParam,
+					float						inNewValue,
+					NotifyHostFlags				inFlagToSet,
+					NotifyHostFlags&			ioHostFlags)
+				{
+					if (inNewValue != inParam->getValue()) {
+						inParam->setValue (inNewValue);
+						ioHostFlags |= inFlagToSet;
+					}
+				}
+   
     // ============ MIDI Device Connection ======================
     // MrHeadTracker 14-bit MIDI Data
     int yawLsb = 0, pitchLsb = 0, rollLsb = 0;

@@ -114,7 +114,7 @@ SceneRotatorAudioProcessor::SceneRotatorAudioProcessor() :
     trackerDriver.addListener (this);
     trackerDriver.setAutoDisconnect (false);
 
-    startTimer (500);
+    startTimer (50);
 }
 
 SceneRotatorAudioProcessor::~SceneRotatorAudioProcessor()
@@ -654,16 +654,27 @@ inline void SceneRotatorAudioProcessor::updateQuaternions()
         qz = -qz;
     }
 
+    auto* pQw = parameters.getParameter ("qw");
+    auto* pQx = parameters.getParameter ("qx");
+    auto* pQy = parameters.getParameter ("qy");
+    auto* pQz = parameters.getParameter ("qz");
+
+    auto qwNorm = parameters.getParameterRange ("qw").convertTo0to1 (qw);
+    auto qxNorm = parameters.getParameterRange ("qx").convertTo0to1 (qx);
+    auto qyNorm = parameters.getParameterRange ("qy").convertTo0to1 (qy);
+    auto qzNorm = parameters.getParameterRange ("qz").convertTo0to1 (qz);
+
+	NotifyHostFlags flags = 0;
+	
     updatingParams = true;
-    parameters.getParameter ("qw")->setValueNotifyingHost (
-        parameters.getParameterRange ("qw").convertTo0to1 (qw));
-    parameters.getParameter ("qx")->setValueNotifyingHost (
-        parameters.getParameterRange ("qx").convertTo0to1 (qx));
-    parameters.getParameter ("qy")->setValueNotifyingHost (
-        parameters.getParameterRange ("qy").convertTo0to1 (qy));
-    parameters.getParameter ("qz")->setValueNotifyingHost (
-        parameters.getParameterRange ("qz").convertTo0to1 (qz));
+    setParameterIfChanged(pQw, qwNorm, quatChangedW, flags);
+    setParameterIfChanged(pQx, qxNorm, quatChangedX, flags);
+	setParameterIfChanged(pQy, qyNorm, quatChangedY, flags);
+ 	setParameterIfChanged(pQz, qzNorm, quatChangedZ, flags);
     updatingParams = false;
+
+	if (flags != 0)
+		notfyHostPending.fetch_or(flags, std::memory_order_acq_rel);
 }
 
 void SceneRotatorAudioProcessor::updateEuler()
@@ -720,17 +731,20 @@ void SceneRotatorAudioProcessor::updateEuler()
         ypr[2] *= -1.0f;
 
     //updating not active params
+	auto* pYaw = parameters.getParameter ("yaw");
+	auto* pPitch = parameters.getParameter ("pitch");
+	auto* pRoll = parameters.getParameter ("roll");
+
+	NotifyHostFlags flags = 0;
+	
     updatingParams = true;
-    parameters.getParameter ("yaw")->setValueNotifyingHost (
-        parameters.getParameterRange ("yaw").convertTo0to1 (
-            Conversions<float>::radiansToDegrees (ypr[0])));
-    parameters.getParameter ("pitch")->setValueNotifyingHost (
-        parameters.getParameterRange ("pitch").convertTo0to1 (
-            Conversions<float>::radiansToDegrees (ypr[1])));
-    parameters.getParameter ("roll")->setValueNotifyingHost (
-        parameters.getParameterRange ("roll").convertTo0to1 (
-            Conversions<float>::radiansToDegrees (ypr[2])));
+	setParameterIfChanged(pYaw, ypr[0], yawChanged, flags);
+	setParameterIfChanged(pPitch, ypr[1], pitchChanged, flags);
+	setParameterIfChanged(pRoll, ypr[2], rollChanged, flags);
     updatingParams = false;
+
+	if (flags != 0)
+		notfyHostPending.fetch_or (flags, std::memory_order_acq_rel);
 }
 
 void SceneRotatorAudioProcessor::updateBuffers()
@@ -958,6 +972,32 @@ void SceneRotatorAudioProcessor::timerCallback()
     if (currentMidiDeviceInfo.identifier != ""
         && (midiInput == nullptr && supMidiState != Midi::State::Connected))
         openMidiInput (currentMidiDeviceInfo);
+        
+    // --- flush yaw/pitch/roll & quaternion param changes to host
+ 	const NotifyHostFlags flags = notfyHostPending.exchange(0, std::memory_order_acq_rel);
+ 	
+	auto notifyParam = [&](NotifyHostFlags bit, const char* paramID)
+    {
+        if (flags & bit)
+        {
+            auto* p = parameters.getParameter (paramID);
+            p->beginChangeGesture();
+            p->setValueNotifyingHost (p->getValue());
+            p->endChangeGesture();
+        }
+    };
+    
+    if (flags)
+    {
+		notifyParam (yawChanged,  "yaw");
+		notifyParam (pitchChanged,"pitch");
+		notifyParam (rollChanged, "roll");
+
+		notifyParam (quatChangedW, "qw");
+		notifyParam (quatChangedX, "qx");
+		notifyParam (quatChangedY, "qy");
+		notifyParam (quatChangedZ, "qz");
+    }
 }
 
 //==============================================================================
